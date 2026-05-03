@@ -183,8 +183,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -373,8 +373,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -491,8 +491,8 @@
         "climb": 40
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -589,8 +589,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -700,8 +700,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -807,8 +807,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -918,8 +918,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -1033,8 +1033,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 11,
+        "score": 21
       },
       "abilities": {
         "str": {
@@ -1144,8 +1144,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -1255,8 +1255,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 11,
+        "score": 21
       },
       "abilities": {
         "str": {
@@ -1366,8 +1366,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -1472,8 +1472,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -1584,8 +1584,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -1686,7 +1686,8 @@
       "hp": 90,
       "hp_formula": null,
       "speed": {
-        "walk": 10
+        "walk": 10,
+        "fly": 90
       },
       "initiative": {
         "modifier": 5,
@@ -1761,7 +1762,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/air-elemental"
+      "url": "https://www.aidedd.org/monster/air-elemental",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "allosaurus",
@@ -1858,8 +1862,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 16,
+        "score": 26
       },
       "abilities": {
         "str": {
@@ -1969,8 +1973,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -2076,8 +2080,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -2187,8 +2191,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -2302,8 +2306,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 15,
+        "score": 25
       },
       "abilities": {
         "str": {
@@ -2413,8 +2417,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 16,
+        "score": 26
       },
       "abilities": {
         "str": {
@@ -2528,8 +2532,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 15,
+        "score": 25
       },
       "abilities": {
         "str": {
@@ -2639,8 +2643,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -2745,8 +2749,8 @@
         "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -2857,8 +2861,8 @@
         "swim": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -2959,13 +2963,13 @@
       "hp": 323,
       "hp_formula": null,
       "speed": {
-        "walk": 50,
-        "climb": 30,
-        "swim": 30
+        "walk": 60,
+        "fly": 60,
+        "swim": 60
       },
       "initiative": {
-        "modifier": 7,
-        "score": 17
+        "modifier": 19,
+        "score": 29
       },
       "abilities": {
         "str": {
@@ -3021,7 +3025,10 @@
       "url": "https://www.aidedd.org/monster/animal-lord",
       "_warnings": [
         "No actions parsed"
-      ]
+      ],
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "animated-armor",
@@ -3113,12 +3120,12 @@
       "hp": 14,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 50
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -3181,7 +3188,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/animated-broom"
+      "url": "https://www.aidedd.org/monster/animated-broom",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "animated-flying-sword",
@@ -3194,7 +3204,8 @@
       "hp": 14,
       "hp_formula": null,
       "speed": {
-        "walk": 5
+        "walk": 5,
+        "fly": 50
       },
       "initiative": {
         "modifier": 4,
@@ -3256,7 +3267,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/animated-flying-sword"
+      "url": "https://www.aidedd.org/monster/animated-flying-sword",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "animated-object",
@@ -3668,11 +3682,11 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
-        "fly": 60
+        "fly": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -3765,7 +3779,10 @@
       ],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/arcanaloth"
+      "url": "https://www.aidedd.org/monster/arcanaloth",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "arch-hag",
@@ -3778,12 +3795,11 @@
       "hp": 333,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "fly": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 16,
+        "score": 26
       },
       "abilities": {
         "str": {
@@ -3903,7 +3919,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 20,
-        "swim": 50
+        "swim": 80
       },
       "initiative": {
         "modifier": 3,
@@ -4088,8 +4104,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -5109,8 +5125,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 9,
+        "score": 19
       },
       "abilities": {
         "str": {
@@ -5202,8 +5218,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -5286,7 +5302,7 @@
       "hp": 54,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 40
       },
       "initiative": {
@@ -5370,7 +5386,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/banshee"
+      "url": "https://www.aidedd.org/monster/banshee",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "barbed-devil",
@@ -5826,7 +5845,8 @@
       "hp": 5,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 40
       },
       "initiative": {
         "modifier": 2,
@@ -6169,12 +6189,12 @@
       "hp": 190,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "fly": 20
+        "walk": 5,
+        "fly": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -6230,7 +6250,10 @@
       "url": "https://www.aidedd.org/monster/beholder",
       "_warnings": [
         "No actions parsed"
-      ]
+      ],
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "beholder-zombie",
@@ -6243,7 +6266,8 @@
       "hp": 93,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 5,
+        "fly": 20
       },
       "initiative": {
         "modifier": -1,
@@ -6334,7 +6358,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/beholder-zombie"
+      "url": "https://www.aidedd.org/monster/beholder-zombie",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "berserker",
@@ -6427,11 +6454,11 @@
       "hp": 136,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -6522,6 +6549,7 @@
       "speed": {
         "walk": 30,
         "climb": 30,
+        "fly": 60,
         "swim": 30
       },
       "initiative": {
@@ -6601,7 +6629,12 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/bestial-spirit"
+      "url": "https://www.aidedd.org/monster/bestial-spirit",
+      "_speed_notes": {
+        "climb": "Land only",
+        "fly": "Air only",
+        "swim": "Water only"
+      }
     },
     {
       "id": "black-bear",
@@ -6614,7 +6647,7 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
+        "walk": 30,
         "climb": 30,
         "swim": 30
       },
@@ -6959,11 +6992,11 @@
       "hp": 448,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 16,
+        "score": 26
       },
       "abilities": {
         "str": {
@@ -7818,8 +7851,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "climb": 30,
-        "swim": 30
+        "climb": 30
       },
       "initiative": {
         "modifier": 1,
@@ -8168,8 +8200,8 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
-        "burrow": 40
+        "walk": 30,
+        "burrow": 20
       },
       "initiative": {
         "modifier": -1,
@@ -8253,8 +8285,8 @@
       "hp": 52,
       "hp_formula": null,
       "speed": {
-        "walk": 20,
-        "swim": 40
+        "walk": 30,
+        "swim": 30
       },
       "initiative": {
         "modifier": 3,
@@ -8351,8 +8383,8 @@
       "hp": 11,
       "hp_formula": null,
       "speed": {
-        "walk": 20,
-        "swim": 40
+        "walk": 30,
+        "swim": 30
       },
       "initiative": {
         "modifier": 2,
@@ -8532,8 +8564,8 @@
         "walk": 50
       },
       "initiative": {
-        "modifier": 17,
-        "score": 27
+        "modifier": -1,
+        "score": 9
       },
       "abilities": {
         "str": {
@@ -8694,7 +8726,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "climb": 30
+        "climb": 40
       },
       "initiative": {
         "modifier": 2,
@@ -8774,7 +8806,7 @@
       "hp": 40,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
+        "walk": 30,
         "fly": 40
       },
       "initiative": {
@@ -9140,12 +9172,11 @@
       "hp_formula": null,
       "speed": {
         "walk": 20,
-        "climb": 20,
         "fly": 60
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -9618,7 +9649,8 @@
       "hp": 200,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "fly": 20
       },
       "initiative": {
         "modifier": 4,
@@ -9697,7 +9729,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/cloud-giant"
+      "url": "https://www.aidedd.org/monster/cloud-giant",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "cockatrice",
@@ -9786,8 +9821,8 @@
       "hp": 136,
       "hp_formula": null,
       "speed": {
-        "walk": 20,
-        "fly": 40
+        "walk": 30,
+        "fly": 60
       },
       "initiative": {
         "modifier": 2,
@@ -9883,8 +9918,8 @@
         "walk": 60
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 16,
+        "score": 26
       },
       "abilities": {
         "str": {
@@ -10825,8 +10860,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -10912,8 +10947,8 @@
         "walk": 40
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -11182,7 +11217,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/dao"
+      "url": "https://www.aidedd.org/monster/dao",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "darkmantle",
@@ -11278,8 +11316,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -11449,8 +11487,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -11571,8 +11609,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -11669,11 +11707,11 @@
       "hp": 178,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -11766,12 +11804,12 @@
       "hp": 195,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "fly": 20
+        "walk": 5,
+        "fly": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -11896,7 +11934,10 @@
         }
       ],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/death-tyrant"
+      "url": "https://www.aidedd.org/monster/death-tyrant",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "deer",
@@ -11989,12 +12030,12 @@
       "hp": 180,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 30
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 17,
+        "score": 27
       },
       "abilities": {
         "str": {
@@ -12082,7 +12123,10 @@
         }
       ],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/demilich"
+      "url": "https://www.aidedd.org/monster/demilich",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "deva",
@@ -12095,7 +12139,8 @@
       "hp": 229,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 90
       },
       "initiative": {
         "modifier": 4,
@@ -12179,7 +12224,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/deva"
+      "url": "https://www.aidedd.org/monster/deva",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "dire-wolf",
@@ -12192,7 +12240,7 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 50
       },
       "initiative": {
         "modifier": 2,
@@ -12368,8 +12416,8 @@
         "walk": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -12457,7 +12505,8 @@
       "hp": 218,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 90
       },
       "initiative": {
         "modifier": 2,
@@ -12548,7 +12597,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/djinni"
+      "url": "https://www.aidedd.org/monster/djinni",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "doppelganger",
@@ -12654,11 +12706,12 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
+        "burrow": 30,
         "fly": 80
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -13656,7 +13709,8 @@
       "hp": 212,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "fly": 60
       },
       "initiative": {
         "modifier": 1,
@@ -13743,7 +13797,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/efreeti"
+      "url": "https://www.aidedd.org/monster/efreeti",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "elemental-cataclysm",
@@ -13756,13 +13813,14 @@
       "hp": 370,
       "hp_formula": null,
       "speed": {
-        "walk": 50,
-        "fly": 50,
-        "swim": 50
+        "walk": 60,
+        "burrow": 60,
+        "fly": 80,
+        "swim": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 18,
+        "score": 28
       },
       "abilities": {
         "str": {
@@ -13818,7 +13876,10 @@
       "url": "https://www.aidedd.org/monster/elemental-cataclysm",
       "_warnings": [
         "No actions parsed"
-      ]
+      ],
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "elemental-cultist",
@@ -13834,8 +13895,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -13923,9 +13984,10 @@
       "hp": 50,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "fly": 30,
-        "swim": 30
+        "walk": 40,
+        "burrow": 40,
+        "fly": 40,
+        "swim": 40
       },
       "initiative": {
         "modifier": 2,
@@ -13996,7 +14058,11 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/elemental-spirit"
+      "url": "https://www.aidedd.org/monster/elemental-spirit",
+      "_speed_notes": {
+        "burrow": "Earth only",
+        "swim": "Water only"
+      }
     },
     {
       "id": "elephant",
@@ -14012,8 +14078,8 @@
         "walk": 40
       },
       "initiative": {
-        "modifier": 17,
-        "score": 27
+        "modifier": 1,
+        "score": 9
       },
       "abilities": {
         "str": {
@@ -14173,8 +14239,8 @@
         "swim": 50
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 19,
+        "score": 29
       },
       "abilities": {
         "str": {
@@ -14266,7 +14332,10 @@
         }
       ],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/empyrean"
+      "url": "https://www.aidedd.org/monster/empyrean",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "empyrean-iota",
@@ -14279,7 +14348,8 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 5,
+        "fly": 30
       },
       "initiative": {
         "modifier": 2,
@@ -14359,7 +14429,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/empyrean-iota"
+      "url": "https://www.aidedd.org/monster/empyrean-iota",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "erinyes",
@@ -14659,8 +14732,8 @@
       "hp": 35,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
-        "fly": 80
+        "walk": 10,
+        "fly": 60
       },
       "initiative": {
         "modifier": 5,
@@ -14753,8 +14826,8 @@
       "hp": 21,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
-        "fly": 80
+        "walk": 10,
+        "fly": 60
       },
       "initiative": {
         "modifier": 3,
@@ -14847,7 +14920,8 @@
       "hp": 30,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
         "modifier": 3,
@@ -14946,8 +15020,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -15031,7 +15105,9 @@
       "hp": 50,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 40,
+        "fly": 60
       },
       "initiative": {
         "modifier": 3,
@@ -15118,7 +15194,11 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/fiendish-spirit"
+      "url": "https://www.aidedd.org/monster/fiendish-spirit",
+      "_speed_notes": {
+        "climb": "Demon only",
+        "fly": "Devil only"
+      }
     },
     {
       "id": "fire-elemental",
@@ -15310,7 +15390,7 @@
       "hp": 40,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 40
       },
       "initiative": {
@@ -15394,7 +15474,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/flameskull"
+      "url": "https://www.aidedd.org/monster/flameskull",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "flaming-skeleton",
@@ -15679,7 +15762,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/flumph"
+      "url": "https://www.aidedd.org/monster/flumph",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "flying-snake",
@@ -15774,7 +15860,7 @@
       "hp": 172,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 0,
@@ -16030,7 +16116,7 @@
       "hp": 123,
       "hp_formula": null,
       "speed": {
-        "walk": 15
+        "walk": 60
       },
       "initiative": {
         "modifier": 2,
@@ -16194,7 +16280,7 @@
       "hp": 13,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 10
       },
       "initiative": {
@@ -16262,7 +16348,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/gas-spore-fungus"
+      "url": "https://www.aidedd.org/monster/gas-spore-fungus",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "gelatinous-cube",
@@ -16539,7 +16628,8 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 5
+        "walk": 5,
+        "fly": 40
       },
       "initiative": {
         "modifier": 1,
@@ -16626,7 +16716,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/ghost"
+      "url": "https://www.aidedd.org/monster/ghost",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "ghoul",
@@ -16726,8 +16819,8 @@
         "climb": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -16814,8 +16907,8 @@
         "walk": 50
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -16894,8 +16987,8 @@
       "hp": 15,
       "hp_formula": null,
       "speed": {
-        "walk": 20,
-        "burrow": 5
+        "walk": 30,
+        "burrow": 10
       },
       "initiative": {
         "modifier": 0,
@@ -16970,8 +17063,8 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 5,
-        "fly": 30
+        "walk": 10,
+        "fly": 60
       },
       "initiative": {
         "modifier": 3,
@@ -17539,8 +17632,8 @@
         "walk": 60
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -17611,7 +17704,8 @@
       "hp": 4,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 0,
@@ -17780,7 +17874,8 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 30
       },
       "initiative": {
         "modifier": 1,
@@ -17935,9 +18030,9 @@
       "hp": 30,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "climb": 30,
-        "fly": 30
+        "walk": 40,
+        "climb": 40,
+        "fly": 40
       },
       "initiative": {
         "modifier": 1,
@@ -18017,7 +18112,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/giant-insect"
+      "url": "https://www.aidedd.org/monster/giant-insect",
+      "_speed_notes": {
+        "fly": "Wasp only"
+      }
     },
     {
       "id": "giant-lizard",
@@ -18030,8 +18128,8 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "climb": 30
+        "walk": 40,
+        "climb": 40
       },
       "initiative": {
         "modifier": 1,
@@ -18282,7 +18380,8 @@
       "hp": 7,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 3,
@@ -18445,7 +18544,7 @@
       "hp": 16,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 40
       },
       "initiative": {
@@ -18531,12 +18630,12 @@
       "hp": 92,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "swim": 50
+        "walk": 5,
+        "swim": 60
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -18705,8 +18804,8 @@
       "hp": 120,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "swim": 60
+        "walk": 5,
+        "swim": 80
       },
       "initiative": {
         "modifier": 2,
@@ -18799,8 +18898,8 @@
       "hp": 39,
       "hp_formula": null,
       "speed": {
-        "walk": 20,
-        "swim": 40
+        "walk": 30,
+        "swim": 30
       },
       "initiative": {
         "modifier": 1,
@@ -18888,8 +18987,8 @@
       "hp": 11,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "swim": 30
+        "walk": 40,
+        "swim": 40
       },
       "initiative": {
         "modifier": 4,
@@ -19126,7 +19225,8 @@
       "hp": 9,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 30
       },
       "initiative": {
         "modifier": 3,
@@ -19383,11 +19483,12 @@
       "hp": 255,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -19462,7 +19563,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/githyanki-dracomancer"
+      "url": "https://www.aidedd.org/monster/githyanki-dracomancer",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "githyanki-knight",
@@ -19478,8 +19582,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -19566,8 +19670,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -19651,11 +19755,11 @@
       "hp": 38,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -19744,11 +19848,12 @@
       "hp": 169,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40,
+        "fly": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -19819,7 +19924,10 @@
       ],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/githzerai-psion"
+      "url": "https://www.aidedd.org/monster/githzerai-psion",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "githzerai-zerth",
@@ -19832,11 +19940,11 @@
       "hp": 84,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -20112,8 +20220,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -20200,8 +20308,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -20288,8 +20396,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -20461,7 +20569,8 @@
       "hp": 4,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 30
       },
       "initiative": {
         "modifier": 0,
@@ -21059,11 +21168,11 @@
       "hp": 310,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 50
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -21160,7 +21269,7 @@
       "hp": 161,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 2,
@@ -21253,7 +21362,7 @@
       },
       "initiative": {
         "modifier": -2,
-        "score": 8
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -21333,11 +21442,11 @@
       "hp": 150,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -21620,8 +21729,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -21718,8 +21827,8 @@
         "fly": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -21790,7 +21899,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/grell"
+      "url": "https://www.aidedd.org/monster/grell",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "grick",
@@ -22383,11 +22495,11 @@
       "hp": 264,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 50
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -22648,12 +22760,11 @@
       "hp": 203,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "fly": 30
+        "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -22909,8 +23020,8 @@
         "fly": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -22981,7 +23092,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/helmed-horror"
+      "url": "https://www.aidedd.org/monster/helmed-horror",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "hezrou",
@@ -23259,7 +23373,7 @@
       "hp": 82,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
+        "walk": 30,
         "swim": 30
       },
       "initiative": {
@@ -23435,8 +23549,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -23867,7 +23981,7 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 40
       },
       "initiative": {
@@ -24581,7 +24695,8 @@
       "hp": 97,
       "hp_formula": null,
       "speed": {
-        "walk": 50
+        "walk": 50,
+        "fly": 50
       },
       "initiative": {
         "modifier": 7,
@@ -24660,7 +24775,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/invisible-stalker"
+      "url": "https://www.aidedd.org/monster/invisible-stalker",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "iron-golem",
@@ -24945,11 +25063,13 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 30,
+        "climb": 30,
+        "fly": 60
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -25127,7 +25247,7 @@
       "hp": 90,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 60
       },
       "initiative": {
@@ -25384,8 +25504,8 @@
         "swim": 120
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -25869,7 +25989,8 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "swim": 30
       },
       "initiative": {
         "modifier": 2,
@@ -26207,8 +26328,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 7,
-        "score": 17
+        "modifier": 17,
+        "score": 27
       },
       "abilities": {
         "str": {
@@ -26492,6 +26613,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
+        "burrow": 20,
         "swim": 30
       },
       "initiative": {
@@ -26580,6 +26702,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
+        "burrow": 20,
         "swim": 30
       },
       "initiative": {
@@ -27010,11 +27133,11 @@
       "hp": 126,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 50
       },
       "initiative": {
-        "modifier": -1,
-        "score": 9
+        "modifier": 2,
+        "score": 12
       },
       "abilities": {
         "str": {
@@ -27169,8 +27292,7 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "fly": 30
+        "walk": 30
       },
       "initiative": {
         "modifier": 1,
@@ -27344,11 +27466,12 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
+        "fly": 60,
         "swim": 90
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -27994,8 +28117,8 @@
         "walk": 40
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -28181,11 +28304,12 @@
       "hp": 99,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 15
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -28260,7 +28384,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/mind-flayer"
+      "url": "https://www.aidedd.org/monster/mind-flayer",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "mind-flayer-arcanist",
@@ -28273,11 +28400,12 @@
       "hp": 143,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -28357,7 +28485,10 @@
       ],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/mind-flayer-arcanist"
+      "url": "https://www.aidedd.org/monster/mind-flayer-arcanist",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "minotaur-of-baphomet",
@@ -28780,8 +28911,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -28987,7 +29118,7 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 30
       },
       "initiative": {
         "modifier": 0,
@@ -29158,7 +29289,7 @@
       "hp": 3,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 10
       },
       "initiative": {
         "modifier": 0,
@@ -29529,7 +29660,8 @@
       "hp": 68,
       "hp_formula": null,
       "speed": {
-        "walk": 60
+        "walk": 60,
+        "fly": 90
       },
       "initiative": {
         "modifier": 2,
@@ -29604,7 +29736,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/nightmare"
+      "url": "https://www.aidedd.org/monster/nightmare",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "noble",
@@ -29700,8 +29835,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -29877,8 +30012,8 @@
         "fly": 60
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -30306,7 +30441,7 @@
       "hp": 52,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 30
       },
       "initiative": {
         "modifier": 0,
@@ -30385,7 +30520,8 @@
       "hp": 119,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
         "modifier": 0,
@@ -30473,7 +30609,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/oni"
+      "url": "https://www.aidedd.org/monster/oni",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "otherworldly-steed",
@@ -30486,7 +30625,8 @@
       "hp": 5,
       "hp_formula": null,
       "speed": {
-        "walk": 60
+        "walk": 60,
+        "fly": 60
       },
       "initiative": {
         "modifier": 1,
@@ -30566,7 +30706,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/otherworldly-steed"
+      "url": "https://www.aidedd.org/monster/otherworldly-steed",
+      "_speed_notes": {
+        "fly": "requires level 4+ spell"
+      }
     },
     {
       "id": "otyugh",
@@ -31067,8 +31210,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 9,
+        "score": 19
       },
       "abilities": {
         "str": {
@@ -31159,8 +31302,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -31247,8 +31390,8 @@
         "fly": 60
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -31431,11 +31574,11 @@
       "hp_formula": null,
       "speed": {
         "walk": 5,
-        "climb": 5
+        "climb": 15
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -31515,7 +31658,7 @@
       "hp": 1,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 40
       },
       "initiative": {
@@ -31682,8 +31825,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -32161,7 +32304,8 @@
       "hp": 262,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "fly": 120
       },
       "initiative": {
         "modifier": 10,
@@ -32253,7 +32397,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/planetar"
+      "url": "https://www.aidedd.org/monster/planetar",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "plesiosaurus",
@@ -32348,7 +32495,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "swim": 30
+        "swim": 40
       },
       "initiative": {
         "modifier": 2,
@@ -32427,7 +32574,7 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 50
       },
       "initiative": {
@@ -32508,7 +32655,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/poltergeist"
+      "url": "https://www.aidedd.org/monster/poltergeist",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "pony",
@@ -32777,11 +32927,12 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "climb": 40
+        "climb": 40,
+        "fly": 5
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -32991,8 +33142,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 10,
-        "climb": 10,
-        "swim": 10
+        "climb": 10
       },
       "initiative": {
         "modifier": -1,
@@ -33530,8 +33680,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -33715,7 +33865,8 @@
       "hp": 1,
       "hp_formula": null,
       "speed": {
-        "walk": 20
+        "walk": 20,
+        "climb": 20
       },
       "initiative": {
         "modifier": 0,
@@ -34049,8 +34200,8 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
-        "swim": 40
+        "walk": 5,
+        "swim": 30
       },
       "initiative": {
         "modifier": 2,
@@ -34836,11 +34987,11 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
-        "swim": 40
+        "swim": 50
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -34933,7 +35084,8 @@
       "hp": 38,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "swim": 40
       },
       "initiative": {
         "modifier": 0,
@@ -35302,12 +35454,12 @@
       "hp": 256,
       "hp_formula": null,
       "speed": {
-        "walk": 30,
-        "climb": 30
+        "walk": 40,
+        "climb": 40
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -35487,8 +35639,8 @@
         "walk": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 7,
+        "score": 17
       },
       "abilities": {
         "str": {
@@ -35583,8 +35735,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -35817,11 +35969,12 @@
       "hp": 66,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -36007,7 +36160,7 @@
       "hp": 1,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 20
       },
       "initiative": {
@@ -36177,7 +36330,8 @@
       "hp": 66,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
         "modifier": 3,
@@ -36257,7 +36411,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/shadow-demon"
+      "url": "https://www.aidedd.org/monster/shadow-demon",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "shadow-dragon",
@@ -36270,11 +36427,13 @@
       "hp": 189,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "climb": 40,
+        "fly": 80
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -36811,7 +36970,8 @@
       "hp": 7,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "burrow": 10
       },
       "initiative": {
         "modifier": 2,
@@ -36976,7 +37136,8 @@
       "hp": 297,
       "hp_formula": null,
       "speed": {
-        "walk": 50
+        "walk": 50,
+        "fly": 150
       },
       "initiative": {
         "modifier": 20,
@@ -37081,7 +37242,10 @@
         }
       ],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/solar"
+      "url": "https://www.aidedd.org/monster/solar",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "spectator",
@@ -37094,7 +37258,7 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "fly": 30
       },
       "initiative": {
@@ -37186,7 +37350,10 @@
       ],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/spectator"
+      "url": "https://www.aidedd.org/monster/spectator",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "specter",
@@ -37199,7 +37366,8 @@
       "hp": 22,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 50
       },
       "initiative": {
         "modifier": 2,
@@ -37270,7 +37438,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/specter"
+      "url": "https://www.aidedd.org/monster/specter",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "sphinx-of-lore",
@@ -37287,8 +37458,8 @@
         "fly": 60
       },
       "initiative": {
-        "modifier": 6,
-        "score": 16
+        "modifier": 10,
+        "score": 20
       },
       "abilities": {
         "str": {
@@ -37393,8 +37564,8 @@
         "fly": 60
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -37490,8 +37661,8 @@
         "fly": 60
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 12,
+        "score": 22
       },
       "abilities": {
         "str": {
@@ -37775,7 +37946,8 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 20,
+        "fly": 40
       },
       "initiative": {
         "modifier": 2,
@@ -38136,8 +38308,8 @@
         "climb": 30
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 9,
+        "score": 19
       },
       "abilities": {
         "str": {
@@ -38576,6 +38748,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 50,
+        "fly": 25,
         "swim": 50
       },
       "initiative": {
@@ -38659,7 +38832,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/storm-giant"
+      "url": "https://www.aidedd.org/monster/storm-giant",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "succubus",
@@ -38770,7 +38946,8 @@
       "hp": 11,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 5,
+        "fly": 30
       },
       "initiative": {
         "modifier": 2,
@@ -38931,7 +39108,7 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 0,
@@ -39019,7 +39196,7 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 20
       },
       "initiative": {
         "modifier": 1,
@@ -39183,7 +39360,7 @@
       "hp": 45,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": -2,
@@ -39271,7 +39448,8 @@
       "hp": 28,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 5,
+        "swim": 40
       },
       "initiative": {
         "modifier": 3,
@@ -39355,7 +39533,8 @@
       "hp": 14,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 0,
@@ -39435,7 +39614,8 @@
       "hp": 11,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 10,
+        "fly": 50
       },
       "initiative": {
         "modifier": 2,
@@ -39519,7 +39699,8 @@
       "hp": 36,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 10,
+        "fly": 40
       },
       "initiative": {
         "modifier": 3,
@@ -39599,7 +39780,8 @@
       "hp": 36,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "swim": 30
       },
       "initiative": {
         "modifier": 4,
@@ -39891,11 +40073,12 @@
       "hp": 149,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 40,
+        "fly": 20
       },
       "initiative": {
-        "modifier": 2,
-        "score": 12
+        "modifier": 5,
+        "score": 15
       },
       "abilities": {
         "str": {
@@ -39961,7 +40144,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/thri-kreen-psion"
+      "url": "https://www.aidedd.org/monster/thri-kreen-psion",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "tiger",
@@ -40321,8 +40507,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -40485,7 +40671,8 @@
       "hp": 13,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 0,
@@ -40829,8 +41016,8 @@
         "walk": 50
       },
       "initiative": {
-        "modifier": 0,
-        "score": 10
+        "modifier": 3,
+        "score": 13
       },
       "abilities": {
         "str": {
@@ -40909,11 +41096,12 @@
       "hp": 221,
       "hp_formula": null,
       "speed": {
-        "walk": 40
+        "walk": 30,
+        "fly": 60
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -40997,7 +41185,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/ultroloth"
+      "url": "https://www.aidedd.org/monster/ultroloth",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "umber-hulk",
@@ -41014,8 +41205,8 @@
         "burrow": 20
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -41113,7 +41304,7 @@
       "hp_formula": null,
       "speed": {
         "walk": 30,
-        "fly": 30
+        "fly": 40
       },
       "initiative": {
         "modifier": 3,
@@ -41323,8 +41514,8 @@
         "climb": 40
       },
       "initiative": {
-        "modifier": 8,
-        "score": 18
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -41544,8 +41735,8 @@
       "hp": 142,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
-        "climb": 40
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
         "modifier": 4,
@@ -41625,7 +41816,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/vampire-nightbringer"
+      "url": "https://www.aidedd.org/monster/vampire-nightbringer",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "vampire-spawn",
@@ -41752,11 +41946,12 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "climb": 40
+        "climb": 40,
+        "fly": 40
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 14,
+        "score": 24
       },
       "abilities": {
         "str": {
@@ -41869,7 +42064,10 @@
         }
       ],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/vampire-umbral-lord"
+      "url": "https://www.aidedd.org/monster/vampire-umbral-lord",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "venomous-snake",
@@ -41958,7 +42156,7 @@
       "hp": 19,
       "hp_formula": null,
       "speed": {
-        "walk": 10
+        "walk": 20
       },
       "initiative": {
         "modifier": -1,
@@ -42116,11 +42314,11 @@
       "hp": 123,
       "hp_formula": null,
       "speed": {
-        "walk": 5
+        "walk": 40
       },
       "initiative": {
-        "modifier": 1,
-        "score": 11
+        "modifier": 4,
+        "score": 14
       },
       "abilities": {
         "str": {
@@ -42535,8 +42733,8 @@
         "walk": 30
       },
       "initiative": {
-        "modifier": 5,
-        "score": 15
+        "modifier": 9,
+        "score": 19
       },
       "abilities": {
         "str": {
@@ -42894,7 +43092,7 @@
       "hp": 65,
       "hp_formula": null,
       "speed": {
-        "walk": 0,
+        "walk": 5,
         "swim": 60
       },
       "initiative": {
@@ -42979,7 +43177,8 @@
       "hp": 1,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 3,
@@ -43054,7 +43253,8 @@
       "hp": 135,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40,
+        "climb": 30
       },
       "initiative": {
         "modifier": 3,
@@ -43133,7 +43333,11 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/werebear"
+      "url": "https://www.aidedd.org/monster/werebear",
+      "_speed_notes": {
+        "walk": "bear form only",
+        "climb": "bear form only"
+      }
     },
     {
       "id": "wereboar",
@@ -43146,7 +43350,7 @@
       "hp": 97,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 2,
@@ -43225,7 +43429,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/wereboar"
+      "url": "https://www.aidedd.org/monster/wereboar",
+      "_speed_notes": {
+        "walk": "boar form only"
+      }
     },
     {
       "id": "wererat",
@@ -43331,7 +43538,7 @@
       "hp": 120,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 2,
@@ -43414,7 +43621,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/weretiger"
+      "url": "https://www.aidedd.org/monster/weretiger",
+      "_speed_notes": {
+        "walk": "tiger form only"
+      }
     },
     {
       "id": "werewolf",
@@ -43427,7 +43637,7 @@
       "hp": 71,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 40
       },
       "initiative": {
         "modifier": 4,
@@ -43511,7 +43721,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/werewolf"
+      "url": "https://www.aidedd.org/monster/werewolf",
+      "_speed_notes": {
+        "walk": "wolf form only"
+      }
     },
     {
       "id": "white-dragon-wyrmling",
@@ -43707,7 +43920,8 @@
       "hp": 27,
       "hp_formula": null,
       "speed": {
-        "walk": 5
+        "walk": 5,
+        "fly": 50
       },
       "initiative": {
         "modifier": 9,
@@ -43791,7 +44005,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/will-o--wisp"
+      "url": "https://www.aidedd.org/monster/will-o--wisp",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "winged-kobold",
@@ -43804,7 +44021,8 @@
       "hp": 10,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "fly": 30
       },
       "initiative": {
         "modifier": 3,
@@ -44131,7 +44349,8 @@
       "hp": 67,
       "hp_formula": null,
       "speed": {
-        "walk": 5
+        "walk": 5,
+        "fly": 60
       },
       "initiative": {
         "modifier": 3,
@@ -44206,7 +44425,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/wraith"
+      "url": "https://www.aidedd.org/monster/wraith",
+      "_speed_notes": {
+        "fly": "hover"
+      }
     },
     {
       "id": "wyvern",
@@ -44498,8 +44720,8 @@
         "climb": 30
       },
       "initiative": {
-        "modifier": 4,
-        "score": 14
+        "modifier": 8,
+        "score": 18
       },
       "abilities": {
         "str": {
@@ -45321,8 +45543,8 @@
       "hp": 93,
       "hp_formula": null,
       "speed": {
-        "walk": 40,
-        "burrow": 30
+        "walk": 30,
+        "burrow": 20
       },
       "initiative": {
         "modifier": 1,
@@ -45582,12 +45804,11 @@
       "hp_formula": null,
       "speed": {
         "walk": 40,
-        "climb": 30,
-        "swim": 40
+        "climb": 30
       },
       "initiative": {
-        "modifier": 3,
-        "score": 13
+        "modifier": 6,
+        "score": 16
       },
       "abilities": {
         "str": {
@@ -45776,7 +45997,8 @@
       "hp": 66,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 2,
@@ -45860,7 +46082,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/yuan-ti-malison-type-1"
+      "url": "https://www.aidedd.org/monster/yuan-ti-malison-type-1",
+      "_speed_notes": {
+        "climb": "snake form only"
+      }
     },
     {
       "id": "yuan-ti-malison-type-2",
@@ -45873,7 +46098,8 @@
       "hp": 66,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 2,
@@ -45953,7 +46179,10 @@
       "reactions": [],
       "legendary_actions": [],
       "source": "Monster Manual 2024",
-      "url": "https://www.aidedd.org/monster/yuan-ti-malison-type-2"
+      "url": "https://www.aidedd.org/monster/yuan-ti-malison-type-2",
+      "_speed_notes": {
+        "climb": "snake form only"
+      }
     },
     {
       "id": "yuan-ti-malison-type-3",
@@ -45966,7 +46195,8 @@
       "hp": 66,
       "hp_formula": null,
       "speed": {
-        "walk": 30
+        "walk": 30,
+        "climb": 30
       },
       "initiative": {
         "modifier": 2,
