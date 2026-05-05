@@ -32,6 +32,8 @@ interface EncounterStore {
   // Reset an active encounter back to setup state (clear initiative, hp, log, etc.
   // but keep the combatant roster and maps).
   resetCombat: (id: string) => void;
+  // Mark an encounter as completed (preserves all combat state for review).
+  endEncounter: (id: string) => void;
   getEncounter: (id: string) => Encounter | undefined;
 
   // Combatant management
@@ -178,6 +180,26 @@ export const useEncounterStore = create<EncounterStore>()(
                 movement_used: 0,
               })),
               log: [],
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      endEncounter: (id) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== id) return e;
+            return {
+              ...e,
+              status: 'completed',
+              log: [
+                ...e.log,
+                {
+                  round: e.round,
+                  message: '— Encounter ended —',
+                  timestamp: Date.now(),
+                },
+              ],
               updated_at: Date.now(),
             };
           }),

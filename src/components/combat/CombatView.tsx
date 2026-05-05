@@ -27,6 +27,7 @@ export function CombatView({ encounter, onExit }: Props) {
     applyConditionToCombatant,
     removeConditionFromCombatant,
     setInitiative,
+    endEncounter,
   } = useEncounterStore();
   const { monsters: srd_monsters } = useSRDStore();
   const { monsters: custom_monsters } = useCustomMonsterStore();
@@ -80,8 +81,24 @@ export function CombatView({ encounter, onExit }: Props) {
   const [active_tab, set_active_tab] = useState<'log' | 'notes' | 'ai'>('log');
   const [popup_combatant_id, set_popup_combatant_id] = useState<string | null>(null);
   const [show_battle_map, set_show_battle_map] = useState(false);
-  const [show_add_combatant, set_show_add_combatant] = useState<'monster' | 'ally' | null>(null);
+  const [show_add_combatant, set_show_add_combatant] = useState<'monster' | 'ally' | 'character' | null>(null);
   const [show_add_condition, set_show_add_condition] = useState(false);
+
+  // Preview mode: when DM clicks on a combatant in the initiative list, show
+  // their stats in the active panel instead of the actual active combatant.
+  // null = no preview, show real active. Reset to null on turn change.
+  const [preview_id, set_preview_id] = useState<string | null>(null);
+
+  // Reset preview when the active combatant changes (e.g. End turn happens)
+  useEffect(() => {
+    set_preview_id(null);
+  }, [encounter.turn_index, encounter.round]);
+
+  // The "viewed" combatant is either the preview or the active one
+  const viewed = preview_id
+    ? sorted.find((c) => c.id === preview_id) ?? active
+    : active;
+  const is_previewing = !!preview_id && preview_id !== active?.id;
 
   // If battle map is open, route to it
   if (show_battle_map) {
@@ -93,17 +110,17 @@ export function CombatView({ encounter, onExit }: Props) {
     );
   }
 
-  // Find source monster/character for active combatant
-  const source_monster: Monster | null = active
-    ? active.source_type === 'monster'
-      ? all_monsters.find((m) => m.id === active.source_id) ?? null
-      : active.source_type === 'ally'
-      ? allies.find((a) => a.id === active.source_id) ?? null
+  // Find source monster/character for viewed combatant (active or preview)
+  const source_monster: Monster | null = viewed
+    ? viewed.source_type === 'monster'
+      ? all_monsters.find((m) => m.id === viewed.source_id) ?? null
+      : viewed.source_type === 'ally'
+      ? allies.find((a) => a.id === viewed.source_id) ?? null
       : null
     : null;
   const source_character: Character | null =
-    active?.source_type === 'character' && campaign
-      ? campaign.characters.find((c) => c.id === active.source_id) ?? null
+    viewed?.source_type === 'character' && campaign
+      ? campaign.characters.find((c) => c.id === viewed.source_id) ?? null
       : null;
 
   return (
@@ -168,6 +185,24 @@ export function CombatView({ encounter, onExit }: Props) {
             </span>
           </button>
           <button
+            onClick={() => set_show_add_combatant('character')}
+            style={{ padding: '8px 14px', fontSize: '13px' }}
+            title="Add a player character (PC)"
+          >
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: '#3B82F6',
+                  display: 'inline-block',
+                }}
+              />
+              + Character
+            </span>
+          </button>
+          <button
             onClick={() => set_show_battle_map(true)}
             style={{ padding: '8px 14px', fontSize: '13px' }}
           >
@@ -184,6 +219,27 @@ export function CombatView({ encounter, onExit }: Props) {
             style={{ padding: '8px 16px', fontSize: '13px' }}
           >
             End turn →
+          </button>
+          <button
+            onClick={() => {
+              if (
+                confirm(
+                  'End this encounter? It will be marked as completed and you can replay it later from the Encounters page.'
+                )
+              ) {
+                endEncounter(encounter.id);
+                onExit();
+              }
+            }}
+            style={{
+              padding: '8px 14px',
+              fontSize: '13px',
+              color: 'var(--color-text-danger)',
+              borderColor: 'var(--color-border-danger)',
+            }}
+            title="Mark this encounter as completed"
+          >
+            ⏹ End encounter
           </button>
         </div>
       </div>
@@ -214,11 +270,21 @@ export function CombatView({ encounter, onExit }: Props) {
               key={c.id}
               combatant={c}
               is_active={i === encounter.turn_index}
+              is_previewed={preview_id === c.id}
               onClick={() =>
                 set_popup_combatant_id(
                   popup_combatant_id === c.id ? null : c.id
                 )
               }
+              onPreview={() => {
+                // Toggle: if already previewing this one (or it's the active),
+                // clear; otherwise set preview
+                if (preview_id === c.id || (i === encounter.turn_index && !preview_id)) {
+                  set_preview_id(null);
+                } else {
+                  set_preview_id(c.id);
+                }
+              }}
               expanded={popup_combatant_id === c.id}
               onApplyDamage={(amount) => {
                 damageCombatant(encounter.id, c.id, amount);
@@ -235,30 +301,60 @@ export function CombatView({ encounter, onExit }: Props) {
           ))}
         </div>
 
-        {/* COL 2: Active combatant detail */}
+        {/* COL 2: Combatant detail (active OR previewed) */}
         <div className="bg-bg-primary overflow-y-auto" style={{ padding: '20px' }}>
-          {active ? (
-            <ActiveCombatantPanel
-              combatant={active}
-              monster={source_monster}
-              character={source_character}
-              onDamage={(amount) =>
-                damageCombatant(encounter.id, active.id, amount)
-              }
-              onHeal={(amount) => healCombatant(encounter.id, active.id, amount)}
-              onRemove={() => {
-                if (confirm(`Remove ${active.name} from combat?`)) {
-                  removeCombatant(encounter.id, active.id);
+          {viewed ? (
+            <>
+              {is_previewing && (
+                <div
+                  className="flex justify-between items-center mb-3"
+                  style={{
+                    padding: '8px 12px',
+                    background: 'var(--color-background-info)',
+                    border: '0.5px solid var(--color-border-info)',
+                    borderRadius: 'var(--border-radius-md)',
+                    color: 'var(--color-text-info)',
+                  }}
+                >
+                  <span className="text-[12px]">
+                    🔍 <strong>Preview:</strong> {viewed.name}
+                    <span className="opacity-70 ml-2">(not their turn)</span>
+                  </span>
+                  <button
+                    onClick={() => set_preview_id(null)}
+                    style={{
+                      fontSize: '11px',
+                      padding: '4px 10px',
+                      background: 'var(--color-background-primary)',
+                    }}
+                  >
+                    ← Back to active turn
+                  </button>
+                </div>
+              )}
+              <ActiveCombatantPanel
+                combatant={viewed}
+                monster={source_monster}
+                character={source_character}
+                onDamage={(amount) =>
+                  damageCombatant(encounter.id, viewed.id, amount)
                 }
-              }}
-              onAddCondition={() => set_show_add_condition(true)}
-              onRemoveCondition={(condition_id) =>
-                removeConditionFromCombatant(encounter.id, active.id, condition_id)
-              }
-              onSetInitiative={(new_value) =>
-                setInitiative(encounter.id, active.id, new_value)
-              }
-            />
+                onHeal={(amount) => healCombatant(encounter.id, viewed.id, amount)}
+                onRemove={() => {
+                  if (confirm(`Remove ${viewed.name} from combat?`)) {
+                    removeCombatant(encounter.id, viewed.id);
+                    if (preview_id === viewed.id) set_preview_id(null);
+                  }
+                }}
+                onAddCondition={() => set_show_add_condition(true)}
+                onRemoveCondition={(condition_id) =>
+                  removeConditionFromCombatant(encounter.id, viewed.id, condition_id)
+                }
+                onSetInitiative={(new_value) =>
+                  setInitiative(encounter.id, viewed.id, new_value)
+                }
+              />
+            </>
           ) : (
             <div className="text-text-tertiary">No active combatant.</div>
           )}
@@ -330,7 +426,9 @@ export function CombatView({ encounter, onExit }: Props) {
 function CombatantInitRow({
   combatant,
   is_active,
+  is_previewed,
   onClick,
+  onPreview,
   expanded,
   onApplyDamage,
   onApplyHeal,
@@ -338,7 +436,9 @@ function CombatantInitRow({
 }: {
   combatant: Combatant;
   is_active: boolean;
+  is_previewed: boolean;
   onClick: () => void;
+  onPreview: () => void;
   expanded: boolean;
   onApplyDamage: (amount: number) => void;
   onApplyHeal: (amount: number) => void;
@@ -362,15 +462,22 @@ function CombatantInitRow({
 
   return (
     <div className="mb-1">
-      <button
-        onClick={onClick}
+      <div
+        onClick={onPreview}
         className="w-full text-left"
         style={{
           padding: '10px',
           borderRadius: 'var(--border-radius-md)',
-          background: is_active ? '#EEEDFE' : 'transparent',
-          borderLeft: is_active ? '3px solid #534AB7' : '3px solid transparent',
-          border: is_active ? undefined : 'none',
+          background: is_active
+            ? '#EEEDFE'
+            : is_previewed
+            ? 'rgba(83, 74, 183, 0.08)'
+            : 'transparent',
+          borderLeft: is_active
+            ? '3px solid #534AB7'
+            : is_previewed
+            ? '3px solid rgba(83, 74, 183, 0.5)'
+            : '3px solid transparent',
           cursor: 'pointer',
         }}
       >
@@ -384,30 +491,33 @@ function CombatantInitRow({
           >
             {is_pc && '🛡 '}
             {combatant.name}
+            {is_previewed && !is_active && (
+              <span className="text-text-tertiary ml-1 text-[10px]">🔍</span>
+            )}
           </span>
-          <span
-            onClick={(e) => {
-              // Don't propagate to row click (which would expand the panel)
-              e.stopPropagation();
-              set_init_input(String(combatant.initiative));
-              set_editing_init(true);
-            }}
-            title="Click to change initiative"
-            className="text-[11px]"
-            style={{
-              color: is_active ? '#534AB7' : 'var(--color-text-tertiary)',
-              cursor: 'pointer',
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: editing_init ? 'transparent' : 'rgba(0, 0, 0, 0.04)',
-              fontWeight: is_active ? 600 : 400,
-              minWidth: 24,
-              textAlign: 'center',
-              display: 'inline-block',
-            }}
-          >
-            {editing_init ? (
-              <input
+          <div className="flex items-center gap-1">
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                set_init_input(String(combatant.initiative));
+                set_editing_init(true);
+              }}
+              title="Click to change initiative"
+              className="text-[11px]"
+              style={{
+                color: is_active ? '#534AB7' : 'var(--color-text-tertiary)',
+                cursor: 'pointer',
+                padding: '2px 6px',
+                borderRadius: 4,
+                background: editing_init ? 'transparent' : 'rgba(0, 0, 0, 0.04)',
+                fontWeight: is_active ? 600 : 400,
+                minWidth: 24,
+                textAlign: 'center',
+                display: 'inline-block',
+              }}
+            >
+              {editing_init ? (
+                <input
                 type="number"
                 autoFocus
                 value={init_input}
@@ -447,6 +557,28 @@ function CombatantInitRow({
               combatant.initiative
             )}
           </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+              title={expanded ? 'Close damage/heal' : 'Apply damage or heal'}
+              style={{
+                fontSize: '11px',
+                padding: '2px 6px',
+                lineHeight: 1,
+                background: expanded
+                  ? 'var(--color-background-info)'
+                  : 'transparent',
+                border: '0.5px solid var(--color-border-tertiary)',
+                borderRadius: 4,
+                cursor: 'pointer',
+                minWidth: 22,
+              }}
+            >
+              {expanded ? '×' : '±'}
+            </button>
+          </div>
         </div>
 
         {/* HP display: hide exact numbers for PCs */}
@@ -499,7 +631,7 @@ function CombatantInitRow({
             ))}
           </div>
         )}
-      </button>
+      </div>
 
       {/* Expanded damage/heal popup */}
       {expanded && (

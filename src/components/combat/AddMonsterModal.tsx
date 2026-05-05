@@ -3,30 +3,36 @@ import { useEncounterStore } from '@/store/encounterStore';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
 import { useAlliesStore } from '@/store/alliesStore';
+import { useCampaignStore } from '@/store/campaignStore';
 import { CustomMonsterForm } from '@/components/bestiary/CustomMonsterForm';
 import { rollD20 } from '@/engine/dice';
-import { monsterToCombatant, allyToCombatant } from '@/pages/CombatPage';
+import {
+  monsterToCombatant,
+  allyToCombatant,
+  characterToCombatant,
+} from '@/pages/CombatPage';
 import type { Encounter } from '@/types/app';
 
 interface Props {
   encounter: Encounter;
   onClose: () => void;
   // Which tab to default to
-  initial_tab?: 'monster' | 'ally';
+  initial_tab?: 'monster' | 'ally' | 'character';
 }
 
 /**
- * Modal for adding monsters OR allies mid-combat. Has a tab switcher to
- * pick which kind. Allies are friendly (green token, on PC side); monsters
- * are enemies (red token).
+ * Modal for adding monsters, allies, OR characters mid-combat. Has a tab
+ * switcher. Monsters: red enemy. Allies: green friendly. Characters: blue PC.
  */
 export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }: Props) {
   const { addCombatant, log } = useEncounterStore();
   const { monsters: srd_monsters } = useSRDStore();
   const { monsters: custom_monsters } = useCustomMonsterStore();
   const { allies } = useAlliesStore();
+  const { getActiveCampaign } = useCampaignStore();
+  const campaign = getActiveCampaign();
 
-  const [tab, set_tab] = useState<'monster' | 'ally'>(initial_tab);
+  const [tab, set_tab] = useState<'monster' | 'ally' | 'character'>(initial_tab);
   const all_monsters = useMemo(
     () => [...custom_monsters, ...srd_monsters],
     [custom_monsters, srd_monsters]
@@ -88,6 +94,32 @@ export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }:
       }
       log(encounter.id, `${combatant.name} (ally) joined combat (init ${init})`);
     }
+    onClose();
+  };
+
+  const handleAddCharacter = (character_id: string) => {
+    if (!campaign) return;
+    const character = campaign.characters.find((c) => c.id === character_id);
+    if (!character) return;
+    // Skip if already in combat
+    const already_in = encounter.combatants.some(
+      (c) => c.source_type === 'character' && c.source_id === character_id
+    );
+    if (already_in) {
+      alert(`${character.name} is already in combat.`);
+      return;
+    }
+    const init_mod = character.initiative_bonus ?? 0;
+    const init = rollD20(init_mod).total;
+    const combatant = characterToCombatant(character, init);
+    addCombatant(encounter.id, combatant);
+    if (character.avatar) {
+      useEncounterStore.getState().setTokenStyle(encounter.id, {
+        combatant_id: combatant.id,
+        avatar: character.avatar,
+      });
+    }
+    log(encounter.id, `${combatant.name} joined combat (init ${init})`);
     onClose();
   };
 
@@ -162,6 +194,20 @@ export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }:
                 }}
               />
               Ally / Summon
+            </span>
+          </TabButton>
+          <TabButton active={tab === 'character'} onClick={() => set_tab('character')}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: '#3B82F6',
+                  display: 'inline-block',
+                }}
+              />
+              Character (PC)
             </span>
           </TabButton>
         </div>
@@ -308,6 +354,147 @@ export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }:
                     ))}
                   </div>
                 )}
+              </>
+            )}
+          </>
+        )}
+
+        {tab === 'character' && (
+          <>
+            {!campaign || campaign.characters.length === 0 ? (
+              <div
+                className="text-text-tertiary text-[12px] italic"
+                style={{
+                  padding: '24px 16px',
+                  background: 'var(--color-background-secondary)',
+                  borderRadius: 'var(--border-radius-md)',
+                  textAlign: 'center',
+                }}
+              >
+                No characters in this campaign yet. Add party members on the
+                Characters page first.
+              </div>
+            ) : (
+              <>
+                <div className="text-[11px] text-text-tertiary mb-2">
+                  Characters not yet in this combat:
+                </div>
+                {(() => {
+                  const not_in_combat = campaign.characters.filter(
+                    (c) =>
+                      !encounter.combatants.some(
+                        (x) =>
+                          x.source_type === 'character' &&
+                          x.source_id === c.id
+                      )
+                  );
+                  const already_in = campaign.characters.filter((c) =>
+                    encounter.combatants.some(
+                      (x) =>
+                        x.source_type === 'character' &&
+                        x.source_id === c.id
+                    )
+                  );
+
+                  return (
+                    <>
+                      {not_in_combat.length === 0 ? (
+                        <div
+                          className="text-text-tertiary text-[12px] italic"
+                          style={{
+                            padding: '16px',
+                            background: 'var(--color-background-secondary)',
+                            borderRadius: 'var(--border-radius-md)',
+                            textAlign: 'center',
+                          }}
+                        >
+                          All characters are already in combat.
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1 mb-3">
+                          {not_in_combat.map((c) => (
+                            <div
+                              key={c.id}
+                              className="flex justify-between items-center"
+                              style={{
+                                padding: '8px 12px',
+                                background:
+                                  'var(--color-background-secondary)',
+                                borderRadius: 'var(--border-radius-md)',
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    background: c.avatar
+                                      ? `url(${c.avatar}) center/cover no-repeat`
+                                      : '#3B82F6',
+                                    border: '1.5px solid #1E40AF',
+                                    color: '#fff',
+                                    fontWeight: 700,
+                                    fontSize: 12,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {!c.avatar && c.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <div className="text-[12px] font-medium">
+                                    {c.name}
+                                  </div>
+                                  <div className="text-[10px] text-text-tertiary">
+                                    {c.class}
+                                    {c.level ? ` ${c.level}` : ''}
+                                    {c.species ? ` · ${c.species}` : ''}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleAddCharacter(c.id)}
+                                className="bg-accent-50 border-accent-300 text-accent-900"
+                                style={{ fontSize: '11px', padding: '4px 12px' }}
+                              >
+                                + Add
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {already_in.length > 0 && (
+                        <>
+                          <div className="text-[11px] text-text-tertiary mb-2 mt-3">
+                            Already in combat:
+                          </div>
+                          <div className="flex gap-1 flex-wrap">
+                            {already_in.map((c) => (
+                              <span
+                                key={c.id}
+                                style={{
+                                  fontSize: 11,
+                                  padding: '3px 10px',
+                                  background:
+                                    'var(--color-background-secondary)',
+                                  borderRadius: 12,
+                                  color: 'var(--color-text-tertiary)',
+                                  borderLeft: '3px solid #3B82F6',
+                                }}
+                              >
+                                ✓ {c.name}
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  );
+                })()}
               </>
             )}
           </>

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useCampaignStore } from '@/store/campaignStore';
-import { processAvatarFile } from '@/utils/imageUtils';
+import { readFileAsDataURL } from '@/utils/imageUtils';
+import { AvatarCropper } from '@/components/common/AvatarCropper';
 import type { Character } from '@/types/app';
 
 export function CharactersPage() {
@@ -250,16 +251,22 @@ function CharacterForm({
   const [notes, set_notes] = useState(initial?.notes ?? '');
   const [avatar, set_avatar] = useState<string | undefined>(initial?.avatar);
   const [is_uploading, set_is_uploading] = useState(false);
+  const [crop_src, set_crop_src] = useState<string | null>(null);
 
   const file_input_ref = useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Please choose an image file.');
+      return;
+    }
     set_is_uploading(true);
     try {
-      const processed = await processAvatarFile(file);
-      set_avatar(processed.data_url);
+      const data_url = await readFileAsDataURL(file);
+      // Open the cropper instead of auto-cropping
+      set_crop_src(data_url);
     } catch (err: any) {
       alert(`Failed to load image: ${err.message ?? err}`);
     } finally {
@@ -486,6 +493,18 @@ function CharacterForm({
           Cancel
         </button>
       </div>
+
+      {crop_src && (
+        <AvatarCropper
+          src={crop_src}
+          title="Position the character avatar"
+          onSave={(data_url) => {
+            set_avatar(data_url);
+            set_crop_src(null);
+          }}
+          onCancel={() => set_crop_src(null)}
+        />
+      )}
     </div>
   );
 }

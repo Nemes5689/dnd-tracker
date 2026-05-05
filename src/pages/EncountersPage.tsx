@@ -77,6 +77,17 @@ export function EncountersPage() {
     resetCombat(encounter.id);
   };
 
+  const handleReplay = (encounter: Encounter) => {
+    if (
+      !confirm(
+        `Replay "${encounter.name}"? HP, initiative, conditions, and log will reset. The same combatants will fight again.`
+      )
+    )
+      return;
+    resetCombat(encounter.id);
+    navigate(`/combat?encounter=${encounter.id}`);
+  };
+
   const handleDelete = (encounter: Encounter) => {
     if (!confirm(`Delete "${encounter.name}"? This cannot be undone.`)) return;
     deleteEncounter(encounter.id);
@@ -152,6 +163,7 @@ export function EncountersPage() {
               key={e.id}
               encounter={e}
               onContinue={() => handleContinue(e)}
+              onReplay={() => handleReplay(e)}
               onRename={() => handleRename(e)}
               onDuplicate={() => handleDuplicate(e)}
               onReset={() => handleReset(e)}
@@ -200,6 +212,7 @@ function FilterTab({
 function EncounterCard({
   encounter,
   onContinue,
+  onReplay,
   onRename,
   onDuplicate,
   onReset,
@@ -207,6 +220,7 @@ function EncounterCard({
 }: {
   encounter: Encounter;
   onContinue: () => void;
+  onReplay: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onReset: () => void;
@@ -301,6 +315,22 @@ function EncounterCard({
               ? 'Continue'
               : 'View'}
           </button>
+          {encounter.status === 'completed' && (
+            <button
+              onClick={onReplay}
+              style={{
+                fontSize: '12px',
+                padding: '5px 12px',
+                background: '#FEF3C7',
+                borderColor: '#F59E0B',
+                color: '#78350F',
+                fontWeight: 500,
+              }}
+              title="Reset HP, init, conditions and start fresh with the same combatants"
+            >
+              ↻ Replay
+            </button>
+          )}
           <MoreMenu
             onRename={onRename}
             onDuplicate={onDuplicate}
