@@ -72,20 +72,28 @@ export function BattleMap({
   // Effective scale = base_scale * zoom
   const scale = base_scale * zoom;
 
-  // Compute fit-to-screen scale
+  // Compute fit-to-screen scale (accounts for rotation: a rotated map has a
+  // different bounding box that may not fit at the original scale).
   useEffect(() => {
     const compute = () => {
       if (!container_ref.current) return;
       const rect = container_ref.current.getBoundingClientRect();
-      const sx = rect.width / map.image_width;
-      const sy = rect.height / map.image_height;
+      // After rotation, the AABB of the image is wider/taller. We compute the
+      // rotated bounding box dimensions:
+      const rad = ((map.rotation ?? 0) * Math.PI) / 180;
+      const cos = Math.abs(Math.cos(rad));
+      const sin = Math.abs(Math.sin(rad));
+      const rotated_w = map.image_width * cos + map.image_height * sin;
+      const rotated_h = map.image_width * sin + map.image_height * cos;
+      const sx = rect.width / rotated_w;
+      const sy = rect.height / rotated_h;
       set_base_scale(Math.min(sx, sy, 1));
     };
     compute();
     const ro = new ResizeObserver(compute);
     if (container_ref.current) ro.observe(container_ref.current);
     return () => ro.disconnect();
-  }, [map.image_width, map.image_height]);
+  }, [map.image_width, map.image_height, map.rotation]);
 
   // Wheel zoom
   const handleWheel = useCallback(
@@ -122,11 +130,30 @@ export function BattleMap({
   const positioned_ids = new Set(map.tokens.map((t) => t.combatant_id));
   const unplaced = combatants.filter((c) => !positioned_ids.has(c.id));
 
+  const rotation = map.rotation ?? 0;
+
   const screenToImage = (clientX: number, clientY: number) => {
     if (!inner_ref.current) return null;
     const rect = inner_ref.current.getBoundingClientRect();
-    const ix = (clientX - rect.left) / scale;
-    const iy = (clientY - rect.top) / scale;
+    // Center of the rendered (post-transform) box on screen
+    const center_screen_x = rect.left + rect.width / 2;
+    const center_screen_y = rect.top + rect.height / 2;
+    // Vector from center to pointer
+    let dx = clientX - center_screen_x;
+    let dy = clientY - center_screen_y;
+    // Inverse rotation (subtract the applied rotation)
+    if (rotation) {
+      const rad = (-rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const rx = dx * cos - dy * sin;
+      const ry = dx * sin + dy * cos;
+      dx = rx;
+      dy = ry;
+    }
+    // Inverse scale and add image center
+    const ix = dx / scale + map.image_width / 2;
+    const iy = dy / scale + map.image_height / 2;
     return { x: ix, y: iy };
   };
 
@@ -288,7 +315,7 @@ export function BattleMap({
           position: 'absolute',
           left: '50%',
           top: '50%',
-          transform: `translate(calc(-50% + ${pan_offset.x}px), calc(-50% + ${pan_offset.y}px)) scale(${scale})`,
+          transform: `translate(calc(-50% + ${pan_offset.x}px), calc(-50% + ${pan_offset.y}px)) rotate(${rotation}deg) scale(${scale})`,
           transformOrigin: 'center center',
           width: map.image_width,
           height: map.image_height,

@@ -106,6 +106,11 @@ interface EncounterStore {
     drawing_id: string
   ) => void;
   clearMapDrawings: (encounter_id: string, map_id: string) => void;
+  setMapRotation: (
+    encounter_id: string,
+    map_id: string,
+    rotation: number
+  ) => void;
 }
 
 export const useEncounterStore = create<EncounterStore>()(
@@ -690,6 +695,22 @@ export const useEncounterStore = create<EncounterStore>()(
               ...e,
               maps: (e.maps ?? []).map((m) =>
                 m.id === map_id ? { ...m, drawings: [] } : m
+              ),
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      setMapRotation: (encounter_id, map_id, rotation) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            // Normalize to 0..359
+            const normalized = ((rotation % 360) + 360) % 360;
+            return {
+              ...e,
+              maps: (e.maps ?? []).map((m) =>
+                m.id === map_id ? { ...m, rotation: normalized } : m
               ),
               updated_at: Date.now(),
             };

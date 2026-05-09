@@ -24,6 +24,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
     updateMapDrawing,
     deleteMapDrawing,
     clearMapDrawings,
+    setMapRotation,
   } = useEncounterStore();
 
   const file_input_ref = useRef<HTMLInputElement>(null);
@@ -268,6 +269,13 @@ export function BattleMapView({ encounter, onExit }: Props) {
               zIndex: 30,
             }}
           >
+            <RotationToolbar
+              rotation={active_map.rotation ?? 0}
+              onChange={(r) =>
+                setMapRotation(encounter.id, active_map.id, r)
+              }
+              variant="dark"
+            />
             <DrawingToolbar
               drawing_enabled={drawing_enabled}
               onToggle={() => set_drawing_enabled(!drawing_enabled)}
@@ -336,6 +344,15 @@ export function BattleMapView({ encounter, onExit }: Props) {
           </div>
         </div>
         <div className="flex gap-2 items-center">
+          {/* Rotation toolbar (only when map exists) */}
+          {active_map && (
+            <RotationToolbar
+              rotation={active_map.rotation ?? 0}
+              onChange={(r) =>
+                setMapRotation(encounter.id, active_map.id, r)
+              }
+            />
+          )}
           {/* Drawing toolbar (only when map exists) */}
           {active_map && (
             <DrawingToolbar
@@ -821,3 +838,111 @@ function DrawingToolbar({
   );
 }
 
+
+// =============================================================================
+// Rotation toolbar (90° step buttons + slider for fine control + reset)
+// =============================================================================
+
+function RotationToolbar({
+  rotation,
+  onChange,
+  variant = 'light',
+}: {
+  rotation: number;
+  onChange: (r: number) => void;
+  variant?: 'light' | 'dark';
+}) {
+  const is_dark = variant === 'dark';
+  const bg_input = is_dark ? 'rgba(255,255,255,0.85)' : undefined;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center',
+        background:
+          rotation !== 0
+            ? is_dark
+              ? 'rgba(124, 58, 237, 0.3)'
+              : 'var(--color-background-info)'
+            : 'transparent',
+        border: rotation !== 0
+          ? '0.5px solid var(--color-border-info)'
+          : '0.5px solid transparent',
+        borderRadius: 6,
+        padding: rotation !== 0 ? '4px 8px' : '0',
+      }}
+    >
+      <button
+        onClick={() => onChange(rotation - 90)}
+        title="Rotate left 90°"
+        style={{
+          fontSize: 14,
+          padding: '4px 8px',
+          background: is_dark ? 'rgba(255,255,255,0.85)' : 'var(--color-background-primary)',
+          border: '0.5px solid var(--color-border-tertiary)',
+          borderRadius: 4,
+          cursor: 'pointer',
+          lineHeight: 1,
+        }}
+      >
+        ↺
+      </button>
+      <button
+        onClick={() => onChange(rotation + 90)}
+        title="Rotate right 90°"
+        style={{
+          fontSize: 14,
+          padding: '4px 8px',
+          background: is_dark ? 'rgba(255,255,255,0.85)' : 'var(--color-background-primary)',
+          border: '0.5px solid var(--color-border-tertiary)',
+          borderRadius: 4,
+          cursor: 'pointer',
+          lineHeight: 1,
+        }}
+      >
+        ↻
+      </button>
+      <input
+        type="range"
+        min={0}
+        max={359}
+        step={1}
+        value={rotation}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        title={`Free rotation: ${rotation}°`}
+        style={{
+          width: 90,
+          background: bg_input,
+        }}
+      />
+      <span
+        style={{
+          fontSize: 11,
+          minWidth: 36,
+          fontFamily: 'var(--font-mono)',
+          textAlign: 'right',
+          color: is_dark ? '#fff' : 'var(--color-text-secondary)',
+        }}
+      >
+        {Math.round(rotation)}°
+      </span>
+      {rotation !== 0 && (
+        <button
+          onClick={() => onChange(0)}
+          title="Reset rotation"
+          style={{
+            fontSize: 11,
+            padding: '4px 8px',
+            background: is_dark ? 'rgba(255,255,255,0.85)' : undefined,
+            border: '0.5px solid var(--color-border-tertiary)',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          ⟲
+        </button>
+      )}
+    </div>
+  );
+}

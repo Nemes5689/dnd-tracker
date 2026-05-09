@@ -323,6 +323,7 @@ export interface BattleMap {
   show_grid: boolean;
   tokens: TokenPosition[];
   drawings?: MapDrawing[]; // freehand strokes / shapes with effects
+  rotation?: number; // degrees, 0-359 (default 0). Both DM and projector see same rotation.
   created_at: number;
 }
 
