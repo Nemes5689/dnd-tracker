@@ -435,6 +435,7 @@ export function BattleMap({
               hide_hp_numbers={hide_monster_hp_numbers}
               interactive={allow_token_movement}
               can_open_hp_popup={!projector_mode}
+              map_rotation={rotation}
               onPointerDown={(e) =>
                 handleTokenPointerDown(e, c.id, tp.x, tp.y)
               }
@@ -457,6 +458,7 @@ export function BattleMap({
             grid_size={map.grid_size}
             grid_cols={grid_cols}
             cell_x={hp_popup_token.x}
+            map_rotation={rotation}
             onDamage={(amount) => {
               if (onDamageMonster) onDamageMonster(hp_popup_combatant.id, amount);
               set_hp_popup_id(null);
@@ -662,6 +664,7 @@ function Token({
   hide_hp_numbers,
   interactive,
   can_open_hp_popup,
+  map_rotation,
   onPointerDown,
   onClick,
 }: {
@@ -676,6 +679,7 @@ function Token({
   hide_hp_numbers: boolean;
   interactive: boolean;
   can_open_hp_popup: boolean;
+  map_rotation: number;
   onPointerDown: (e: React.PointerEvent) => void;
   onClick: (e: React.MouseEvent) => void;
 }) {
@@ -714,6 +718,10 @@ function Token({
         zIndex: is_active ? 10 : 5,
         touchAction: 'none',
         userSelect: 'none',
+        // Counter-rotate so the token (avatar, name, HP) stays upright when
+        // the map is rotated. Rotates around its own center.
+        transform: map_rotation ? `rotate(${-map_rotation}deg)` : undefined,
+        transformOrigin: 'center center',
       }}
     >
       <div
@@ -872,6 +880,7 @@ function HPPopup({
   grid_size,
   grid_cols,
   cell_x,
+  map_rotation,
   onDamage,
   onHeal,
   onClose,
@@ -881,6 +890,7 @@ function HPPopup({
   grid_size: number;
   grid_cols: number;
   cell_x: number;
+  map_rotation: number;
   onDamage: (amount: number) => void;
   onHeal: (amount: number) => void;
   onClose: () => void;
@@ -916,6 +926,9 @@ function HPPopup({
         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         zIndex: 50,
         width: 210,
+        // Counter-rotate so the popup stays upright
+        transform: map_rotation ? `rotate(${-map_rotation}deg)` : undefined,
+        transformOrigin: 'top left',
       }}
     >
       <div className="flex justify-between items-center mb-1">
