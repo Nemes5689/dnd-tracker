@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DND_2024_CLASSES } from '@/data/classData';
 import { FeatureDescription } from '@/components/characters/ClassFeaturesPanel';
 import { BLOOD_HUNTER_BLOOD_CURSES } from '@/data/bloodHunterClass';
+import { ARTIFICER_INFUSIONS } from '@/data/artificerClass';
 import {
   getCombinedSubclasses,
   getSubclassFeatureLevels,
@@ -217,6 +218,54 @@ export function ClassesPage() {
               </div>
             </details>
           </section>
+
+          {selected_class?.id === 'artificer' && (
+            <section
+              style={{
+                border: '0.5px solid var(--color-border-tertiary)',
+                borderRadius: 'var(--border-radius-lg)',
+                background: 'var(--color-background-primary)',
+                padding: 16,
+              }}
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <h2 className="text-lg font-semibold mb-1">Artificer Infusions</h2>
+                  <p className="text-[12px] text-text-secondary">
+                    Each infusion turns a nonmagical object into a magic item. Click an entry to expand its details, prerequisites, and item type.
+                  </p>
+                </div>
+                <div className="text-[11px] text-text-tertiary" style={{ whiteSpace: 'nowrap' }}>
+                  {ARTIFICER_INFUSIONS.length} infusions
+                </div>
+              </div>
+
+              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                {ARTIFICER_INFUSIONS.map((inf) => (
+                  <details
+                    key={inf.id}
+                    style={{
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      borderRadius: 'var(--border-radius-md)',
+                      background: 'var(--color-background-secondary)',
+                      padding: 12,
+                    }}
+                  >
+                    <summary className="text-[13px] text-text-primary" style={{ cursor: 'pointer' }}>
+                      <span className="font-medium">{inf.name}</span>
+                      {inf.prerequisite && <span className="text-text-tertiary"> · {inf.prerequisite}</span>}
+                    </summary>
+                    <div className="mt-2 text-[11px] text-text-secondary" style={{ lineHeight: 1.45 }}>
+                      <p className="mb-2">
+                        <strong className="text-text-primary">Item.</strong> {inf.item}
+                      </p>
+                      <p>{inf.description}</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section
             style={{

@@ -1,5 +1,139 @@
 import type { CharacterClassInfo } from './classData';
 
+export interface ArtificerInfusion {
+  id: string;
+  name: string;
+  prerequisite?: string;
+  item: string;
+  description: string;
+}
+
+/**
+ * Artificer Infusions from Tasha's Cauldron of Everything (5e).
+ * Each infusion turns a nonmagical item into a magical one.
+ */
+export const ARTIFICER_INFUSIONS: ArtificerInfusion[] = [
+  {
+    id: 'arcane-propulsion-armor',
+    name: 'Arcane Propulsion Armor',
+    prerequisite: '14th-level artificer',
+    item: 'A suit of armor (requires attunement)',
+    description:
+      "Walking speed +5 ft. The armor includes magic gauntlets dealing 1d8 force damage on hit, with the thrown property (range 20/60 ft) — they fly back and reattach automatically. The armor can't be removed against the wearer's will. If the wearer is missing limbs, the armor replaces them, functioning identically to the body parts they replace.",
+  },
+  {
+    id: 'armor-of-magical-strength',
+    name: 'Armor of Magical Strength',
+    item: 'A suit of armor (requires attunement)',
+    description:
+      "The armor has 6 charges. The wearer can spend charges as follows: when making a Strength check or save, expend 1 charge to add the wearer's Intelligence modifier to the roll; or use the reaction to spend 1 charge to avoid being knocked prone. Regains 1d6 expended charges daily at dawn.",
+  },
+  {
+    id: 'boots-of-the-winding-path',
+    name: 'Boots of the Winding Path',
+    prerequisite: '6th-level artificer',
+    item: 'A pair of boots (requires attunement)',
+    description:
+      "While wearing these boots, a creature can teleport up to 15 feet as a bonus action to an unoccupied space the creature can see. The creature must have occupied that space at some point during the current turn.",
+  },
+  {
+    id: 'enhanced-arcane-focus',
+    name: 'Enhanced Arcane Focus',
+    item: 'A rod, staff, or wand (requires attunement)',
+    description:
+      "While holding this item, a creature gains a +1 bonus to spell attack rolls. In addition, the creature ignores half cover when making a spell attack. The bonus increases to +2 when you reach 10th level in this class.",
+  },
+  {
+    id: 'enhanced-defense',
+    name: 'Enhanced Defense',
+    item: 'A suit of armor or a shield',
+    description:
+      "A creature gains a +1 bonus to AC while wearing (armor) or wielding (shield) the infused item. The bonus increases to +2 when you reach 10th level in this class.",
+  },
+  {
+    id: 'enhanced-weapon',
+    name: 'Enhanced Weapon',
+    item: 'A simple or martial weapon',
+    description:
+      "This magic weapon grants a +1 bonus to attack and damage rolls made with it. The bonus increases to +2 when you reach 10th level in this class.",
+  },
+  {
+    id: 'helm-of-awareness',
+    name: 'Helm of Awareness',
+    prerequisite: '10th-level artificer',
+    item: 'A helmet (requires attunement)',
+    description:
+      "While wearing this helmet, a creature has advantage on initiative rolls. In addition, the wearer can't be surprised, provided it isn't incapacitated.",
+  },
+  {
+    id: 'homunculus-servant',
+    name: 'Homunculus Servant',
+    item: 'A gem or crystal worth at least 100 gp',
+    description:
+      "You learn intricate methods for magically creating a special homunculus that serves you. The item you infuse serves as the creature's heart, around which the creature's body instantly forms. The homunculus is friendly to you and your companions and obeys your commands. (Tiny construct, AC 13, HP = 1 + your Intelligence modifier + your artificer level. Speed 20 ft., fly 30 ft. Force Strike: ranged spell attack, 30 ft, 1d4 + PB force. Channel Magic reaction: delivers a touch spell within 120 ft.)",
+  },
+  {
+    id: 'mind-sharpener',
+    name: 'Mind Sharpener',
+    item: 'A suit of armor or robes',
+    description:
+      "The infused item can send a jolt to the wearer to refocus their mind. The item has 4 charges. When the wearer fails a Constitution saving throw to maintain concentration on a spell, the wearer can use its reaction to expend 1 of the item's charges to succeed instead. Regains 1d4 expended charges daily at dawn.",
+  },
+  {
+    id: 'radiant-weapon',
+    name: 'Radiant Weapon',
+    prerequisite: '6th-level artificer',
+    item: 'A simple or martial weapon (requires attunement)',
+    description:
+      "+1 bonus to attack and damage rolls. As a bonus action, shed bright light in a 30-ft radius and dim light another 30 ft (extinguish as a bonus action). 4 charges: as a reaction immediately after being hit by an attack, expend 1 charge to blind the attacker until the end of its next turn unless it succeeds on a Con save against your spell save DC. Regains 1d4 charges daily at dawn.",
+  },
+  {
+    id: 'repeating-shot',
+    name: 'Repeating Shot',
+    item: 'A simple or martial weapon with the ammunition property (requires attunement)',
+    description:
+      "+1 bonus to attack and damage rolls when used to make a ranged attack, and ignores the loading property if it has it. If you load no ammunition in the weapon, it produces its own, automatically creating one piece of magic ammunition when you make a ranged attack with it. The created ammunition vanishes the instant after it hits or misses a target.",
+  },
+  {
+    id: 'repulsion-shield',
+    name: 'Repulsion Shield',
+    prerequisite: '6th-level artificer',
+    item: 'A shield (requires attunement)',
+    description:
+      "+1 bonus to AC while wielding this shield. The shield has 4 charges. While holding it, the wielder can use a reaction immediately after being hit by a melee attack to expend 1 of the shield's charges and push the attacker up to 15 feet away. Regains 1d4 expended charges daily at dawn.",
+  },
+  {
+    id: 'resistant-armor',
+    name: 'Resistant Armor',
+    prerequisite: '6th-level artificer',
+    item: 'A suit of armor (requires attunement)',
+    description:
+      "While wearing this armor, a creature has resistance to one of the following damage types, which you choose when you infuse the item: acid, cold, fire, force, lightning, necrotic, poison, psychic, radiant, or thunder.",
+  },
+  {
+    id: 'returning-weapon',
+    name: 'Returning Weapon',
+    item: 'A simple or martial weapon with the thrown property',
+    description:
+      "+1 bonus to attack and damage rolls, and it returns to the wielder's hand immediately after it is used to make a ranged attack.",
+  },
+  {
+    id: 'spell-refueling-ring',
+    name: 'Spell-Refueling Ring',
+    prerequisite: '6th-level artificer',
+    item: 'A ring (requires attunement)',
+    description:
+      "While wearing this ring, the creature can recover one expended spell slot as an action. The recovered slot can be of 3rd level or lower. Once used, the ring can't be used again until the next dawn.",
+  },
+  {
+    id: 'replicate-magic-item',
+    name: 'Replicate Magic Item',
+    item: 'Varies (see Replicable Items tables)',
+    description:
+      "Using this infusion, you replicate a particular magic item. You can learn this infusion multiple times; each time, choose a magic item you can make with it from the Replicable Items tables (Common items: Alchemy Jug, Bag of Holding, Cap of Water Breathing, Goggles of Night, Rope of Climbing, Sending Stones, Wand of Magic Detection, Wand of Secrets). Higher-level tables (6th, 10th, 14th) unlock more powerful items like Bag of Holding, Cloak of Protection, Boots of Speed, Ring of Protection, etc.",
+  },
+];
+
 export const ARTIFICER_CLASS = {
   "id": "artificer",
   "name": "Artificer",
