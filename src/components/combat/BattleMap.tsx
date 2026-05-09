@@ -1,0 +1,957 @@
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type { BattleMap, Combatant, CombatantTokenStyle } from '@/types/app';
+import { stylizedHPLabel } from '@/utils/projectorBus';
+import { tokenCellSize } from '@/utils/tokenSize';
+
+export interface BattleMapProps {
+  map: BattleMap;
+  combatants: Combatant[];
+  active_combatant_id?: string;
+  token_styles?: CombatantTokenStyle[];
+  onMoveToken?: (combatant_id: string, x: number, y: number) => void;
+  onDamageMonster?: (combatant_id: string, amount: number) => void;
+  onHealMonster?: (combatant_id: string, amount: number) => void;
+  show_grid: boolean;
+  fullscreen?: boolean;
+  projector_mode?: boolean;
+  show_token_names?: boolean;
+  hide_monster_hp_numbers?: boolean;
+  // In projector mode: allow token movement, but disable HP popups
+  allow_token_movement?: boolean;
+}
+
+// Min/max zoom levels relative to fit-to-screen scale
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 4;
+
+export function BattleMap({
+  map,
+  combatants,
+  active_combatant_id,
+  token_styles = [],
+  onMoveToken,
+  onDamageMonster,
+  onHealMonster,
+  show_grid,
+  fullscreen = false,
+  projector_mode = false,
+  show_token_names = false,
+  hide_monster_hp_numbers = false,
+  allow_token_movement = true,
+}: BattleMapProps) {
+  const container_ref = useRef<HTMLDivElement>(null);
+  const inner_ref = useRef<HTMLDivElement>(null);
+  const [base_scale, set_base_scale] = useState(1); // fit-to-screen
+  const [zoom, set_zoom] = useState(1); // user zoom multiplier
+  const [pan_offset, set_pan_offset] = useState({ x: 0, y: 0 });
+  const [drag_state, set_drag_state] = useState<{
+    type: 'token' | 'pan';
+    combatant_id?: string;
+    offset_x: number;
+    offset_y: number;
+  } | null>(null);
+  const [hover_cell, set_hover_cell] = useState<{ x: number; y: number } | null>(
+    null
+  );
+  const [hp_popup_id, set_hp_popup_id] = useState<string | null>(null);
+
+  // Effective scale = base_scale * zoom
+  const scale = base_scale * zoom;
+
+  // Compute fit-to-screen scale
+  useEffect(() => {
+    const compute = () => {
+      if (!container_ref.current) return;
+      const rect = container_ref.current.getBoundingClientRect();
+      const sx = rect.width / map.image_width;
+      const sy = rect.height / map.image_height;
+      set_base_scale(Math.min(sx, sy, 1));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    if (container_ref.current) ro.observe(container_ref.current);
+    return () => ro.disconnect();
+  }, [map.image_width, map.image_height]);
+
+  // Wheel zoom
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      set_zoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z * delta)));
+    },
+    []
+  );
+
+  useEffect(() => {
+    const el = container_ref.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
+
+  // Reset zoom (on map change)
+  useEffect(() => {
+    set_zoom(1);
+    set_pan_offset({ x: 0, y: 0 });
+  }, [map.id]);
+
+  const combatant_map: Record<string, Combatant> = {};
+  combatants.forEach((c) => {
+    combatant_map[c.id] = c;
+  });
+  const style_map: Record<string, CombatantTokenStyle> = {};
+  token_styles.forEach((s) => {
+    style_map[s.combatant_id] = s;
+  });
+
+  const positioned_ids = new Set(map.tokens.map((t) => t.combatant_id));
+  const unplaced = combatants.filter((c) => !positioned_ids.has(c.id));
+
+  const screenToImage = (clientX: number, clientY: number) => {
+    if (!inner_ref.current) return null;
+    const rect = inner_ref.current.getBoundingClientRect();
+    const ix = (clientX - rect.left) / scale;
+    const iy = (clientY - rect.top) / scale;
+    return { x: ix, y: iy };
+  };
+
+  const imageToGrid = (ix: number, iy: number) => ({
+    x: Math.floor((ix - map.grid_offset_x) / map.grid_size),
+    y: Math.floor((iy - map.grid_offset_y) / map.grid_size),
+  });
+
+  const gridToImage = (gx: number, gy: number) => ({
+    x: map.grid_offset_x + gx * map.grid_size,
+    y: map.grid_offset_y + gy * map.grid_size,
+  });
+
+  // Token drag start.
+  // We capture the pointer on the container (not the token) so that the
+  // container's pointermove/pointerup handlers receive subsequent events
+  // even if the cursor moves off the token. This is critical for snap-to-grid
+  // dragging where the cursor may end up outside the token's original bounds.
+  const handleTokenPointerDown = (
+    e: React.PointerEvent,
+    combatant_id: string,
+    token_grid_x: number,
+    token_grid_y: number
+  ) => {
+    if (!allow_token_movement) return;
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (container_ref.current) {
+      try {
+        container_ref.current.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+
+    const img = screenToImage(e.clientX, e.clientY);
+    if (!img) return;
+    const tokenTopLeft = gridToImage(token_grid_x, token_grid_y);
+
+    set_drag_state({
+      type: 'token',
+      combatant_id,
+      offset_x: img.x - tokenTopLeft.x,
+      offset_y: img.y - tokenTopLeft.y,
+    });
+    set_hp_popup_id(null);
+  };
+
+  // Drag-pan was removed because it interfered with token drag-and-drop.
+  // Pan is now only available via the arrow buttons next to the zoom controls.
+  const handleBackgroundPointerDown = (_e: React.PointerEvent) => {
+    // Intentionally empty: clicks on the map background don't start a pan.
+    // Token clicks are handled by the token's own handler.
+  };
+
+  // Pointer move - only handles token drag now (pan was removed)
+  const handleContainerPointerMove = (e: React.PointerEvent) => {
+    if (!drag_state) return;
+
+    if (drag_state.type === 'token') {
+      const img = screenToImage(e.clientX, e.clientY);
+      if (!img) return;
+      const tokenLeft = img.x - drag_state.offset_x;
+      const tokenTop = img.y - drag_state.offset_y;
+      const cell = imageToGrid(
+        tokenLeft + map.grid_size / 2,
+        tokenTop + map.grid_size / 2
+      );
+      set_hover_cell(cell);
+    }
+  };
+
+  const handleContainerPointerUp = (e: React.PointerEvent) => {
+    if (!drag_state) return;
+    if (drag_state.type === 'token' && hover_cell && drag_state.combatant_id && onMoveToken) {
+      onMoveToken(drag_state.combatant_id, hover_cell.x, hover_cell.y);
+    }
+    set_drag_state(null);
+    set_hover_cell(null);
+    try {
+      (e.target as Element).releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const [pending_placement, set_pending_placement] = useState<string | null>(
+    null
+  );
+
+  const handleMapClick = (e: React.MouseEvent) => {
+    if (!allow_token_movement) return;
+    if (!pending_placement || drag_state) return;
+    const img = screenToImage(e.clientX, e.clientY);
+    if (!img || !onMoveToken) return;
+    const cell = imageToGrid(img.x, img.y);
+    onMoveToken(pending_placement, cell.x, cell.y);
+    set_pending_placement(null);
+  };
+
+  const grid_cols = Math.ceil(
+    (map.image_width - map.grid_offset_x) / map.grid_size
+  );
+  const grid_rows = Math.ceil(
+    (map.image_height - map.grid_offset_y) / map.grid_size
+  );
+
+  const hp_popup_token = hp_popup_id
+    ? map.tokens.find((t) => t.combatant_id === hp_popup_id)
+    : null;
+  const hp_popup_combatant = hp_popup_id ? combatant_map[hp_popup_id] : null;
+
+  const resetZoom = () => {
+    set_zoom(1);
+    set_pan_offset({ x: 0, y: 0 });
+  };
+
+  const adjustZoom = (delta: number) => {
+    set_zoom((z) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z * delta)));
+  };
+
+  // Pan the map by a delta in screen pixels.
+  // Positive dx moves the map right (we add to pan_offset.x).
+  // We clamp to reasonable bounds based on the current map size.
+  const panBy = (dx: number, dy: number) => {
+    set_pan_offset((p) => {
+      const max_x = (map.image_width * scale) / 2;
+      const max_y = (map.image_height * scale) / 2;
+      return {
+        x: Math.max(-max_x, Math.min(max_x, p.x + dx)),
+        y: Math.max(-max_y, Math.min(max_y, p.y + dy)),
+      };
+    });
+  };
+
+  return (
+    <div
+      ref={container_ref}
+      className="relative w-full h-full overflow-hidden"
+      style={{
+        background: fullscreen || projector_mode ? '#000' : 'var(--color-background-tertiary)',
+        cursor: drag_state?.type === 'token'
+          ? 'grabbing'
+          : pending_placement
+          ? 'crosshair'
+          : 'default',
+        touchAction: 'none',
+      }}
+      onPointerDown={handleBackgroundPointerDown}
+      onPointerMove={handleContainerPointerMove}
+      onPointerUp={handleContainerPointerUp}
+      onPointerCancel={handleContainerPointerUp}
+    >
+      <div
+        ref={inner_ref}
+        onClick={handleMapClick}
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: `translate(calc(-50% + ${pan_offset.x}px), calc(-50% + ${pan_offset.y}px)) scale(${scale})`,
+          transformOrigin: 'center center',
+          width: map.image_width,
+          height: map.image_height,
+        }}
+      >
+        <img
+          src={map.image_data}
+          alt={map.name}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: map.image_width,
+            height: map.image_height,
+            userSelect: 'none',
+            pointerEvents: 'none',
+          }}
+          draggable={false}
+        />
+
+        {show_grid && (
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: map.image_width,
+              height: map.image_height,
+              pointerEvents: 'none',
+            }}
+          >
+            {Array.from({ length: grid_cols + 1 }, (_, i) => {
+              const x = map.grid_offset_x + i * map.grid_size;
+              return (
+                <line
+                  key={`v${i}`}
+                  x1={x}
+                  y1={map.grid_offset_y}
+                  x2={x}
+                  y2={map.grid_offset_y + grid_rows * map.grid_size}
+                  stroke="rgba(0,0,0,0.35)"
+                  strokeWidth={1}
+                />
+              );
+            })}
+            {Array.from({ length: grid_rows + 1 }, (_, i) => {
+              const y = map.grid_offset_y + i * map.grid_size;
+              return (
+                <line
+                  key={`h${i}`}
+                  x1={map.grid_offset_x}
+                  y1={y}
+                  x2={map.grid_offset_x + grid_cols * map.grid_size}
+                  y2={y}
+                  stroke="rgba(0,0,0,0.35)"
+                  strokeWidth={1}
+                />
+              );
+            })}
+          </svg>
+        )}
+
+        {drag_state?.type === 'token' && hover_cell && drag_state.combatant_id && (() => {
+          const c = combatant_map[drag_state.combatant_id];
+          const cells = c ? tokenCellSize(c.size) : 1;
+          return (
+            <div
+              style={{
+                position: 'absolute',
+                left: gridToImage(hover_cell.x, hover_cell.y).x,
+                top: gridToImage(hover_cell.x, hover_cell.y).y,
+                width: map.grid_size * cells,
+                height: map.grid_size * cells,
+                background: 'rgba(83, 74, 183, 0.25)',
+                border: '2px solid #534AB7',
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+              }}
+            />
+          );
+        })()}
+
+        {map.tokens.map((tp) => {
+          const c = combatant_map[tp.combatant_id];
+          if (!c) return null;
+          const px = gridToImage(tp.x, tp.y);
+          const is_dragging =
+            drag_state?.type === 'token' && drag_state.combatant_id === c.id;
+          const cells = tokenCellSize(c.size);
+          return (
+            <Token
+              key={tp.combatant_id}
+              combatant={c}
+              style={style_map[c.id]}
+              x={px.x}
+              y={px.y}
+              size={map.grid_size * cells}
+              is_active={c.id === active_combatant_id}
+              is_dragging={is_dragging}
+              show_name={show_token_names}
+              hide_hp_numbers={hide_monster_hp_numbers}
+              interactive={allow_token_movement}
+              can_open_hp_popup={!projector_mode}
+              onPointerDown={(e) =>
+                handleTokenPointerDown(e, c.id, tp.x, tp.y)
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                if (drag_state) return;
+                if (projector_mode) return;
+                if (!c.is_player) {
+                  set_hp_popup_id(c.id === hp_popup_id ? null : c.id);
+                }
+              }}
+            />
+          );
+        })}
+
+        {hp_popup_token && hp_popup_combatant && !projector_mode && (
+          <HPPopup
+            combatant={hp_popup_combatant}
+            position_px={gridToImage(hp_popup_token.x, hp_popup_token.y)}
+            grid_size={map.grid_size}
+            grid_cols={grid_cols}
+            cell_x={hp_popup_token.x}
+            onDamage={(amount) => {
+              if (onDamageMonster) onDamageMonster(hp_popup_combatant.id, amount);
+              set_hp_popup_id(null);
+            }}
+            onHeal={(amount) => {
+              if (onHealMonster) onHealMonster(hp_popup_combatant.id, amount);
+              set_hp_popup_id(null);
+            }}
+            onClose={() => set_hp_popup_id(null)}
+          />
+        )}
+      </div>
+
+      {/* Unplaced tokens (only shown in DM mode) */}
+      {!projector_mode && unplaced.length > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            background: 'rgba(255,255,255,0.95)',
+            padding: '8px',
+            borderRadius: 'var(--border-radius-md)',
+            border: '0.5px solid var(--color-border-tertiary)',
+            maxWidth: '200px',
+            zIndex: 20,
+          }}
+        >
+          <div className="text-[10px] text-text-tertiary mb-1">
+            {pending_placement
+              ? 'Click on map to place'
+              : `Click a token, then on map (${unplaced.length})`}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {unplaced.map((c) => (
+              <UnplacedTokenButton
+                key={c.id}
+                combatant={c}
+                style={style_map[c.id]}
+                is_pending={pending_placement === c.id}
+                onClick={() =>
+                  set_pending_placement(
+                    pending_placement === c.id ? null : c.id
+                  )
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Map controls (bottom-right): pan arrows + zoom */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 12,
+          right: 12,
+          display: 'flex',
+          gap: 8,
+          zIndex: 25,
+          alignItems: 'flex-end',
+        }}
+      >
+        {/* Pan arrows in a D-pad layout */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 36px)',
+            gridTemplateRows: 'repeat(3, 36px)',
+            gap: 2,
+          }}
+        >
+          <div /> {/* top-left empty */}
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => panBy(0, 80)}
+            title="Pan up"
+          >
+            ↑
+          </ControlButton>
+          <div /> {/* top-right empty */}
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => panBy(80, 0)}
+            title="Pan left"
+          >
+            ←
+          </ControlButton>
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => set_pan_offset({ x: 0, y: 0 })}
+            title="Center"
+            small
+          >
+            ⊙
+          </ControlButton>
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => panBy(-80, 0)}
+            title="Pan right"
+          >
+            →
+          </ControlButton>
+          <div /> {/* bottom-left empty */}
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => panBy(0, -80)}
+            title="Pan down"
+          >
+            ↓
+          </ControlButton>
+          <div /> {/* bottom-right empty */}
+        </div>
+
+        {/* Zoom column */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+        >
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => adjustZoom(1.25)}
+            title="Zoom in"
+            big_text
+          >
+            +
+          </ControlButton>
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={() => adjustZoom(0.8)}
+            title="Zoom out"
+            big_text
+          >
+            −
+          </ControlButton>
+          <ControlButton
+            projector_mode={projector_mode}
+            onClick={resetZoom}
+            title="Reset zoom"
+            small
+          >
+            {Math.round(zoom * 100)}%
+          </ControlButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ControlButton({
+  children,
+  onClick,
+  title,
+  projector_mode,
+  small,
+  big_text,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  projector_mode: boolean;
+  small?: boolean;
+  big_text?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        width: 36,
+        height: 36,
+        fontSize: small ? 11 : big_text ? 18 : 16,
+        background: projector_mode ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.95)',
+        color: projector_mode ? '#fff' : 'var(--color-text-primary)',
+        border: projector_mode
+          ? '1px solid rgba(255,255,255,0.3)'
+          : '0.5px solid var(--color-border-secondary)',
+        borderRadius: 6,
+        padding: 0,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Token({
+  combatant,
+  style,
+  x,
+  y,
+  size,
+  is_active,
+  is_dragging,
+  show_name,
+  hide_hp_numbers,
+  interactive,
+  can_open_hp_popup,
+  onPointerDown,
+  onClick,
+}: {
+  combatant: Combatant;
+  style?: CombatantTokenStyle;
+  x: number;
+  y: number;
+  size: number;
+  is_active: boolean;
+  is_dragging: boolean;
+  show_name: boolean;
+  hide_hp_numbers: boolean;
+  interactive: boolean;
+  can_open_hp_popup: boolean;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const initial = style?.initial ?? combatant.name.charAt(0).toUpperCase();
+  // Color by type: PC blue, ally green, monster red
+  const colors = combatantColors(combatant);
+  const bg_color = style?.color ?? colors.bg;
+  const has_avatar = !!style?.avatar;
+
+  const hp_pct =
+    combatant.hp_max > 0 ? combatant.hp_current / combatant.hp_max : 1;
+
+  const stylized = !combatant.is_player && !combatant.is_ally && hide_hp_numbers
+    ? stylizedHPLabel(combatant.hp_current, combatant.hp_max)
+    : null;
+
+  const cursor = !interactive
+    ? 'default'
+    : is_dragging
+    ? 'grabbing'
+    : 'grab';
+
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onClick={onClick}
+      data-token-id={combatant.id}
+      style={{
+        position: 'absolute',
+        left: x,
+        top: y,
+        width: size,
+        height: size,
+        cursor,
+        opacity: is_dragging ? 0.4 : 1,
+        zIndex: is_active ? 10 : 5,
+        touchAction: 'none',
+        userSelect: 'none',
+      }}
+    >
+      <div
+        style={{
+          width: '90%',
+          height: '90%',
+          margin: '5%',
+          borderRadius: '50%',
+          background: has_avatar ? 'transparent' : bg_color,
+          backgroundImage: has_avatar ? `url(${style!.avatar})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          border: is_active
+            ? '3px solid #FBBF24'
+            : `2px solid ${colors.border}`,
+          boxShadow: is_active
+            ? '0 0 12px rgba(251, 191, 36, 0.7)'
+            : '0 2px 4px rgba(0,0,0,0.3)',
+          color: '#fff',
+          fontWeight: 700,
+          fontSize: Math.max(12, size * 0.4),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          position: 'relative',
+        }}
+      >
+        {!has_avatar && initial}
+
+        {!combatant.is_player && !hide_hp_numbers && (
+          <svg
+            style={{
+              position: 'absolute',
+              bottom: '-2px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '90%',
+              height: '6px',
+              pointerEvents: 'none',
+            }}
+            viewBox="0 0 100 6"
+            preserveAspectRatio="none"
+          >
+            <rect x="0" y="0" width="100" height="6" fill="rgba(0,0,0,0.4)" rx="3" />
+            <rect
+              x="0"
+              y="0"
+              width={Math.max(0, hp_pct * 100)}
+              height="6"
+              fill={
+                hp_pct > 0.6 ? '#22C55E' : hp_pct > 0.3 ? '#F59E0B' : '#EF4444'
+              }
+              rx="3"
+            />
+          </svg>
+        )}
+      </div>
+
+      {show_name && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginTop: 6,
+            padding: '2px 8px',
+            background: 'rgba(0,0,0,0.75)',
+            color: '#fff',
+            fontSize: Math.max(10, size * 0.22),
+            fontWeight: 500,
+            borderRadius: 4,
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          {combatant.name}
+          {stylized && (
+            <span style={{ color: stylized.color, marginLeft: 6 }}>
+              · {stylized.label}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UnplacedTokenButton({
+  combatant,
+  style,
+  is_pending,
+  onClick,
+}: {
+  combatant: Combatant;
+  style?: CombatantTokenStyle;
+  is_pending: boolean;
+  onClick: () => void;
+}) {
+  const initial = style?.initial ?? combatant.name.charAt(0).toUpperCase();
+  const colors = combatantColors(combatant);
+  const bg_color = style?.color ?? colors.bg;
+
+  return (
+    <button
+      onClick={onClick}
+      title={combatant.name}
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: '50%',
+        background: style?.avatar ? `url(${style.avatar})` : bg_color,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: 12,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        border: is_pending
+          ? '2px solid #FBBF24'
+          : `1.5px solid ${colors.border}`,
+        boxShadow: is_pending ? '0 0 6px rgba(251, 191, 36, 0.7)' : undefined,
+        padding: 0,
+      }}
+    >
+      {!style?.avatar && initial}
+    </button>
+  );
+}
+
+/**
+ * Compute the bg/border colors for a combatant token based on type:
+ * - Player character: blue
+ * - Ally / summon: green
+ * - Monster: red
+ */
+function combatantColors(combatant: Combatant): { bg: string; border: string } {
+  if (combatant.is_player) {
+    return { bg: '#3B82F6', border: '#1E40AF' };
+  }
+  if (combatant.is_ally) {
+    return { bg: '#22C55E', border: '#15803D' };
+  }
+  return { bg: '#DC2626', border: '#7F1D1D' };
+}
+
+function HPPopup({
+  combatant,
+  position_px,
+  grid_size,
+  grid_cols,
+  cell_x,
+  onDamage,
+  onHeal,
+  onClose,
+}: {
+  combatant: Combatant;
+  position_px: { x: number; y: number };
+  grid_size: number;
+  grid_cols: number;
+  cell_x: number;
+  onDamage: (amount: number) => void;
+  onHeal: (amount: number) => void;
+  onClose: () => void;
+}) {
+  const [dmg, set_dmg] = useState('');
+  const [heal, set_heal] = useState('');
+
+  const handleDamage = () => {
+    const n = parseInt(dmg, 10);
+    if (n > 0) onDamage(n);
+  };
+  const handleHeal = () => {
+    const n = parseInt(heal, 10);
+    if (n > 0) onHeal(n);
+  };
+
+  const hp_pct = combatant.hp_max > 0 ? combatant.hp_current / combatant.hp_max : 1;
+  const bar_color =
+    hp_pct > 0.6 ? '#22C55E' : hp_pct > 0.3 ? '#F59E0B' : '#EF4444';
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      style={{
+        position: 'absolute',
+        left: cell_x < grid_cols - 5 ? position_px.x + grid_size + 6 : position_px.x - 220,
+        top: position_px.y,
+        background: 'rgba(255,255,255,0.98)',
+        border: '0.5px solid var(--color-border-secondary)',
+        borderRadius: 'var(--border-radius-md)',
+        padding: '12px 14px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: 50,
+        width: 210,
+      }}
+    >
+      <div className="flex justify-between items-center mb-1">
+        <div className="text-[12px] font-medium">{combatant.name}</div>
+        <button
+          onClick={onClose}
+          style={{
+            border: 'none',
+            background: 'transparent',
+            fontSize: '16px',
+            padding: 0,
+            cursor: 'pointer',
+            color: 'var(--color-text-tertiary)',
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="mb-2">
+        <div className="flex justify-between text-[10px] text-text-tertiary mb-1">
+          <span>HP</span>
+          <span>
+            {combatant.hp_current}/{combatant.hp_max}
+            {combatant.hp_temp > 0 && (
+              <span style={{ color: '#534AB7' }}> +{combatant.hp_temp}</span>
+            )}
+          </span>
+        </div>
+        <div
+          style={{
+            height: 8,
+            background: 'var(--color-background-secondary)',
+            borderRadius: 4,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.max(0, hp_pct * 100)}%`,
+              height: '100%',
+              background: bar_color,
+              transition: 'width 0.2s',
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-1 mb-1">
+        <input
+          type="number"
+          placeholder="Damage"
+          value={dmg}
+          onChange={(e) => set_dmg(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleDamage()}
+          style={{ flex: 1, fontSize: '11px', height: '26px' }}
+          autoFocus
+        />
+        <button
+          onClick={handleDamage}
+          style={{
+            fontSize: '11px',
+            padding: '0 10px',
+            background: '#FCEBEB',
+            borderColor: '#F09595',
+            color: '#501313',
+          }}
+        >
+          Damage
+        </button>
+      </div>
+      <div className="flex gap-1">
+        <input
+          type="number"
+          placeholder="Heal"
+          value={heal}
+          onChange={(e) => set_heal(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleHeal()}
+          style={{ flex: 1, fontSize: '11px', height: '26px' }}
+        />
+        <button
+          onClick={handleHeal}
+          style={{
+            fontSize: '11px',
+            padding: '0 10px',
+            background: '#E5F4D8',
+            borderColor: '#9AC56A',
+            color: '#2F4F0F',
+          }}
+        >
+          Heal
+        </button>
+      </div>
+    </div>
+  );
+}

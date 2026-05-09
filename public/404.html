@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>D&D Combat Tracker</title>
+  <script>
+    // GitHub Pages 404 fallback: redirect any unknown path to the SPA root.
+    // The HashRouter then handles the actual route from the URL fragment.
+    var path = window.location.pathname;
+    var basePath = '/dnd-tracker/';
+    var idx = path.indexOf(basePath);
+    var subPath = idx >= 0 ? path.slice(idx + basePath.length) : '';
+    window.location.replace(basePath + (subPath ? '#/' + subPath : ''));
+  </script>
+</head>
+<body>
+  Redirecting...
+</body>
+</html>
