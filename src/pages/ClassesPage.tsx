@@ -3,6 +3,7 @@ import { DND_2024_CLASSES } from '@/data/classData';
 import { FeatureDescription } from '@/components/characters/ClassFeaturesPanel';
 import { BLOOD_HUNTER_BLOOD_CURSES } from '@/data/bloodHunterClass';
 import { ARTIFICER_INFUSIONS } from '@/data/artificerClass';
+import { SORCERER_METAMAGIC } from '@/data/sorcererMetamagic';
 import {
   getCombinedSubclasses,
   getSubclassFeatureLevels,
@@ -260,6 +261,51 @@ export function ClassesPage() {
                         <strong className="text-text-primary">Item.</strong> {inf.item}
                       </p>
                       <p>{inf.description}</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {selected_class?.id === 'sorcerer' && (
+            <section
+              style={{
+                border: '0.5px solid var(--color-border-tertiary)',
+                borderRadius: 'var(--border-radius-lg)',
+                background: 'var(--color-background-primary)',
+                padding: 16,
+              }}
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div>
+                  <h2 className="text-lg font-semibold mb-1">Metamagic Options</h2>
+                  <p className="text-[12px] text-text-secondary">
+                    Spend Sorcery Points to alter your spells. You learn 2 options at level 2, 2 more at level 10, and 2 more at level 17. You can use only one Metamagic option per spell unless a feature says otherwise (e.g. Empowered Spell, Seeking Spell, or Innate Sorcery).
+                  </p>
+                </div>
+                <div className="text-[11px] text-text-tertiary" style={{ whiteSpace: 'nowrap' }}>
+                  {SORCERER_METAMAGIC.length} options
+                </div>
+              </div>
+
+              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                {SORCERER_METAMAGIC.map((mm) => (
+                  <details
+                    key={mm.id}
+                    style={{
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      borderRadius: 'var(--border-radius-md)',
+                      background: 'var(--color-background-secondary)',
+                      padding: 12,
+                    }}
+                  >
+                    <summary className="text-[13px] text-text-primary" style={{ cursor: 'pointer' }}>
+                      <span className="font-medium">{mm.name}</span>
+                      <span className="text-text-tertiary"> · {mm.cost}</span>
+                    </summary>
+                    <div className="mt-2 text-[11px] text-text-secondary" style={{ lineHeight: 1.45 }}>
+                      <p>{mm.description}</p>
                     </div>
                   </details>
                 ))}
