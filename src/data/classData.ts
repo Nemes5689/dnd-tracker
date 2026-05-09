@@ -1,4 +1,5 @@
 import { BLOOD_HUNTER_CLASS } from './bloodHunterClass';
+import { ARTIFICER_CLASS } from './artificerClass';
 // Generated from the uploaded D&D 2024 class markdown files.
 // Kept local/offline so the app can show class/subclass choices without a network request.
 
@@ -6198,6 +6199,7 @@ export const DND_2024_CLASSES = [
     ]
   }
   , BLOOD_HUNTER_CLASS
+  , ARTIFICER_CLASS
 ] satisfies CharacterClassInfo[];
 
 export const getClassInfo = (classId?: string) =>
