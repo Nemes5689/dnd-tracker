@@ -20,6 +20,10 @@ export function BattleMapView({ encounter, onExit }: Props) {
     setTokenPosition,
     damageCombatant,
     healCombatant,
+    addMapDrawing,
+    updateMapDrawing,
+    deleteMapDrawing,
+    clearMapDrawings,
   } = useEncounterStore();
 
   const file_input_ref = useRef<HTMLInputElement>(null);
@@ -29,6 +33,11 @@ export function BattleMapView({ encounter, onExit }: Props) {
   const [projector_window, set_projector_window] = useState<Window | null>(
     null
   );
+
+  // Drawing state
+  const [drawing_enabled, set_drawing_enabled] = useState(false);
+  const [drawing_color, set_drawing_color] = useState('#dc2626');
+  const [drawing_stroke_width, set_drawing_stroke_width] = useState(4);
 
   const maps = encounter.maps ?? [];
   const active_map = maps.find((m) => m.id === encounter.active_map_id) ?? null;
@@ -231,6 +240,18 @@ export function BattleMapView({ encounter, onExit }: Props) {
             show_grid={active_map.show_grid}
             fullscreen
             show_token_names
+            drawing_enabled={drawing_enabled}
+            drawing_color={drawing_color}
+            drawing_stroke_width={drawing_stroke_width}
+            onAddDrawing={(d) =>
+              addMapDrawing(encounter.id, active_map.id, d)
+            }
+            onUpdateDrawing={(id, patch) =>
+              updateMapDrawing(encounter.id, active_map.id, id, patch)
+            }
+            onDeleteDrawing={(id) =>
+              deleteMapDrawing(encounter.id, active_map.id, id)
+            }
           />
 
           <div
@@ -240,12 +261,34 @@ export function BattleMapView({ encounter, onExit }: Props) {
               right: 12,
               display: 'flex',
               gap: 8,
+              alignItems: 'center',
               background: 'rgba(0,0,0,0.6)',
               padding: '6px 10px',
               borderRadius: 8,
               zIndex: 30,
             }}
           >
+            <DrawingToolbar
+              drawing_enabled={drawing_enabled}
+              onToggle={() => set_drawing_enabled(!drawing_enabled)}
+              color={drawing_color}
+              onColorChange={set_drawing_color}
+              stroke_width={drawing_stroke_width}
+              onStrokeWidthChange={set_drawing_stroke_width}
+              has_drawings={(active_map.drawings ?? []).length > 0}
+              onClearAll={() => {
+                if (
+                  confirm(
+                    `Clear all ${
+                      (active_map.drawings ?? []).length
+                    } drawings on this map?`
+                  )
+                ) {
+                  clearMapDrawings(encounter.id, active_map.id);
+                }
+              }}
+              variant="dark"
+            />
             <span
               style={{
                 color: '#fff',
@@ -292,7 +335,30 @@ export function BattleMapView({ encounter, onExit }: Props) {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Drawing toolbar (only when map exists) */}
+          {active_map && (
+            <DrawingToolbar
+              drawing_enabled={drawing_enabled}
+              onToggle={() => set_drawing_enabled(!drawing_enabled)}
+              color={drawing_color}
+              onColorChange={set_drawing_color}
+              stroke_width={drawing_stroke_width}
+              onStrokeWidthChange={set_drawing_stroke_width}
+              has_drawings={(active_map.drawings ?? []).length > 0}
+              onClearAll={() => {
+                if (
+                  confirm(
+                    `Clear all ${
+                      (active_map.drawings ?? []).length
+                    } drawings on this map?`
+                  )
+                ) {
+                  clearMapDrawings(encounter.id, active_map.id);
+                }
+              }}
+            />
+          )}
           {projector_window && !projector_window.closed ? (
             <button
               onClick={closeProjector}
@@ -583,6 +649,18 @@ export function BattleMapView({ encounter, onExit }: Props) {
                 onHealMonster={handleHealMonster}
                 show_grid={active_map.show_grid}
                 show_token_names
+                drawing_enabled={drawing_enabled}
+                drawing_color={drawing_color}
+                drawing_stroke_width={drawing_stroke_width}
+                onAddDrawing={(d) =>
+                  addMapDrawing(encounter.id, active_map.id, d)
+                }
+                onUpdateDrawing={(id, patch) =>
+                  updateMapDrawing(encounter.id, active_map.id, id, patch)
+                }
+                onDeleteDrawing={(id) =>
+                  deleteMapDrawing(encounter.id, active_map.id, id)
+                }
               />
             ) : (
               <div className="h-full flex items-center justify-center text-text-tertiary">
@@ -600,3 +678,146 @@ export function BattleMapView({ encounter, onExit }: Props) {
     </div>
   );
 }
+
+
+// =============================================================================
+// Drawing toolbar (color picker + stroke width + draw toggle + clear)
+// =============================================================================
+
+const DRAWING_COLORS = [
+  "#dc2626", // red-600
+  "#ea580c", // orange-600
+  "#facc15", // yellow-400
+  "#16a34a", // green-600
+  "#0ea5e9", // sky-500
+  "#7c3aed", // violet-600
+  "#ec4899", // pink-500
+  "#1f2937", // gray-800
+  "#ffffff", // white
+];
+
+function DrawingToolbar({
+  drawing_enabled,
+  onToggle,
+  color,
+  onColorChange,
+  stroke_width,
+  onStrokeWidthChange,
+  has_drawings,
+  onClearAll,
+  variant = "light",
+}: {
+  drawing_enabled: boolean;
+  onToggle: () => void;
+  color: string;
+  onColorChange: (c: string) => void;
+  stroke_width: number;
+  onStrokeWidthChange: (w: number) => void;
+  has_drawings: boolean;
+  onClearAll: () => void;
+  variant?: "light" | "dark";
+}) {
+  const is_dark = variant === "dark";
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 6,
+        alignItems: "center",
+        background: drawing_enabled
+          ? is_dark
+            ? "rgba(124, 58, 237, 0.3)"
+            : "var(--color-background-info)"
+          : "transparent",
+        border: drawing_enabled
+          ? "0.5px solid var(--color-border-info)"
+          : "0.5px solid transparent",
+        borderRadius: 6,
+        padding: drawing_enabled ? "4px 8px" : "0",
+      }}
+    >
+      <button
+        onClick={onToggle}
+        title={drawing_enabled ? "Disable drawing mode" : "Enable drawing mode"}
+        style={{
+          fontSize: 13,
+          padding: "6px 12px",
+          background: drawing_enabled
+            ? "var(--color-background-info)"
+            : is_dark
+            ? "rgba(255,255,255,0.85)"
+            : "var(--color-background-primary)",
+          color: drawing_enabled ? "var(--color-text-info)" : undefined,
+          fontWeight: drawing_enabled ? 500 : 400,
+          border: "0.5px solid var(--color-border-tertiary)",
+          borderRadius: 4,
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
+      >
+        🖊 {drawing_enabled ? "Drawing ON" : "Draw"}
+      </button>
+
+      {drawing_enabled && (
+        <>
+          {/* Color swatches */}
+          <div style={{ display: "flex", gap: 3 }}>
+            {DRAWING_COLORS.map((c) => (
+              <button
+                key={c}
+                onClick={() => onColorChange(c)}
+                title={c}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  background: c,
+                  border:
+                    color === c
+                      ? "2px solid var(--color-text-info)"
+                      : "1px solid rgba(0,0,0,0.3)",
+                  cursor: "pointer",
+                  padding: 0,
+                  boxShadow: color === c ? "0 0 0 1px white inset" : undefined,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Stroke width */}
+          <select
+            value={stroke_width}
+            onChange={(e) => onStrokeWidthChange(parseInt(e.target.value, 10))}
+            title="Stroke width"
+            style={{
+              fontSize: 11,
+              padding: "3px 6px",
+              borderRadius: 4,
+              background: is_dark ? "rgba(255,255,255,0.85)" : undefined,
+            }}
+          >
+            <option value={2}>thin</option>
+            <option value={4}>med</option>
+            <option value={8}>thick</option>
+            <option value={14}>extra</option>
+          </select>
+
+          {has_drawings && (
+            <button
+              onClick={onClearAll}
+              title="Clear all drawings"
+              style={{
+                fontSize: 11,
+                padding: "4px 8px",
+                background: is_dark ? "rgba(255,255,255,0.85)" : undefined,
+              }}
+            >
+              🗑
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+

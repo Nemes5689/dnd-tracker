@@ -9,6 +9,7 @@ import type {
   BattleMap,
   TokenPosition,
   CombatantTokenStyle,
+  MapDrawing,
 } from '@/types/app';
 import {
   applyDamage,
@@ -88,6 +89,23 @@ interface EncounterStore {
     encounter_id: string,
     style: CombatantTokenStyle
   ) => void;
+  addMapDrawing: (
+    encounter_id: string,
+    map_id: string,
+    drawing: MapDrawing
+  ) => void;
+  updateMapDrawing: (
+    encounter_id: string,
+    map_id: string,
+    drawing_id: string,
+    patch: Partial<MapDrawing>
+  ) => void;
+  deleteMapDrawing: (
+    encounter_id: string,
+    map_id: string,
+    drawing_id: string
+  ) => void;
+  clearMapDrawings: (encounter_id: string, map_id: string) => void;
 }
 
 export const useEncounterStore = create<EncounterStore>()(
@@ -603,6 +621,78 @@ export const useEncounterStore = create<EncounterStore>()(
                 )
               : [...(e.token_styles ?? []), style];
             return { ...e, token_styles: new_styles, updated_at: Date.now() };
+          }),
+        })),
+
+      addMapDrawing: (encounter_id, map_id, drawing) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            return {
+              ...e,
+              maps: (e.maps ?? []).map((m) =>
+                m.id === map_id
+                  ? { ...m, drawings: [...(m.drawings ?? []), drawing] }
+                  : m
+              ),
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      updateMapDrawing: (encounter_id, map_id, drawing_id, patch) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            return {
+              ...e,
+              maps: (e.maps ?? []).map((m) =>
+                m.id === map_id
+                  ? {
+                      ...m,
+                      drawings: (m.drawings ?? []).map((d) =>
+                        d.id === drawing_id ? { ...d, ...patch } : d
+                      ),
+                    }
+                  : m
+              ),
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      deleteMapDrawing: (encounter_id, map_id, drawing_id) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            return {
+              ...e,
+              maps: (e.maps ?? []).map((m) =>
+                m.id === map_id
+                  ? {
+                      ...m,
+                      drawings: (m.drawings ?? []).filter(
+                        (d) => d.id !== drawing_id
+                      ),
+                    }
+                  : m
+              ),
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      clearMapDrawings: (encounter_id, map_id) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            return {
+              ...e,
+              maps: (e.maps ?? []).map((m) =>
+                m.id === map_id ? { ...m, drawings: [] } : m
+              ),
+              updated_at: Date.now(),
+            };
           }),
         })),
     }),

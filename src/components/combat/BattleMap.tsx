@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type { BattleMap, Combatant, CombatantTokenStyle } from '@/types/app';
+import type { BattleMap, Combatant, CombatantTokenStyle, MapDrawing } from '@/types/app';
 import { stylizedHPLabel } from '@/utils/projectorBus';
 import { tokenCellSize } from '@/utils/tokenSize';
+import { DrawingLayer } from './DrawingLayer';
 
 export interface BattleMapProps {
   map: BattleMap;
@@ -18,6 +19,13 @@ export interface BattleMapProps {
   hide_monster_hp_numbers?: boolean;
   // In projector mode: allow token movement, but disable HP popups
   allow_token_movement?: boolean;
+  // Drawing layer props (optional)
+  drawing_enabled?: boolean;
+  drawing_color?: string;
+  drawing_stroke_width?: number;
+  onAddDrawing?: (drawing: MapDrawing) => void;
+  onUpdateDrawing?: (drawing_id: string, patch: Partial<MapDrawing>) => void;
+  onDeleteDrawing?: (drawing_id: string) => void;
 }
 
 // Min/max zoom levels relative to fit-to-screen scale
@@ -38,6 +46,12 @@ export function BattleMap({
   show_token_names = false,
   hide_monster_hp_numbers = false,
   allow_token_movement = true,
+  drawing_enabled = false,
+  drawing_color = '#dc2626',
+  drawing_stroke_width = 4,
+  onAddDrawing,
+  onUpdateDrawing,
+  onDeleteDrawing,
 }: BattleMapProps) {
   const container_ref = useRef<HTMLDivElement>(null);
   const inner_ref = useRef<HTMLDivElement>(null);
@@ -335,6 +349,22 @@ export function BattleMap({
               );
             })}
           </svg>
+        )}
+
+        {/* Drawing layer (above grid, below tokens) */}
+        {(map.drawings || drawing_enabled) && (
+          <DrawingLayer
+            width={map.image_width}
+            height={map.image_height}
+            drawings={map.drawings ?? []}
+            drawing_enabled={drawing_enabled}
+            current_color={drawing_color}
+            stroke_width={drawing_stroke_width}
+            onAddDrawing={onAddDrawing ?? (() => {})}
+            onUpdateDrawing={onUpdateDrawing ?? (() => {})}
+            onDeleteDrawing={onDeleteDrawing ?? (() => {})}
+            read_only={projector_mode || !onAddDrawing}
+          />
         )}
 
         {drag_state?.type === 'token' && hover_cell && drag_state.combatant_id && (() => {

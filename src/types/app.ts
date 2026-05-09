@@ -284,6 +284,33 @@ export interface TokenPosition {
   y: number; // grid row (0-indexed)
 }
 
+export type EffectType =
+  | 'fire'
+  | 'smoke'
+  | 'poison'
+  | 'ice'
+  | 'lightning'
+  | 'web'
+  | 'acid'
+  | 'holy'
+  | 'necrotic';
+
+export interface MapDrawing {
+  id: string;
+  // Stroke points in image-pixel coordinates (relative to the map image,
+  // NOT the screen). This way, zoom and pan don't move the drawing.
+  points: { x: number; y: number }[];
+  color: string; // CSS color (hex) for the stroke
+  stroke_width: number; // pixels (in image space)
+  // True if the user drew a closed shape (last point near first point).
+  // Closed shapes can have an effect applied.
+  is_closed: boolean;
+  // Optional effect type. When set, the shape is filled with the effect's
+  // visual style (animated CSS / SVG).
+  effect?: EffectType;
+  created_at: number;
+}
+
 export interface BattleMap {
   id: string;
   name: string;
@@ -295,6 +322,7 @@ export interface BattleMap {
   grid_offset_y: number;
   show_grid: boolean;
   tokens: TokenPosition[];
+  drawings?: MapDrawing[]; // freehand strokes / shapes with effects
   created_at: number;
 }
 
