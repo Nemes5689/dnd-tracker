@@ -21,30 +21,41 @@ export function rollDie(sides: number): number {
 }
 
 /**
- * Parse and roll a formula like "2d6+3" or "1d20", "1d8-1".
- * Supports +/- modifier, single dice term.
+ * Parse and roll a formula like "2d6+3", "1d8-1", or compound "1d8+2d6+3".
  */
 export function rollFormula(formula: string): RollResult {
-  const match = formula.replace(/\s/g, '').match(/^(\d+)d(\d+)([+-]\d+)?$/i);
-  if (!match) {
-    throw new Error(`Invalid roll formula: ${formula}`);
-  }
-  const count = parseInt(match[1], 10);
-  const sides = parseInt(match[2], 10);
-  const modifier = match[3] ? parseInt(match[3], 10) : 0;
+  const cleaned = formula.replace(/\s/g, '').toLowerCase();
+  if (!cleaned) throw new Error('Empty roll formula');
+  const term_re = /([+-]?\d+(?:d\d+)?)/g;
+  const tokens = cleaned.match(term_re)?.filter(Boolean) ?? [];
+  if (tokens.length === 0) throw new Error(`Invalid roll formula: ${formula}`);
 
-  const rolls: number[] = [];
-  for (let i = 0; i < count; i++) {
-    rolls.push(rollDie(sides));
-  }
-  const sum = rolls.reduce((a, b) => a + b, 0);
+  const all_rolls: number[] = [];
+  let modifier = 0;
+  let total = 0;
 
-  return {
-    total: sum + modifier,
-    rolls,
-    modifier,
-    formula,
-  };
+  for (const tok of tokens) {
+    if (tok.includes('d')) {
+      const m = tok.match(/^([+-]?)(\d+)d(\d+)$/);
+      if (!m) throw new Error(`Invalid dice term: ${tok}`);
+      const sign = m[1] === '-' ? -1 : 1;
+      const count = parseInt(m[2], 10);
+      const sides = parseInt(m[3], 10);
+      if (count <= 0 || sides <= 0) throw new Error(`Invalid dice term: ${tok}`);
+      for (let i = 0; i < count; i++) {
+        const r = rollDie(sides);
+        all_rolls.push(r);
+        total += sign * r;
+      }
+    } else {
+      const v = parseInt(tok, 10);
+      if (isNaN(v)) throw new Error(`Invalid modifier term: ${tok}`);
+      modifier += v;
+      total += v;
+    }
+  }
+
+  return { total, rolls: all_rolls, modifier, formula };
 }
 
 /**

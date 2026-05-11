@@ -8,6 +8,7 @@ import { BattleMapView } from './BattleMapView';
 import { AddMonsterModal } from './AddMonsterModal';
 import { AddConditionModal } from './AddConditionModal';
 import { AITacticsTab } from './AITacticsTab';
+import { CombatStatsPanel } from './CombatStatsPanel';
 import { getProjectorBus } from '@/utils/projectorBus';
 import type { Encounter, Combatant, Character, AppliedCondition } from '@/types/app';
 import type { Monster, MonsterSpeed, Spell } from '@/types/srd';
@@ -337,6 +338,7 @@ export function CombatView({ encounter, onExit }: Props) {
                 </div>
               )}
               <ActiveCombatantPanel
+                encounter_id={encounter.id}
                 combatant={viewed}
                 monster={source_monster}
                 character={source_character}
@@ -755,6 +757,7 @@ function CombatantInitRow({
  * For PCs: only abilities/weapons shown, HP/AC hidden.
  */
 function ActiveCombatantPanel({
+  encounter_id,
   combatant,
   monster,
   character,
@@ -766,6 +769,7 @@ function ActiveCombatantPanel({
   onRemoveCondition,
   onSetInitiative,
 }: {
+  encounter_id: string;
   combatant: Combatant;
   monster: Monster | null;
   character: Character | null;
@@ -1013,43 +1017,25 @@ function ActiveCombatantPanel({
         </div>
       )}
 
-      {/* Character capabilities (visible to DM) */}
+      {/* Interactive stats panel: weapons, abilities, saves, skills, spellcasting, resources.
+          Renders for any combatant with structured data (PCs, allies, custom monsters). */}
+      <CombatStatsPanel
+        encounter_id={encounter_id}
+        combatant={combatant}
+        character={character}
+        monster={monster}
+      />
+
+      {/* Character free-text notes + spell list (kept separate from interactive panel) */}
       {character && (
-        <div className="mt-6">
-          {character.weapons && character.weapons.length > 0 && (
-            <div className="mb-4">
-              <h3 className="text-[13px] font-medium mb-2">Weapons</h3>
-              <div className="flex flex-col gap-2">
-                {character.weapons.map((w, i) => (
-                  <div
-                    key={i}
-                    className="text-[12px] text-text-secondary"
-                    style={{
-                      padding: '8px 12px',
-                      background: 'var(--color-background-secondary)',
-                      borderRadius: 'var(--border-radius-sm)',
-                    }}
-                  >
-                    <strong className="text-text-primary font-medium">
-                      {w.name}
-                    </strong>{' '}
-                    — {w.attack_bonus >= 0 ? '+' : ''}
-                    {w.attack_bonus} to hit, {w.damage} {w.damage_type}
-                    {w.mastery && (
-                      <span className="ml-2 text-[10px] text-text-info">
-                        [{w.mastery}]
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+        <>
+          {character.spell_ids && character.spell_ids.length > 0 && (
+            <div className="mt-6">
+              <CharacterSpellList spellIds={character.spell_ids} />
             </div>
           )}
-          {character.spell_ids && character.spell_ids.length > 0 && (
-            <CharacterSpellList spellIds={character.spell_ids} />
-          )}
           {character.notes && (
-            <div className="mb-4">
+            <div className="mt-6">
               <h3 className="text-[13px] font-medium mb-2">Features & notes</h3>
               <div
                 className="text-[12px] leading-relaxed text-text-secondary"
@@ -1059,13 +1045,7 @@ function ActiveCombatantPanel({
               </div>
             </div>
           )}
-          {!character.weapons?.length && !character.spell_ids?.length && !character.notes && (
-            <div className="text-[12px] text-text-tertiary italic">
-              No detailed capabilities defined for this character. Add weapons,
-              spells, and features in the Characters page.
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   );

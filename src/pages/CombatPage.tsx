@@ -201,6 +201,8 @@ export function characterToCombatant(
     movement_used: 0,
     has_flanking: false,
     cover: 'none',
+    spell_slots_remaining: character.spellcasting?.slots.map((s) => ({ ...s })),
+    resources_remaining: character.resources?.map((r) => ({ ...r })),
   };
 }
 
@@ -231,6 +233,8 @@ export function monsterToCombatant(
     movement_used: 0,
     has_flanking: false,
     cover: 'none',
+    spell_slots_remaining: monster.spellcasting?.slots?.map((s) => ({ ...s })),
+    resources_remaining: monster.resources?.map((r) => ({ ...r })),
   };
 }
 
@@ -265,5 +269,7 @@ export function allyToCombatant(
     movement_used: 0,
     has_flanking: false,
     cover: 'none',
+    spell_slots_remaining: ally.spellcasting?.slots?.map((s) => ({ ...s })),
+    resources_remaining: ally.resources?.map((r) => ({ ...r })),
   };
 }

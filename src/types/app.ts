@@ -1,6 +1,33 @@
 // Application types: campaigns, characters, encounters
 import type { CharacterOriginSelection } from '@/types/origins';
 
+export interface SpellSlotState {
+  level: number; // 1-9
+  total: number;
+  remaining: number;
+}
+
+export interface CharacterSpellcasting {
+  ability: 'int' | 'wis' | 'cha' | 'str' | 'dex' | 'con';
+  save_dc: number;
+  attack_bonus: number;
+  cantrips: string[];
+  spells_known: string[];
+  slots: SpellSlotState[];
+}
+
+/**
+ * Generic resource (Rage, Ki, Sorcery Points, Channel Divinity, etc).
+ * Used for both class-defined resources and per-feature uses.
+ */
+export interface ResourceState {
+  id: string; // 'rage' | 'ki' | 'sorcery_points' | etc.
+  name: string; // human-readable label
+  total: number;
+  remaining: number;
+  recharge: 'turn' | 'short_rest' | 'long_rest' | 'manual';
+  description?: string;
+}
 
 export interface CharacterClassSelection {
   id: string;
@@ -37,8 +64,10 @@ export interface Character {
     wis: number;
     cha: number;
   };
+  proficiency_bonus?: number;
   save_proficiencies?: string[];
   skill_proficiencies?: string[];
+  skill_expertise?: string[];
   tool_proficiencies?: string[];
   starting_equipment?: string;
   weapons?: {
@@ -49,6 +78,9 @@ export interface Character {
     mastery?: string;
   }[];
   spell_ids?: string[]; // selected SRD spell IDs known/prepared by this character
+  spellcasting?: CharacterSpellcasting;
+  // Class-defined resources (for "From Class" template flow)
+  resources?: ResourceState[];
   notes?: string;
 }
 
@@ -233,6 +265,12 @@ export interface Combatant {
   // Combat modifiers (DM toggles)
   has_flanking: boolean;
   cover: 'none' | 'half' | 'three-quarters' | 'total';
+  // Per-encounter spell slot tracking (mirrors source.spellcasting.slots,
+  // initialized on combat start). Only present when the source has spellcasting.
+  spell_slots_remaining?: SpellSlotState[];
+  // Per-encounter resource tracking (Rage uses, Ki points, Channel Divinity, etc).
+  // Initialized on combat start from the source's `resources` array.
+  resources_remaining?: ResourceState[];
 }
 
 export interface Encounter {

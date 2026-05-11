@@ -31,6 +31,10 @@ export interface MonsterSpellcasting {
   caster_level?: number;
   spell_ids: string[];
   notes?: string;
+  // Optional structured spellcasting data (for character-mode allies / custom)
+  cantrips?: string[];
+  spells_known?: string[];
+  slots?: import('./app').SpellSlotState[];
 }
 
 export interface Monster {
@@ -71,6 +75,22 @@ export interface Monster {
   statblock_mode?: 'monster' | 'character'; // custom monsters/allies can optionally behave like a character sheet
   character_build?: CharacterBuild; // optional class/subclass/multiclass setup for character-like creatures
   origin_selection?: CharacterOriginSelection; // optional background/species/feat setup for character-like creatures
+  // Structured weapon attacks for one-click roll in combat (used when
+  // statblock_mode === 'character' or for any structured combat data).
+  weapon_attacks?: MonsterWeaponAttack[];
+  proficiency_bonus?: number;
+  skill_expertise?: string[];
+  // Class-defined resources (Rage, Ki, etc) for character-mode allies
+  resources?: import('./app').ResourceState[];
+}
+
+export interface MonsterWeaponAttack {
+  name: string;
+  attack_bonus: number;
+  damage: string; // e.g. "1d8+3"
+  damage_type: string;
+  range: string; // e.g. "5 ft." or "60/120 ft."
+  notes?: string;
 }
 
 export interface Spell {

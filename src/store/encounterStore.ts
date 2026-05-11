@@ -10,6 +10,8 @@ import type {
   TokenPosition,
   CombatantTokenStyle,
   MapDrawing,
+  SpellSlotState,
+  ResourceState,
 } from '@/types/app';
 import {
   applyDamage,
@@ -110,6 +112,26 @@ interface EncounterStore {
     encounter_id: string,
     map_id: string,
     rotation: number
+  ) => void;
+  // Spell slot tracking: change a single slot's remaining count
+  setSpellSlotRemaining: (
+    encounter_id: string,
+    combatant_id: string,
+    slot_level: number,
+    new_remaining: number
+  ) => void;
+  // Generic resource tracking (Rage, Ki, Sorcery Points, etc.)
+  setResourceRemaining: (
+    encounter_id: string,
+    combatant_id: string,
+    resource_id: string,
+    new_remaining: number
+  ) => void;
+  // Rest: restores resources based on type
+  restCombatant: (
+    encounter_id: string,
+    combatant_id: string,
+    rest_type: 'short' | 'long'
   ) => void;
 }
 
@@ -712,6 +734,131 @@ export const useEncounterStore = create<EncounterStore>()(
               maps: (e.maps ?? []).map((m) =>
                 m.id === map_id ? { ...m, rotation: normalized } : m
               ),
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      setSpellSlotRemaining: (encounter_id, combatant_id, slot_level, new_remaining) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            const target = e.combatants.find((c) => c.id === combatant_id);
+            if (!target?.spell_slots_remaining) return e;
+            const slot = target.spell_slots_remaining.find((sl) => sl.level === slot_level);
+            if (!slot) return e;
+            const clamped = Math.max(0, Math.min(slot.total, new_remaining));
+            if (clamped === slot.remaining) return e;
+            const direction = clamped < slot.remaining ? 'spent' : 'restored';
+            return {
+              ...e,
+              combatants: e.combatants.map((c) =>
+                c.id === combatant_id
+                  ? {
+                      ...c,
+                      spell_slots_remaining: c.spell_slots_remaining!.map((sl) =>
+                        sl.level === slot_level
+                          ? { ...sl, remaining: clamped }
+                          : sl
+                      ),
+                    }
+                  : c
+              ),
+              log: [
+                ...e.log,
+                {
+                  round: e.round,
+                  message: `${target.name} ${direction} a level ${slot_level} spell slot (${clamped}/${slot.total})`,
+                  timestamp: Date.now(),
+                },
+              ],
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      setResourceRemaining: (encounter_id, combatant_id, resource_id, new_remaining) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            const target = e.combatants.find((c) => c.id === combatant_id);
+            if (!target?.resources_remaining) return e;
+            const res = target.resources_remaining.find((r) => r.id === resource_id);
+            if (!res) return e;
+            const clamped = Math.max(0, Math.min(res.total, new_remaining));
+            if (clamped === res.remaining) return e;
+            const direction = clamped < res.remaining ? 'spent' : 'restored';
+            return {
+              ...e,
+              combatants: e.combatants.map((c) =>
+                c.id === combatant_id
+                  ? {
+                      ...c,
+                      resources_remaining: c.resources_remaining!.map((r) =>
+                        r.id === resource_id ? { ...r, remaining: clamped } : r
+                      ),
+                    }
+                  : c
+              ),
+              log: [
+                ...e.log,
+                {
+                  round: e.round,
+                  message: `${target.name} ${direction} ${res.name} (${clamped}/${res.total})`,
+                  timestamp: Date.now(),
+                },
+              ],
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
+      restCombatant: (encounter_id, combatant_id, rest_type) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            const target = e.combatants.find((c) => c.id === combatant_id);
+            if (!target) return e;
+            const restored_resources = (target.resources_remaining ?? []).map(
+              (r) => {
+                const should_restore =
+                  rest_type === 'long'
+                    ? r.recharge === 'long_rest' ||
+                      r.recharge === 'short_rest' ||
+                      r.recharge === 'turn'
+                    : r.recharge === 'short_rest' || r.recharge === 'turn';
+                return should_restore ? { ...r, remaining: r.total } : r;
+              }
+            );
+            const restored_slots =
+              rest_type === 'long'
+                ? (target.spell_slots_remaining ?? []).map((sl) => ({
+                    ...sl,
+                    remaining: sl.total,
+                  }))
+                : target.spell_slots_remaining;
+            const new_hp =
+              rest_type === 'long' ? target.hp_max : target.hp_current;
+            return {
+              ...e,
+              combatants: e.combatants.map((c) =>
+                c.id === combatant_id
+                  ? {
+                      ...c,
+                      hp_current: new_hp,
+                      resources_remaining: restored_resources,
+                      spell_slots_remaining: restored_slots,
+                    }
+                  : c
+              ),
+              log: [
+                ...e.log,
+                {
+                  round: e.round,
+                  message: `${target.name} finished a ${rest_type} rest`,
+                  timestamp: Date.now(),
+                },
+              ],
               updated_at: Date.now(),
             };
           }),
