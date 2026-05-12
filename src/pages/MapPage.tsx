@@ -87,7 +87,7 @@ export function MapPage() {
   const selected_pin = selected_location_id ? pins[selected_location_id] : undefined;
 
   return (
-    <div className="p-8 max-w-[1400px]">
+    <div className="page-padding max-w-[1400px]">
       <div className="flex justify-between gap-4 items-start mb-5">
         <div>
           <h1 className="text-[24px] font-semibold mb-1">World Map</h1>
@@ -126,7 +126,7 @@ export function MapPage() {
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: '280px 1fr' }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-medium) 1fr' }}>
         <aside
           className="bg-bg-primary"
           style={{
@@ -325,6 +325,8 @@ export function MapPage() {
                         transform: 'translate(-50%, -50%)',
                         width: active ? 18 : 14,
                         height: active ? 18 : 14,
+                        minHeight: 0,
+                        minWidth: 0,
                         borderRadius: 999,
                         padding: 0,
                         border: active ? '3px solid white' : '2px solid white',

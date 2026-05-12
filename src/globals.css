@@ -32,6 +32,48 @@
   --border-radius-sm: 4px;
   --border-radius-md: 6px;
   --border-radius-lg: 10px;
+
+  /* Touch-friendly defaults (44px minimum touch target on tablet & up).
+     These are pulled in from the existing button/input styles below — change
+     them globally here, every interactive element grows together. */
+  --touch-min: 44px;
+  --control-height: 36px;        /* compact controls (sliders, small buttons) */
+  --control-height-touch: 44px;   /* primary controls touch users tap on */
+  --font-base: 14px;             /* up from 13px for better readability */
+  --font-small: 12px;
+  --font-tiny: 11px;
+
+  /* Sidebar widths */
+  --sidebar-width-collapsed: 60px;
+  --sidebar-width-full: 220px;
+  --sidebar-width-wide: 240px;
+
+  /* Master-detail layout widths (used by Bestiary, Allies, Spells, etc.)
+     - 'narrow': for Classes overview list (260px desktop)
+     - 'medium': for Allies/Bestiary list (320px desktop, narrower on sm)
+     - 'wide':   for Spells/Origins list (360px desktop, narrower on sm)
+     On sm (1024-1279px) these shrink so the detail area gets more room. */
+  --master-narrow: 240px;
+  --master-medium: 280px;
+  --master-wide: 320px;
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --master-narrow: 260px;
+    --master-medium: 320px;
+    --master-wide: 360px;
+  }
+}
+
+/* Larger touch targets on tablets/touch devices */
+@media (min-width: 1280px) and (pointer: fine) {
+  :root {
+    /* Mouse-precise desktop: keep things compact */
+    --control-height: 32px;
+    --control-height-touch: 36px;
+    --font-base: 13px;
+  }
 }
 
 html, body, #root {
@@ -47,17 +89,52 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Base button styling */
+/* Below-min-width notice: visible on screens narrower than 1024px.
+   The app is designed for tablet+ so we show a friendly message instead of a
+   broken layout on phones. */
+.below-min-width-notice {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--color-background-primary);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  gap: 12px;
+}
+@media (max-width: 1023px) {
+  .below-min-width-notice {
+    display: flex;
+  }
+}
+
+/* Base button styling — kept light. Touch-min-height is opt-in via .btn-touch
+   to avoid breaking tiny icon-shaped buttons (map markers, swatches, X buttons). */
 button {
   font-family: inherit;
   background: var(--color-background-primary);
   border: 0.5px solid var(--color-border-secondary);
   border-radius: var(--border-radius-md);
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: var(--font-base);
   cursor: pointer;
   color: var(--color-text-primary);
   transition: background 0.15s, border-color 0.15s;
+  text-decoration: none;  /* prevent inherited strikethrough on text inside */
+}
+
+button, button * {
+  text-decoration: inherit;
+}
+
+/* Opt-in touch-friendly minimum height (44px) — apply via className="btn-touch"
+   on primary action buttons. Not applied globally to avoid breaking icon-sized
+   buttons (markers, dots, color swatches, close X). */
+.btn-touch {
+  min-height: var(--control-height-touch);
 }
 
 button:hover {
@@ -75,14 +152,18 @@ input, select, textarea {
   background: var(--color-background-primary);
   border: 0.5px solid var(--color-border-secondary);
   border-radius: var(--border-radius-md);
-  padding: 6px 10px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: var(--font-base);
   color: var(--color-text-primary);
-  height: 32px;
+  /* Default height is touch-friendly, but inputs that get explicit width/height
+     via inline style (color swatches, tiny number inputs) can override it
+     because we use min-height + box-sizing, not a fixed height. */
+  min-height: var(--control-height-touch);
   box-sizing: border-box;
 }
 
 textarea {
+  min-height: auto;
   height: auto;
   padding: 8px 10px;
   line-height: 1.5;
@@ -102,3 +183,17 @@ h1 { font-size: 24px; }
 h2 { font-size: 20px; }
 h3 { font-size: 16px; }
 h4 { font-size: 14px; }
+
+/* Responsive page padding: more compact on sm, generous on md+.
+   Use as `className="page-padding"` to replace inline `p-8`. */
+.page-padding {
+  padding: 20px 16px;
+}
+@media (min-width: 1280px) {
+  .page-padding {
+    padding: 32px;
+  }
+}
+
+/* Override: when developers use inline `style={{ padding: '...', fontSize: '...' }}`,
+   those win as expected. The :root vars and base styles only set defaults. */

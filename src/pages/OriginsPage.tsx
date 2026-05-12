@@ -57,7 +57,7 @@ export function OriginsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="page-padding max-w-7xl mx-auto">
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-semibold mb-1">Backgrounds / Species / Feats</h1>
@@ -73,7 +73,7 @@ export function OriginsPage() {
 
       {showForm && <OriginForm tab={tab} initial={editing as any} onSubmit={saveItem} onCancel={() => { setShowForm(false); setEditing(null); }} />}
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: '360px minmax(0, 1fr)' }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-wide) minmax(0, 1fr)' }}>
         <aside className="flex flex-col gap-2" style={{ border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)', background: 'var(--color-background-secondary)', padding: 12, alignSelf: 'start', position: 'sticky', top: 16, maxHeight: 'calc(100vh - 40px)' }}>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab}...`} />
           <select value={source} onChange={(e) => setSource(e.target.value as SourceFilter)}>
@@ -85,7 +85,7 @@ export function OriginsPage() {
           <div className="overflow-y-auto flex flex-col gap-1 pr-1">
             {filtered.map((item: any) => {
               const active = item.id === selected?.id;
-              return <button key={item.id} onClick={() => setSelectedId(item.id)} className="text-left" style={{ padding: '8px 10px', borderRadius: 'var(--border-radius-md)', border: active ? '0.5px solid var(--color-border-secondary)' : '0.5px solid transparent', background: active ? 'var(--color-background-primary)' : 'transparent' }}><div className="text-[13px] font-medium text-text-primary flex justify-between gap-2"><span>{item.name}</span>{item.is_custom && <span className="text-[10px] text-text-info">custom</span>}</div><div className="text-[10px] text-text-tertiary">{item.source}{'prerequisite' in item && item.prerequisite ? ` · ${item.prerequisite}` : ''}</div></button>;
+              return <button key={item.id} onClick={() => setSelectedId(item.id)} className="text-left" style={{ padding: '8px 10px', minHeight: 52, borderRadius: 'var(--border-radius-md)', border: active ? '0.5px solid var(--color-border-secondary)' : '0.5px solid transparent', background: active ? 'var(--color-background-primary)' : 'transparent', textDecoration: 'none' }}><div className="text-[13px] font-medium text-text-primary flex justify-between gap-2"><span>{item.name}</span>{item.is_custom && <span className="text-[10px] text-text-info">custom</span>}</div><div className="text-[10px] text-text-tertiary">{item.source}{'prerequisite' in item && item.prerequisite ? ` · ${item.prerequisite}` : ''}</div></button>;
             })}
           </div>
         </aside>

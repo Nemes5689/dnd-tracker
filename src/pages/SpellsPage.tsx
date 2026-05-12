@@ -78,7 +78,7 @@ export function SpellsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="page-padding max-w-7xl mx-auto">
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-semibold mb-1">Spell Library</h1>
@@ -103,7 +103,7 @@ export function SpellsPage() {
         />
       )}
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: '360px minmax(0, 1fr)' }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-wide) minmax(0, 1fr)' }}>
         <aside
           className="flex flex-col gap-2"
           style={{
@@ -147,16 +147,24 @@ export function SpellsPage() {
                   className="text-left"
                   style={{
                     padding: '8px 10px',
+                    minHeight: 48,
                     borderRadius: 'var(--border-radius-md)',
                     border: active ? '0.5px solid var(--color-border-secondary)' : '0.5px solid transparent',
                     background: active ? 'var(--color-background-primary)' : 'transparent',
+                    textDecoration: 'none',
                   }}
                 >
-                  <div className="text-[13px] font-medium text-text-primary flex justify-between gap-2">
+                  <div
+                    className="text-[13px] font-medium text-text-primary flex justify-between gap-2"
+                    style={{ textDecoration: 'none' }}
+                  >
                     <span>{spell.name}</span>
                     {spell.is_custom && <span className="text-[10px] text-text-info">custom</span>}
                   </div>
-                  <div className="text-[10px] text-text-tertiary">
+                  <div
+                    className="text-[10px] text-text-tertiary"
+                    style={{ textDecoration: 'none', marginTop: 2 }}
+                  >
                     {formatSpellLevel(spell.level)} · {spell.school}{spell.classes.length ? ` · ${spell.classes.join(', ')}` : ''}
                   </div>
                 </button>
