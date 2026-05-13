@@ -6,6 +6,8 @@ import { Lightbox } from '@/components/common/Lightbox';
 import { formatBytes, processGalleryImage } from '@/utils/imageUtils';
 import type {
   Campaign,
+  Encounter,
+  Combatant,
   SessionEntry,
   PlotThread,
   CampaignNPC,
@@ -38,9 +40,12 @@ export function DashboardPage() {
   };
 
   return (
-    <div className="p-8 max-w-[1200px]">
+    <div className="page-padding max-w-[1400px]">
       {/* Header: campaign name + description */}
       <CampaignHeader campaign={active} onUpdate={update} />
+
+      {/* Global search: find any named entity and see all its connections */}
+      <GlobalSearchModule campaign={active} />
 
       {/* Top row: party + calendar */}
       <div
@@ -3516,3 +3521,789 @@ const inlineFormStyle: React.CSSProperties = {
   border: '1px solid var(--color-border-info)',
   borderRadius: 'var(--border-radius-md)',
 };
+
+// ============================================================
+// Global Search: find any named entity and show its connections
+// ============================================================
+
+type SearchEntityKind =
+  | 'npc'
+  | 'quest'
+  | 'location'
+  | 'faction'
+  | 'plot_thread'
+  | 'character'
+  | 'encounter'
+  | 'session';
+
+interface SearchEntity {
+  kind: SearchEntityKind;
+  id: string;
+  name: string;
+  detail?: string; // small subtitle (role, region, status, etc.)
+}
+
+const KIND_META: Record<SearchEntityKind, { label: string; emoji: string }> = {
+  npc: { label: 'NPC', emoji: '🧑' },
+  quest: { label: 'Quest', emoji: '⚔️' },
+  location: { label: 'Location', emoji: '📍' },
+  faction: { label: 'Faction', emoji: '🛡️' },
+  plot_thread: { label: 'Plot thread', emoji: '🧵' },
+  character: { label: 'Character', emoji: '🧙' },
+  encounter: { label: 'Encounter', emoji: '🎯' },
+  session: { label: 'Session', emoji: '📖' },
+};
+
+function GlobalSearchModule({ campaign }: { campaign: Campaign }) {
+  const navigate = useNavigate();
+  const { encounters } = useEncounterStore();
+  const [query, set_query] = useState('');
+  const [selected_id, set_selected_id] = useState<string | null>(null);
+
+  // Build the searchable index from all named campaign entities.
+  const all_entities: SearchEntity[] = [
+    ...(campaign.characters ?? []).map((c) => ({
+      kind: 'character' as const,
+      id: `character:${c.id}`,
+      name: c.name,
+      detail: [c.class, c.level && `Lv${c.level}`, c.species]
+        .filter(Boolean)
+        .join(' · '),
+    })),
+    ...(campaign.npcs ?? []).map((n) => ({
+      kind: 'npc' as const,
+      id: `npc:${n.id}`,
+      name: n.name,
+      detail: [n.role, n.location].filter(Boolean).join(' · '),
+    })),
+    ...(campaign.locations ?? []).map((l) => ({
+      kind: 'location' as const,
+      id: `location:${l.id}`,
+      name: l.name,
+      detail: l.region,
+    })),
+    ...(campaign.quests ?? []).map((q) => ({
+      kind: 'quest' as const,
+      id: `quest:${q.id}`,
+      name: q.title,
+      detail: [q.giver && `from ${q.giver}`, q.status]
+        .filter(Boolean)
+        .join(' · '),
+    })),
+    ...(campaign.factions ?? []).map((f) => ({
+      kind: 'faction' as const,
+      id: `faction:${f.id}`,
+      name: f.name,
+      detail: [f.type, f.status].filter(Boolean).join(' · '),
+    })),
+    ...(campaign.plot_threads ?? []).map((p) => ({
+      kind: 'plot_thread' as const,
+      id: `plot_thread:${p.id}`,
+      name: p.title,
+      detail: p.status,
+    })),
+    ...(campaign.sessions ?? []).map((s) => ({
+      kind: 'session' as const,
+      id: `session:${s.id}`,
+      name: `Session ${s.session_number}: ${s.title || '(untitled)'}`,
+      detail: s.real_date,
+    })),
+    ...encounters
+      .filter((e) => e.campaign_id === campaign.id)
+      .map((e) => ({
+        kind: 'encounter' as const,
+        id: `encounter:${e.id}`,
+        name: e.name,
+        detail: `${e.combatants.length} combatants · ${e.status}`,
+      })),
+  ];
+
+  const filtered = (() => {
+    if (!query.trim()) return all_entities.slice(0, 50);
+    const q = query.toLowerCase();
+    return all_entities
+      .filter(
+        (e) =>
+          e.name.toLowerCase().includes(q) ||
+          e.detail?.toLowerCase().includes(q)
+      )
+      .slice(0, 50);
+  })();
+
+  const selected = selected_id
+    ? all_entities.find((e) => e.id === selected_id) ?? null
+    : null;
+
+  return (
+    <div
+      className="bg-bg-primary mb-4"
+      style={{
+        padding: '16px 20px',
+        border: '0.5px solid var(--color-border-tertiary)',
+        borderRadius: 'var(--border-radius-md)',
+      }}
+    >
+      <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h3 className="text-[14px] font-medium">🔍 Global search</h3>
+          <div className="text-[11px] text-text-tertiary">
+            Find any NPC, location, quest, faction, plot thread, character,
+            encounter, or session — see what's connected.
+          </div>
+        </div>
+        <input
+          value={query}
+          onChange={(e) => set_query(e.target.value)}
+          placeholder="Type to search…"
+          style={{
+            width: 280,
+            maxWidth: '100%',
+            boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <div
+        className="grid gap-3"
+        style={{ gridTemplateColumns: 'minmax(220px, 280px) minmax(0, 1fr)' }}
+      >
+        {/* Left: filtered results list */}
+        <div
+          style={{
+            border: '0.5px solid var(--color-border-tertiary)',
+            borderRadius: 'var(--border-radius-md)',
+            background: 'var(--color-background-secondary)',
+            maxHeight: 320,
+            overflowY: 'auto',
+            padding: 4,
+          }}
+        >
+          {filtered.length === 0 ? (
+            <div className="text-[11px] text-text-tertiary italic p-3">
+              No matches.
+            </div>
+          ) : (
+            filtered.map((e) => {
+              const meta = KIND_META[e.kind];
+              const is_sel = e.id === selected_id;
+              return (
+                <button
+                  key={e.id}
+                  onClick={() => set_selected_id(e.id)}
+                  className="text-left w-full"
+                  style={{
+                    padding: '6px 8px',
+                    background: is_sel
+                      ? 'var(--color-background-info)'
+                      : 'transparent',
+                    border: is_sel
+                      ? '0.5px solid var(--color-border-info)'
+                      : '0.5px solid transparent',
+                    borderRadius: 'var(--border-radius-sm)',
+                    minHeight: 0,
+                    display: 'block',
+                    textDecoration: 'none',
+                    marginBottom: 2,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 13, lineHeight: 1 }}>
+                      {meta.emoji}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-medium truncate">
+                        {e.name}
+                      </div>
+                      <div className="text-[10px] text-text-tertiary truncate">
+                        {meta.label}
+                        {e.detail && ` · ${e.detail}`}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+
+        {/* Right: selected detail with connections */}
+        <div
+          style={{
+            border: '0.5px solid var(--color-border-tertiary)',
+            borderRadius: 'var(--border-radius-md)',
+            background: 'var(--color-background-secondary)',
+            padding: 14,
+            minHeight: 200,
+          }}
+        >
+          {!selected ? (
+            <div className="text-[12px] text-text-tertiary italic">
+              Pick an entity on the left to see its full details and everything
+              connected to it.
+            </div>
+          ) : (
+            <SearchResultDetails
+              entity={selected}
+              campaign={campaign}
+              encounters={encounters.filter(
+                (e) => e.campaign_id === campaign.id
+              )}
+              onNavigate={(target) => {
+                navigate(target);
+              }}
+              onSelectEntity={(id) => set_selected_id(id)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchResultDetails({
+  entity,
+  campaign,
+  encounters,
+  onNavigate,
+  onSelectEntity,
+}: {
+  entity: SearchEntity;
+  campaign: Campaign;
+  encounters: Encounter[];
+  onNavigate: (path: string) => void;
+  onSelectEntity: (id: string) => void;
+}) {
+  const meta = KIND_META[entity.kind];
+  const raw_id = entity.id.split(':')[1];
+
+  // ---------------------------------------------------------------
+  // Helper to render a "linked entity" pill (clickable to re-select)
+  // ---------------------------------------------------------------
+  const Pill = ({
+    kind,
+    id,
+    name,
+  }: {
+    kind: SearchEntityKind;
+    id: string;
+    name: string;
+  }) => (
+    <button
+      onClick={() => onSelectEntity(`${kind}:${id}`)}
+      style={{
+        fontSize: 11,
+        padding: '3px 9px',
+        background: 'var(--color-background-info)',
+        color: 'var(--color-text-info)',
+        border: '0.5px solid var(--color-border-info)',
+        borderRadius: 12,
+        minHeight: 0,
+        textDecoration: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      {KIND_META[kind].emoji} {name}
+    </button>
+  );
+
+  // ---------------------------------------------------------------
+  // Resolve referenced entities by their ID arrays (returns valid entities)
+  // ---------------------------------------------------------------
+  const resolveNPCs = (ids?: string[]) =>
+    (ids ?? [])
+      .map((id) => (campaign.npcs ?? []).find((x) => x.id === id))
+      .filter((x): x is NonNullable<typeof x> => x != null);
+  const resolveLocations = (ids?: string[]) =>
+    (ids ?? [])
+      .map((id) => (campaign.locations ?? []).find((x) => x.id === id))
+      .filter((x): x is NonNullable<typeof x> => x != null);
+  const resolveQuests = (ids?: string[]) =>
+    (ids ?? [])
+      .map((id) => (campaign.quests ?? []).find((x) => x.id === id))
+      .filter((x): x is NonNullable<typeof x> => x != null);
+  const resolveFactions = (ids?: string[]) =>
+    (ids ?? [])
+      .map((id) => (campaign.factions ?? []).find((x) => x.id === id))
+      .filter((x): x is NonNullable<typeof x> => x != null);
+  const resolvePlotThreads = (ids?: string[]) =>
+    (ids ?? [])
+      .map((id) => (campaign.plot_threads ?? []).find((x) => x.id === id))
+      .filter((x): x is NonNullable<typeof x> => x != null);
+
+  // ---------------------------------------------------------------
+  // Render layout: title + description + sections of connections
+  // ---------------------------------------------------------------
+  const renderConnections = (sections: Array<{
+    title: string;
+    items: { kind: SearchEntityKind; id: string; name: string }[];
+  }>) => (
+    <>
+      {sections.map(
+        ({ title, items }) =>
+          items.length > 0 && (
+            <div key={title} className="mb-2">
+              <div className="text-[11px] font-medium text-text-secondary mb-1">
+                {title} ({items.length})
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {items.map((item) => (
+                  <Pill key={`${item.kind}:${item.id}`} {...item} />
+                ))}
+              </div>
+            </div>
+          )
+      )}
+    </>
+  );
+
+  // ---------------------------------------------------------------
+  // Kind-specific rendering
+  // ---------------------------------------------------------------
+  let body: React.ReactNode = null;
+
+  if (entity.kind === 'npc') {
+    const npc = (campaign.npcs ?? []).find((n) => n.id === raw_id);
+    if (npc) {
+      const sessions_with =
+        (campaign.sessions ?? []).filter((s) =>
+          s.participants?.some((p) =>
+            p.toLowerCase().includes(npc.name.toLowerCase())
+          )
+        ) ?? [];
+      body = (
+        <div>
+          {npc.description && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {npc.description}
+            </p>
+          )}
+          {npc.notes && (
+            <p className="text-[11px] text-text-secondary mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              <strong>Notes:</strong> {npc.notes}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'Locations',
+              items: resolveLocations(npc.location_ids).map((l) => ({
+                kind: 'location',
+                id: l.id,
+                name: l.name,
+              })),
+            },
+            {
+              title: 'Quests',
+              items: resolveQuests(npc.quest_ids).map((q) => ({
+                kind: 'quest',
+                id: q.id,
+                name: q.title,
+              })),
+            },
+            {
+              title: 'Factions',
+              items: resolveFactions(npc.faction_ids).map((f) => ({
+                kind: 'faction',
+                id: f.id,
+                name: f.name,
+              })),
+            },
+            {
+              title: 'Plot threads',
+              items: resolvePlotThreads(npc.plot_thread_ids).map((p) => ({
+                kind: 'plot_thread',
+                id: p.id,
+                name: p.title,
+              })),
+            },
+            {
+              title: 'Appears in sessions',
+              items: sessions_with.map((s) => ({
+                kind: 'session' as const,
+                id: s.id,
+                name: `S${s.session_number}: ${s.title || 'untitled'}`,
+              })),
+            },
+          ])}
+        </div>
+      );
+    }
+  } else if (entity.kind === 'location') {
+    const loc = (campaign.locations ?? []).find((l) => l.id === raw_id);
+    if (loc) {
+      // Also find NPCs whose `location` text matches by name
+      const npcs_text_match = (campaign.npcs ?? []).filter((n) =>
+        n.location?.toLowerCase().includes(loc.name.toLowerCase())
+      );
+      const npcs_id_match = resolveNPCs(loc.npc_ids);
+      const npcs_combined = Array.from(
+        new Map([...npcs_id_match, ...npcs_text_match].map((n) => [n.id, n])).values()
+      );
+      body = (
+        <div>
+          {loc.description && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {loc.description}
+            </p>
+          )}
+          {loc.notes && (
+            <p className="text-[11px] text-text-secondary mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              <strong>Notes:</strong> {loc.notes}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'NPCs here',
+              items: npcs_combined.map((n) => ({
+                kind: 'npc' as const,
+                id: n.id,
+                name: n.name,
+              })),
+            },
+            {
+              title: 'Quests',
+              items: resolveQuests(loc.quest_ids).map((q) => ({
+                kind: 'quest' as const,
+                id: q.id,
+                name: q.title,
+              })),
+            },
+            {
+              title: 'Factions',
+              items: resolveFactions(loc.faction_ids).map((f) => ({
+                kind: 'faction' as const,
+                id: f.id,
+                name: f.name,
+              })),
+            },
+            {
+              title: 'Plot threads',
+              items: resolvePlotThreads(loc.plot_thread_ids).map((p) => ({
+                kind: 'plot_thread' as const,
+                id: p.id,
+                name: p.title,
+              })),
+            },
+          ])}
+        </div>
+      );
+    }
+  } else if (entity.kind === 'quest') {
+    const q = (campaign.quests ?? []).find((x) => x.id === raw_id);
+    if (q) {
+      body = (
+        <div>
+          {q.giver && (
+            <div className="text-[11px] text-text-secondary mb-2">
+              Given by: <strong className="text-text-primary">{q.giver}</strong>
+            </div>
+          )}
+          {q.description && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {q.description}
+            </p>
+          )}
+          {q.reward && (
+            <p className="text-[11px] text-text-secondary mb-3">
+              <strong>Reward:</strong> {q.reward}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'NPCs involved',
+              items: resolveNPCs(q.npc_ids).map((n) => ({
+                kind: 'npc' as const,
+                id: n.id,
+                name: n.name,
+              })),
+            },
+            {
+              title: 'Locations',
+              items: resolveLocations(q.location_ids).map((l) => ({
+                kind: 'location' as const,
+                id: l.id,
+                name: l.name,
+              })),
+            },
+            {
+              title: 'Factions',
+              items: resolveFactions(q.faction_ids).map((f) => ({
+                kind: 'faction' as const,
+                id: f.id,
+                name: f.name,
+              })),
+            },
+            {
+              title: 'Plot threads',
+              items: resolvePlotThreads(q.plot_thread_ids).map((p) => ({
+                kind: 'plot_thread' as const,
+                id: p.id,
+                name: p.title,
+              })),
+            },
+          ])}
+        </div>
+      );
+    }
+  } else if (entity.kind === 'faction') {
+    const f = (campaign.factions ?? []).find((x) => x.id === raw_id);
+    if (f) {
+      body = (
+        <div>
+          {f.description && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {f.description}
+            </p>
+          )}
+          {f.goals && (
+            <p className="text-[11px] text-text-secondary mb-2">
+              <strong>Goals:</strong> {f.goals}
+            </p>
+          )}
+          {f.notes && (
+            <p className="text-[11px] text-text-secondary mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              <strong>Notes:</strong> {f.notes}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'NPCs',
+              items: resolveNPCs(f.npc_ids).map((n) => ({
+                kind: 'npc' as const,
+                id: n.id,
+                name: n.name,
+              })),
+            },
+            {
+              title: 'Locations',
+              items: resolveLocations(f.location_ids).map((l) => ({
+                kind: 'location' as const,
+                id: l.id,
+                name: l.name,
+              })),
+            },
+            {
+              title: 'Quests',
+              items: resolveQuests(f.quest_ids).map((q) => ({
+                kind: 'quest' as const,
+                id: q.id,
+                name: q.title,
+              })),
+            },
+            {
+              title: 'Plot threads',
+              items: resolvePlotThreads(f.plot_thread_ids).map((p) => ({
+                kind: 'plot_thread' as const,
+                id: p.id,
+                name: p.title,
+              })),
+            },
+          ])}
+        </div>
+      );
+    }
+  } else if (entity.kind === 'plot_thread') {
+    const p = (campaign.plot_threads ?? []).find((x) => x.id === raw_id);
+    if (p) {
+      body = (
+        <div>
+          {p.description && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {p.description}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'NPCs',
+              items: resolveNPCs(p.npc_ids).map((n) => ({
+                kind: 'npc' as const,
+                id: n.id,
+                name: n.name,
+              })),
+            },
+            {
+              title: 'Locations',
+              items: resolveLocations(p.location_ids).map((l) => ({
+                kind: 'location' as const,
+                id: l.id,
+                name: l.name,
+              })),
+            },
+            {
+              title: 'Factions',
+              items: resolveFactions(p.faction_ids).map((f) => ({
+                kind: 'faction' as const,
+                id: f.id,
+                name: f.name,
+              })),
+            },
+          ])}
+        </div>
+      );
+    }
+  } else if (entity.kind === 'character') {
+    const c = (campaign.characters ?? []).find((x) => x.id === raw_id);
+    if (c) {
+      // Find sessions this character attended (by name match)
+      const sessions_with = (campaign.sessions ?? []).filter((s) =>
+        s.participants?.some((p) =>
+          p.toLowerCase().includes(c.name.toLowerCase())
+        )
+      );
+      const encounter_appearances = encounters.filter((e) =>
+        e.combatants.some((cb: Combatant) => cb.source_id === c.id)
+      );
+      body = (
+        <div>
+          <div className="text-[11px] text-text-secondary mb-3">
+            {[c.class, c.level && `Level ${c.level}`, c.species]
+              .filter(Boolean)
+              .join(' · ') || 'Player character'}
+          </div>
+          {c.notes && (
+            <p className="text-[11px] text-text-secondary mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              <strong>Notes:</strong> {c.notes}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'Sessions attended',
+              items: sessions_with.map((s) => ({
+                kind: 'session' as const,
+                id: s.id,
+                name: `S${s.session_number}: ${s.title || 'untitled'}`,
+              })),
+            },
+            {
+              title: 'Encounters',
+              items: encounter_appearances.map((e) => ({
+                kind: 'encounter' as const,
+                id: e.id,
+                name: e.name,
+              })),
+            },
+          ])}
+          <div className="mt-3">
+            <button
+              onClick={() => onNavigate('/characters')}
+              style={{ fontSize: 11, padding: '5px 12px' }}
+            >
+              Open in Characters →
+            </button>
+          </div>
+        </div>
+      );
+    }
+  } else if (entity.kind === 'encounter') {
+    const e = encounters.find((x) => x.id === raw_id);
+    if (e) {
+      const characters = e.combatants
+        .filter((cb: Combatant) => cb.source_type === 'character')
+        .map((cb: Combatant) => (campaign.characters ?? []).find((c) => c.id === cb.source_id))
+        .filter((x): x is NonNullable<typeof x> => x != null);
+      body = (
+        <div>
+          <div className="text-[11px] text-text-secondary mb-3">
+            {e.combatants.length} combatants · status:{' '}
+            <strong className="text-text-primary">{e.status}</strong>
+            {e.round > 0 && <> · round {e.round}</>}
+          </div>
+          {renderConnections([
+            {
+              title: 'Characters in this encounter',
+              items: characters.map((c) => ({
+                kind: 'character' as const,
+                id: c.id,
+                name: c.name,
+              })),
+            },
+          ])}
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => onNavigate(`/combat?encounter=${e.id}`)}
+              className="bg-accent-50 border-accent-300 text-accent-900 font-medium"
+              style={{ fontSize: 11, padding: '5px 12px' }}
+            >
+              Open encounter →
+            </button>
+            <button
+              onClick={() => onNavigate('/encounters')}
+              style={{ fontSize: 11, padding: '5px 12px' }}
+            >
+              All encounters
+            </button>
+          </div>
+        </div>
+      );
+    }
+  } else if (entity.kind === 'session') {
+    const s = (campaign.sessions ?? []).find((x) => x.id === raw_id);
+    if (s) {
+      // PCs that attended
+      const attendees: { kind: SearchEntityKind; id: string; name: string }[] =
+        (s.participants ?? [])
+          .map((name) => {
+            const c = (campaign.characters ?? []).find(
+              (x) => x.name.toLowerCase() === name.toLowerCase()
+            );
+            return c
+              ? { kind: 'character' as const, id: c.id, name: c.name }
+              : null;
+          })
+          .filter((x): x is NonNullable<typeof x> => x != null);
+      body = (
+        <div>
+          <div className="text-[11px] text-text-secondary mb-2">
+            Real date: <strong>{s.real_date}</strong>
+            {s.in_game_date && <> · In-game: <strong>{s.in_game_date}</strong></>}
+          </div>
+          {s.summary && (
+            <p className="text-[12px] mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+              {s.summary}
+            </p>
+          )}
+          {renderConnections([
+            {
+              title: 'Player characters who attended',
+              items: attendees,
+            },
+          ])}
+          {(s.participants ?? []).length > 0 && (
+            <div className="text-[11px] text-text-tertiary mt-2">
+              All participants (raw): {s.participants.join(', ')}
+            </div>
+          )}
+        </div>
+      );
+    }
+  }
+
+  if (!body) {
+    body = (
+      <div className="text-[12px] text-text-tertiary italic">
+        Entity not found.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <span style={{ fontSize: 18 }}>{meta.emoji}</span>
+        <h4 className="text-[15px] font-medium">{entity.name}</h4>
+        <span
+          className="text-[10px]"
+          style={{
+            padding: '1px 8px',
+            background: 'var(--color-background-info)',
+            color: 'var(--color-text-info)',
+            borderRadius: 10,
+            fontWeight: 500,
+          }}
+        >
+          {meta.label}
+        </span>
+      </div>
+      {body}
+    </div>
+  );
+}
