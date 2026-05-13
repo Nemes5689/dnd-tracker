@@ -29,6 +29,26 @@ export interface ResourceState {
   description?: string;
 }
 
+/**
+ * An activated class feature: like a resource, but with display metadata.
+ * For example: "Action Surge" (Fighter), "Channel Divinity" (Cleric/Paladin),
+ * "Bardic Inspiration" (Bard), "Wild Shape" (Druid), etc.
+ *
+ * The difference from ResourceState is just the extra display fields:
+ * - action_type: how to activate (action / bonus / reaction / free / no_action)
+ * - source: which class/level feature this came from (for display)
+ */
+export interface ActivatedFeatureState {
+  id: string;
+  name: string;
+  total: number;
+  remaining: number;
+  recharge: 'turn' | 'short_rest' | 'long_rest' | 'manual';
+  action_type: 'action' | 'bonus_action' | 'reaction' | 'free' | 'no_action';
+  source?: string; // e.g. "Fighter 2"
+  description?: string;
+}
+
 export interface CharacterClassSelection {
   id: string;
   class_id: string;
@@ -81,6 +101,8 @@ export interface Character {
   spellcasting?: CharacterSpellcasting;
   // Class-defined resources (for "From Class" template flow)
   resources?: ResourceState[];
+  // Activated class features (Action Surge, Channel Divinity, Bardic Inspiration, etc).
+  activated_features?: ActivatedFeatureState[];
   notes?: string;
 }
 
@@ -243,6 +265,8 @@ export interface AppliedCondition {
   level?: number; // for Exhaustion (1-6)
 }
 
+export type MovementSpeeds = Partial<Record<'walk' | 'climb' | 'swim' | 'fly' | 'burrow', number>>;
+
 export interface Combatant {
   id: string;
   name: string;
@@ -262,6 +286,7 @@ export interface Combatant {
   bonus_action_used: boolean;
   reaction_used: boolean;
   movement_used: number; // feet
+  movement_speeds?: MovementSpeeds; // feet per turn; walk is used for the current battle-map range overlay
   // Combat modifiers (DM toggles)
   has_flanking: boolean;
   cover: 'none' | 'half' | 'three-quarters' | 'total';
@@ -271,6 +296,8 @@ export interface Combatant {
   // Per-encounter resource tracking (Rage uses, Ki points, Channel Divinity, etc).
   // Initialized on combat start from the source's `resources` array.
   resources_remaining?: ResourceState[];
+  // Per-encounter activated-feature tracking (Action Surge, Bardic Inspiration, etc).
+  activated_features_remaining?: ActivatedFeatureState[];
 }
 
 export interface Encounter {

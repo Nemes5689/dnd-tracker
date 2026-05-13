@@ -18,6 +18,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
     deleteMap,
     setActiveMap,
     setTokenPosition,
+    updateCombatant,
     damageCombatant,
     healCombatant,
     addMapDrawing,
@@ -156,7 +157,22 @@ export function BattleMapView({ encounter, onExit }: Props) {
 
   const handleMoveToken = (combatant_id: string, x: number, y: number) => {
     if (!active_map) return;
+
+    const old_token = active_map.tokens.find((t) => t.combatant_id === combatant_id);
+    const moving_combatant = encounter.combatants.find((c) => c.id === combatant_id);
+
     setTokenPosition(encounter.id, active_map.id, combatant_id, x, y);
+
+    // Count walk movement only for the current turn's active combatant.
+    // New placement does not spend movement; later drag moves do.
+    if (old_token && moving_combatant?.id === active_combatant?.id) {
+      const moved_ft = Math.max(Math.abs(x - old_token.x), Math.abs(y - old_token.y)) * 5;
+      if (moved_ft > 0) {
+        updateCombatant(encounter.id, combatant_id, {
+          movement_used: (moving_combatant.movement_used ?? 0) + moved_ft,
+        });
+      }
+    }
   };
 
   const handleDamageMonster = (combatant_id: string, amount: number) => {

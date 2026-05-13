@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { BattleMap, Combatant, CombatantTokenStyle, MapDrawing } from '@/types/app';
 import { stylizedHPLabel } from '@/utils/projectorBus';
 import { tokenCellSize } from '@/utils/tokenSize';
@@ -31,6 +31,23 @@ export interface BattleMapProps {
 // Min/max zoom levels relative to fit-to-screen scale
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 4;
+
+const FEET_PER_GRID_SQUARE = 5;
+
+function getWalkSpeed(combatant: Combatant | undefined): number {
+  return Math.max(0, combatant?.movement_speeds?.walk ?? 30);
+}
+
+function getRemainingWalkSpeed(combatant: Combatant | undefined): number {
+  if (!combatant) return 0;
+  return Math.max(0, getWalkSpeed(combatant) - (combatant.movement_used ?? 0));
+}
+
+function gridMoveDistanceFeet(from_x: number, from_y: number, to_x: number, to_y: number): number {
+  // D&D-style grid movement for now: one orthogonal or diagonal square = 5 ft.
+  return Math.max(Math.abs(to_x - from_x), Math.abs(to_y - from_y)) * FEET_PER_GRID_SQUARE;
+}
+
 
 export function BattleMap({
   map,
@@ -267,6 +284,54 @@ export function BattleMap({
     : null;
   const hp_popup_combatant = hp_popup_id ? combatant_map[hp_popup_id] : null;
 
+
+  const active_combatant = active_combatant_id
+    ? combatant_map[active_combatant_id]
+    : undefined;
+  const active_token = active_combatant_id
+    ? map.tokens.find((t) => t.combatant_id === active_combatant_id)
+    : undefined;
+  const active_token_size_cells = active_combatant
+    ? tokenCellSize(active_combatant.size)
+    : 1;
+  const remaining_walk_ft = getRemainingWalkSpeed(active_combatant);
+  const remaining_walk_cells = Math.floor(remaining_walk_ft / FEET_PER_GRID_SQUARE);
+
+  const movement_range_cells = useMemo(() => {
+    if (!active_token || !active_combatant || remaining_walk_cells <= 0) return [];
+
+    const highlighted = new Set<string>();
+    const min_x = Math.max(0, active_token.x - remaining_walk_cells);
+    const max_x = Math.min(
+      grid_cols - active_token_size_cells,
+      active_token.x + remaining_walk_cells
+    );
+    const min_y = Math.max(0, active_token.y - remaining_walk_cells);
+    const max_y = Math.min(
+      grid_rows - active_token_size_cells,
+      active_token.y + remaining_walk_cells
+    );
+
+    for (let tx = min_x; tx <= max_x; tx += 1) {
+      for (let ty = min_y; ty <= max_y; ty += 1) {
+        if (gridMoveDistanceFeet(active_token.x, active_token.y, tx, ty) > remaining_walk_ft) {
+          continue;
+        }
+        // For Large+ tokens, mark every grid square the token footprint could cover.
+        for (let fx = 0; fx < active_token_size_cells; fx += 1) {
+          for (let fy = 0; fy < active_token_size_cells; fy += 1) {
+            highlighted.add(`${tx + fx},${ty + fy}`);
+          }
+        }
+      }
+    }
+
+    return Array.from(highlighted).map((key) => {
+      const [x, y] = key.split(',').map(Number);
+      return { x, y };
+    });
+  }, [active_token, active_combatant, active_token_size_cells, grid_cols, grid_rows, remaining_walk_cells, remaining_walk_ft]);
+
   const resetZoom = () => {
     set_zoom(1);
     set_pan_offset({ x: 0, y: 0 });
@@ -378,6 +443,36 @@ export function BattleMap({
           </svg>
         )}
 
+        {movement_range_cells.length > 0 && !drawing_enabled && !projector_mode && (
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: map.image_width,
+              height: map.image_height,
+              pointerEvents: 'none',
+              zIndex: 2,
+            }}
+          >
+            {movement_range_cells.map((cell) => {
+              const pt = gridToImage(cell.x, cell.y);
+              return (
+                <rect
+                  key={`move-${cell.x}-${cell.y}`}
+                  x={pt.x}
+                  y={pt.y}
+                  width={map.grid_size}
+                  height={map.grid_size}
+                  fill="rgba(34, 197, 94, 0.16)"
+                  stroke="rgba(22, 163, 74, 0.35)"
+                  strokeWidth={1}
+                />
+              );
+            })}
+          </svg>
+        )}
+
         {/* Drawing layer (above grid, below tokens) */}
         {(map.drawings || drawing_enabled) && (
           <DrawingLayer
@@ -397,6 +492,10 @@ export function BattleMap({
         {drag_state?.type === 'token' && hover_cell && drag_state.combatant_id && (() => {
           const c = combatant_map[drag_state.combatant_id];
           const cells = c ? tokenCellSize(c.size) : 1;
+          const token = map.tokens.find((t) => t.combatant_id === drag_state.combatant_id);
+          const over_budget = token && c.id === active_combatant_id
+            ? gridMoveDistanceFeet(token.x, token.y, hover_cell.x, hover_cell.y) > remaining_walk_ft
+            : false;
           return (
             <div
               style={{
@@ -405,8 +504,8 @@ export function BattleMap({
                 top: gridToImage(hover_cell.x, hover_cell.y).y,
                 width: map.grid_size * cells,
                 height: map.grid_size * cells,
-                background: 'rgba(83, 74, 183, 0.25)',
-                border: '2px solid #534AB7',
+                background: over_budget ? 'rgba(239, 68, 68, 0.22)' : 'rgba(83, 74, 183, 0.25)',
+                border: over_budget ? '2px solid #EF4444' : '2px solid #534AB7',
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
               }}
@@ -436,6 +535,7 @@ export function BattleMap({
               interactive={allow_token_movement}
               can_open_hp_popup={!projector_mode}
               map_rotation={rotation}
+              movement_label={c.id === active_combatant_id ? `${remaining_walk_ft} ft` : undefined}
               onPointerDown={(e) =>
                 handleTokenPointerDown(e, c.id, tp.x, tp.y)
               }
@@ -471,6 +571,31 @@ export function BattleMap({
           />
         )}
       </div>
+
+      {!projector_mode && active_combatant && active_token && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(255,255,255,0.94)',
+            border: '0.5px solid var(--color-border-secondary)',
+            borderRadius: 999,
+            padding: '6px 12px',
+            zIndex: 26,
+            fontSize: 12,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            pointerEvents: 'none',
+          }}
+        >
+          <strong>{active_combatant.name}</strong> walk range:{' '}
+          <span style={{ color: '#15803D', fontWeight: 700 }}>{remaining_walk_ft} ft</span>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>
+            {' '}of {getWalkSpeed(active_combatant)} ft
+          </span>
+        </div>
+      )}
 
       {/* Unplaced tokens (only shown in DM mode) */}
       {!projector_mode && unplaced.length > 0 && (
@@ -665,6 +790,7 @@ function Token({
   interactive,
   can_open_hp_popup,
   map_rotation,
+  movement_label,
   onPointerDown,
   onClick,
 }: {
@@ -680,6 +806,7 @@ function Token({
   interactive: boolean;
   can_open_hp_popup: boolean;
   map_rotation: number;
+  movement_label?: string;
   onPointerDown: (e: React.PointerEvent) => void;
   onClick: (e: React.MouseEvent) => void;
 }) {
@@ -780,6 +907,30 @@ function Token({
           </svg>
         )}
       </div>
+
+      {movement_label && (
+        <div
+          style={{
+            position: 'absolute',
+            right: -4,
+            top: -6,
+            background: 'rgba(22, 163, 74, 0.95)',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 700,
+            lineHeight: '16px',
+            minWidth: 34,
+            height: 16,
+            padding: '0 5px',
+            borderRadius: 999,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            textAlign: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          {movement_label}
+        </div>
+      )}
 
       {show_name && (
         <div

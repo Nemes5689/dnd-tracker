@@ -178,6 +178,24 @@ export function rollInitiativeFor(modifier: number): number {
   return rollD20(modifier).total;
 }
 
+
+function movementSpeedsFromMonsterSpeed(
+  speed: import('@/types/srd').MonsterSpeed | undefined
+): Combatant['movement_speeds'] {
+  if (!speed) return { walk: 30 };
+  if (typeof speed === 'string') {
+    const speeds: NonNullable<Combatant['movement_speeds']> = {};
+    const re = /(?:(walk|climb|swim|fly|burrow)\s*)?(\d+)\s*ft/gi;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(speed))) {
+      const mode = (match[1]?.toLowerCase() ?? 'walk') as keyof NonNullable<Combatant['movement_speeds']>;
+      speeds[mode] = parseInt(match[2], 10);
+    }
+    return Object.keys(speeds).length ? speeds : { walk: 30 };
+  }
+  return { ...speed };
+}
+
 // Helper to convert a character into a Combatant
 export function characterToCombatant(
   character: import('@/types/app').Character,
@@ -199,10 +217,12 @@ export function characterToCombatant(
     bonus_action_used: false,
     reaction_used: false,
     movement_used: 0,
+    movement_speeds: { walk: character.speed || 30 },
     has_flanking: false,
     cover: 'none',
     spell_slots_remaining: character.spellcasting?.slots.map((s) => ({ ...s })),
     resources_remaining: character.resources?.map((r) => ({ ...r })),
+    activated_features_remaining: character.activated_features?.map((f) => ({ ...f })),
   };
 }
 
@@ -231,10 +251,12 @@ export function monsterToCombatant(
     bonus_action_used: false,
     reaction_used: false,
     movement_used: 0,
+    movement_speeds: movementSpeedsFromMonsterSpeed(monster.speed),
     has_flanking: false,
     cover: 'none',
     spell_slots_remaining: monster.spellcasting?.slots?.map((s) => ({ ...s })),
     resources_remaining: monster.resources?.map((r) => ({ ...r })),
+    activated_features_remaining: monster.activated_features?.map((f) => ({ ...f })),
   };
 }
 
@@ -267,9 +289,11 @@ export function allyToCombatant(
     bonus_action_used: false,
     reaction_used: false,
     movement_used: 0,
+    movement_speeds: movementSpeedsFromMonsterSpeed(ally.speed),
     has_flanking: false,
     cover: 'none',
     spell_slots_remaining: ally.spellcasting?.slots?.map((s) => ({ ...s })),
     resources_remaining: ally.resources?.map((r) => ({ ...r })),
+    activated_features_remaining: ally.activated_features?.map((f) => ({ ...f })),
   };
 }
