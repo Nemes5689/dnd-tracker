@@ -438,7 +438,7 @@ export function BattleMap({
           </svg>
         )}
 
-        {movement_range_cells.length > 0 && !drawing_enabled && !projector_mode && (
+        {movement_range_cells.length > 0 && !drawing_enabled && (
           <svg
             style={{
               position: 'absolute',
@@ -459,8 +459,8 @@ export function BattleMap({
                   y={pt.y}
                   width={map.grid_size}
                   height={map.grid_size}
-                  fill="rgba(34, 197, 94, 0.16)"
-                  stroke="rgba(22, 163, 74, 0.35)"
+                  fill={projector_mode ? 'rgba(34, 197, 94, 0.24)' : 'rgba(34, 197, 94, 0.16)'}
+                  stroke={projector_mode ? 'rgba(74, 222, 128, 0.58)' : 'rgba(22, 163, 74, 0.35)'}
                   strokeWidth={1}
                 />
               );
@@ -567,26 +567,27 @@ export function BattleMap({
         )}
       </div>
 
-      {!projector_mode && active_combatant && active_token && (
+      {active_combatant && active_token && (
         <div
           style={{
             position: 'absolute',
             top: 12,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(255,255,255,0.94)',
-            border: '0.5px solid var(--color-border-secondary)',
+            background: projector_mode ? 'rgba(0,0,0,0.72)' : 'rgba(255,255,255,0.94)',
+            border: projector_mode ? '1px solid rgba(74, 222, 128, 0.45)' : '0.5px solid var(--color-border-secondary)',
             borderRadius: 999,
             padding: '6px 12px',
             zIndex: 26,
-            fontSize: 12,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            fontSize: projector_mode ? 14 : 12,
+            color: projector_mode ? '#fff' : 'var(--color-text-primary)',
+            boxShadow: projector_mode ? '0 4px 16px rgba(0,0,0,0.35)' : '0 2px 8px rgba(0,0,0,0.12)',
             pointerEvents: 'none',
           }}
         >
           <strong>{active_combatant.name}</strong> {MOVEMENT_LABELS[movement_mode].toLowerCase()} range:{' '}
-          <span style={{ color: '#15803D', fontWeight: 700 }}>{remaining_walk_ft} ft</span>
-          <span style={{ color: 'var(--color-text-tertiary)' }}>
+          <span style={{ color: projector_mode ? '#4ADE80' : '#15803D', fontWeight: 700 }}>{remaining_walk_ft} ft</span>
+          <span style={{ color: projector_mode ? 'rgba(255,255,255,0.65)' : 'var(--color-text-tertiary)' }}>
             {' '}of {active_movement_speed} ft
           </span>
         </div>
