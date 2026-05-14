@@ -8,25 +8,11 @@ import { ClassBuildEditor, normalizeCharacterBuild, formatCharacterBuildSummary 
 import { ClassFeaturesPanel } from '@/components/characters/ClassFeaturesPanel';
 import { OriginEditor, OriginFeaturesPanel, normalizeOriginSelection } from '@/components/characters/OriginEditor';
 import { ABILITY_ROLL_KEYS, ABILITY_ROLL_LABELS, formatAbilityRollSet, rollAbilitySet, type AbilityRollKey } from '@/utils/abilityRolls';
-import type { Monster, MonsterFeature, MonsterSpeed, Spell } from '@/types/srd';
+import type { Monster, MonsterFeature, Spell } from '@/types/srd';
+import type { MovementSpeeds } from '@/types/app';
+import { movementSpeedsFromMonsterSpeed } from '@/utils/movement';
 
 
-function formatSpeedInput(speed: MonsterSpeed | undefined): string {
-  if (typeof speed === 'string') return speed;
-  if (!speed) return '30 ft.';
-  const parts: string[] = [];
-  if (speed.walk !== undefined) parts.push(`${speed.walk} ft.`);
-  for (const [mode, val] of Object.entries(speed)) {
-    if (mode === 'walk') continue;
-    parts.push(`${mode} ${val} ft.`);
-  }
-  return parts.length > 0 ? parts.join(', ') : '30 ft.';
-}
-
-function parseSpeedInput(value: string): MonsterSpeed {
-  const cleaned = value.trim();
-  return cleaned || '30 ft.';
-}
 
 function formatSpellLevel(level: number): string {
   return level === 0 ? 'Cantrip' : `Level ${level}`;
@@ -61,7 +47,14 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
   const [cr, set_cr] = useState(initial?.cr ?? '1');
   const [hp, set_hp] = useState(String(initial?.hp ?? 10));
   const [ac, set_ac] = useState(String(initial?.ac ?? 12));
-  const [speed_text, set_speed_text] = useState(formatSpeedInput(initial?.speed));
+  const initial_speeds = movementSpeedsFromMonsterSpeed(initial?.speed);
+  const [walk_speed, set_walk_speed] = useState(String(initial_speeds.walk ?? 30));
+  const [has_climb_speed, set_has_climb_speed] = useState(initial_speeds.climb !== undefined);
+  const [climb_speed, set_climb_speed] = useState(initial_speeds.climb !== undefined ? String(initial_speeds.climb) : '');
+  const [has_swim_speed, set_has_swim_speed] = useState(initial_speeds.swim !== undefined);
+  const [swim_speed, set_swim_speed] = useState(initial_speeds.swim !== undefined ? String(initial_speeds.swim) : '');
+  const [has_fly_speed, set_has_fly_speed] = useState(initial_speeds.fly !== undefined);
+  const [fly_speed, set_fly_speed] = useState(initial_speeds.fly !== undefined ? String(initial_speeds.fly) : '');
   const [init_mod, set_init_mod] = useState(
     String(initial?.initiative?.modifier ?? 0)
   );
@@ -133,6 +126,9 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
   );
   const [spell_query, set_spell_query] = useState('');
   const [spell_level_filter, set_spell_level_filter] = useState<string>('all');
+  const [weapon_attacks, set_weapon_attacks] = useState<
+    NonNullable<Monster['weapon_attacks']>
+  >(initial?.weapon_attacks ?? []);
 
   const avatar_input_ref = useRef<HTMLInputElement>(null);
   const gallery_input_ref = useRef<HTMLInputElement>(null);
@@ -250,6 +246,15 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
     set_ability_roll_summary(formatAbilityRollSet(rolls));
   };
 
+  const buildStructuredSpeed = (): MovementSpeeds => {
+    const walk = parseInt(walk_speed, 10) || 30;
+    const speeds: MovementSpeeds = { walk };
+    if (has_climb_speed) speeds.climb = parseInt(climb_speed, 10) || walk;
+    if (has_swim_speed) speeds.swim = parseInt(swim_speed, 10) || walk;
+    if (has_fly_speed) speeds.fly = parseInt(fly_speed, 10) || walk;
+    return speeds;
+  };
+
   const handleSubmit = () => {
     if (!name.trim()) {
       alert('Name is required');
@@ -270,7 +275,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
       ac: ac_n,
       hp: hp_n,
       hp_formula: null,
-      speed: parseSpeedInput(speed_text),
+      speed: buildStructuredSpeed(),
       initiative: { modifier: parseInt(init_mod, 10) || 0, score: null },
       abilities: {
         str: { score: parseInt(str, 10) || 10, modifier: ab_mod(parseInt(str, 10) || 10) },
@@ -329,6 +334,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
       origin_selection: statblock_mode === 'character' && (origin_selection.background_id || origin_selection.species_id || (origin_selection.feat_ids?.length ?? 0) > 0)
         ? origin_selection
         : undefined,
+      weapon_attacks: weapon_attacks.length > 0 ? weapon_attacks : undefined,
     };
 
     if (edit_id) {
@@ -584,7 +590,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
         <Section title="Basic info">
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr' }}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}
           >
             <FieldLabel label="Name *">
               <input
@@ -686,7 +692,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
         <Section title="Combat stats">
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}
           >
             <FieldLabel label="HP">
               <input
@@ -702,12 +708,14 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
                 className="w-full"
               />
             </FieldLabel>
-            <FieldLabel label="Speed">
+            <FieldLabel label="Walk speed">
               <input
-                value={speed_text}
-                onChange={(e) => set_speed_text(e.target.value)}
+                type="number"
+                min={0}
+                value={walk_speed}
+                onChange={(e) => set_walk_speed(e.target.value)}
                 className="w-full"
-                placeholder="30 ft., fly 60 ft., swim 40 ft."
+                placeholder="30"
               />
             </FieldLabel>
             <FieldLabel label="Init bonus">
@@ -717,6 +725,37 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
                 className="w-full"
               />
             </FieldLabel>
+          </div>
+          <div className="mt-3">
+            <div className="text-[11px] text-text-tertiary mb-2">
+              Optional movement modes for the battle map. Tick a mode to store it in the statblock.
+            </div>
+            <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+              <MovementModeInput
+                label="Climb speed"
+                enabled={has_climb_speed}
+                value={climb_speed}
+                fallback={walk_speed}
+                onEnabledChange={set_has_climb_speed}
+                onValueChange={set_climb_speed}
+              />
+              <MovementModeInput
+                label="Swim speed"
+                enabled={has_swim_speed}
+                value={swim_speed}
+                fallback={walk_speed}
+                onEnabledChange={set_has_swim_speed}
+                onValueChange={set_swim_speed}
+              />
+              <MovementModeInput
+                label="Fly speed"
+                enabled={has_fly_speed}
+                value={fly_speed}
+                fallback={walk_speed}
+                onEnabledChange={set_has_fly_speed}
+                onValueChange={set_fly_speed}
+              />
+            </div>
           </div>
         </Section>
 
@@ -734,7 +773,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
           </div>
           <div
             className="grid gap-2"
-            style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}
           >
             {([
               ['str', str, set_str],
@@ -785,7 +824,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
             <>
               <div
                 className="grid gap-2 mb-3"
-                style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}
               >
                 <FieldLabel label="Ability">
                   <select
@@ -855,6 +894,17 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
               </FieldLabel>
             </>
           )}
+        </Section>
+
+        <Section title="Quick weapon attacks">
+          <div className="text-[11px] text-text-tertiary mb-2">
+            Structured attack data — gets clickable Attack/Damage/Crit buttons
+            during combat
+          </div>
+          <MonsterWeaponAttacksEditor
+            attacks={weapon_attacks}
+            onChange={set_weapon_attacks}
+          />
         </Section>
 
         <FeatureSection
@@ -1119,6 +1169,53 @@ function Section({
   );
 }
 
+
+function MovementModeInput({
+  label,
+  enabled,
+  value,
+  fallback,
+  onEnabledChange,
+  onValueChange,
+}: {
+  label: string;
+  enabled: boolean;
+  value: string;
+  fallback: string;
+  onEnabledChange: (enabled: boolean) => void;
+  onValueChange: (value: string) => void;
+}) {
+  return (
+    <label
+      className="flex items-center gap-2 text-[11px] text-text-secondary"
+      style={{
+        padding: '8px',
+        border: '0.5px solid var(--color-border-tertiary)',
+        borderRadius: 'var(--border-radius-sm)',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(e) => {
+          onEnabledChange(e.target.checked);
+          if (e.target.checked && !value.trim()) onValueChange(fallback || '30');
+        }}
+      />
+      <span className="shrink-0">{label}</span>
+      <input
+        type="number"
+        min={0}
+        disabled={!enabled}
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder={fallback || '30'}
+        style={{ width: 76, marginLeft: 'auto' }}
+      />
+    </label>
+  );
+}
+
 function FieldLabel({
   label,
   children,
@@ -1244,6 +1341,194 @@ function FeatureSection({
               />
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================================
+// Weapon attacks editor: add / edit / remove weapon attacks for the monster/ally
+// =============================================================================
+
+function MonsterWeaponAttacksEditor({
+  attacks,
+  onChange,
+}: {
+  attacks: NonNullable<Monster['weapon_attacks']>;
+  onChange: (attacks: NonNullable<Monster['weapon_attacks']>) => void;
+}) {
+  const update = (
+    index: number,
+    patch: Partial<NonNullable<Monster['weapon_attacks']>[number]>
+  ) => {
+    const next = attacks.slice();
+    next[index] = { ...next[index], ...patch };
+    onChange(next);
+  };
+
+  const remove = (index: number) => {
+    onChange(attacks.filter((_, i) => i !== index));
+  };
+
+  const add = () => {
+    onChange([
+      ...attacks,
+      {
+        name: '',
+        attack_bonus: 0,
+        damage: '1d6',
+        damage_type: 'slashing',
+        range: '5 ft.',
+      },
+    ]);
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-[11px] text-text-tertiary">
+          Add weapon attacks here — during combat, the active panel will show
+          clickable Attack / Damage / Crit buttons for each one.
+        </div>
+        <button
+          onClick={add}
+          type="button"
+          style={{ fontSize: 11, padding: '5px 10px' }}
+        >
+          + Add attack
+        </button>
+      </div>
+
+      {attacks.length === 0 ? (
+        <div className="text-[11px] text-text-tertiary italic">
+          No structured attacks yet.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {attacks.map((w, i) => (
+            <div
+              key={i}
+              className="grid gap-2 items-end"
+              style={{
+                gridTemplateColumns:
+                  'repeat(auto-fit, minmax(110px, 1fr))',
+                padding: '10px 12px',
+                background: 'var(--color-background-secondary)',
+                borderRadius: 'var(--border-radius-md)',
+              }}
+            >
+              <label className="text-[10px] text-text-tertiary">
+                Name
+                <input
+                  value={w.name}
+                  onChange={(e) => update(i, { name: e.target.value })}
+                  placeholder="Bite"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                To hit
+                <input
+                  type="number"
+                  value={w.attack_bonus}
+                  onChange={(e) =>
+                    update(i, {
+                      attack_bonus: parseInt(e.target.value, 10) || 0,
+                    })
+                  }
+                  placeholder="+5"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                Damage
+                <input
+                  value={w.damage}
+                  onChange={(e) => update(i, { damage: e.target.value })}
+                  placeholder="1d8+3"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                Damage type
+                <select
+                  value={w.damage_type}
+                  onChange={(e) =>
+                    update(i, { damage_type: e.target.value })
+                  }
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                >
+                  {[
+                    'acid',
+                    'bludgeoning',
+                    'cold',
+                    'fire',
+                    'force',
+                    'lightning',
+                    'necrotic',
+                    'piercing',
+                    'poison',
+                    'psychic',
+                    'radiant',
+                    'slashing',
+                    'thunder',
+                  ].map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                Range
+                <input
+                  value={w.range ?? ''}
+                  onChange={(e) => update(i, { range: e.target.value })}
+                  placeholder="5 ft."
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                />
+              </label>
+              <button
+                onClick={() => remove(i)}
+                type="button"
+                title="Remove this attack"
+                style={{
+                  fontSize: 11,
+                  padding: '6px 10px',
+                  color: 'var(--color-text-danger)',
+                  borderColor: 'var(--color-border-danger)',
+                  alignSelf: 'end',
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          <div className="text-[10px] text-text-tertiary mt-1">
+            Tip: Damage supports compound formulas like <code>1d8+1d6+3</code>.
+          </div>
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ import type {
   MapDrawing,
   SpellSlotState,
   ResourceState,
+  ActivatedFeatureState,
 } from '@/types/app';
 import {
   applyDamage,
@@ -23,6 +24,7 @@ import {
   removeCondition,
   sortByInitiative,
 } from '@/engine/combat';
+import { expireMovementOverrideOnTurnStart } from '@/utils/movement';
 
 interface EncounterStore {
   encounters: Encounter[];
@@ -125,6 +127,13 @@ interface EncounterStore {
     encounter_id: string,
     combatant_id: string,
     resource_id: string,
+    new_remaining: number
+  ) => void;
+  // Activated class features (Action Surge, Channel Divinity, etc.)
+  setActivatedFeatureRemaining: (
+    encounter_id: string,
+    combatant_id: string,
+    feature_id: string,
     new_remaining: number
   ) => void;
   // Rest: restores resources based on type
@@ -407,12 +416,23 @@ export const useEncounterStore = create<EncounterStore>()(
               });
             }
 
-            // Reset action economy for the new active combatant
+            // Reset action economy for the new active combatant, then tick any
+            // temporary current-speed override that expires on that combatant's turn start.
             const next = updated_combatants[next_index];
             if (next) {
+              const reset_next = resetTurnActions(next);
+              const { combatant: speed_checked_next, expired: expired_speed_override } =
+                expireMovementOverrideOnTurnStart(reset_next);
               updated_combatants = updated_combatants.map((c) =>
-                c.id === next.id ? resetTurnActions(c) : c
+                c.id === next.id ? speed_checked_next : c
               );
+              if (expired_speed_override) {
+                new_log.push({
+                  round: next_round,
+                  message: `${next.name}: temporary speed override expired`,
+                  timestamp: Date.now(),
+                });
+              }
             }
 
             return {
@@ -813,6 +833,42 @@ export const useEncounterStore = create<EncounterStore>()(
           }),
         })),
 
+      setActivatedFeatureRemaining: (encounter_id, combatant_id, feature_id, new_remaining) =>
+        set((s) => ({
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            const target = e.combatants.find((c) => c.id === combatant_id);
+            if (!target?.activated_features_remaining) return e;
+            const feat = target.activated_features_remaining.find((f) => f.id === feature_id);
+            if (!feat) return e;
+            const clamped = Math.max(0, Math.min(feat.total, new_remaining));
+            if (clamped === feat.remaining) return e;
+            const direction = clamped < feat.remaining ? 'used' : 'restored';
+            return {
+              ...e,
+              combatants: e.combatants.map((c) =>
+                c.id === combatant_id
+                  ? {
+                      ...c,
+                      activated_features_remaining: c.activated_features_remaining!.map((f) =>
+                        f.id === feature_id ? { ...f, remaining: clamped } : f
+                      ),
+                    }
+                  : c
+              ),
+              log: [
+                ...e.log,
+                {
+                  round: e.round,
+                  message: `${target.name} ${direction} ${feat.name} (${clamped}/${feat.total})`,
+                  timestamp: Date.now(),
+                },
+              ],
+              updated_at: Date.now(),
+            };
+          }),
+        })),
+
       restCombatant: (encounter_id, combatant_id, rest_type) =>
         set((s) => ({
           encounters: s.encounters.map((e) => {
@@ -828,6 +884,17 @@ export const useEncounterStore = create<EncounterStore>()(
                       r.recharge === 'turn'
                     : r.recharge === 'short_rest' || r.recharge === 'turn';
                 return should_restore ? { ...r, remaining: r.total } : r;
+              }
+            );
+            const restored_features = (target.activated_features_remaining ?? []).map(
+              (f) => {
+                const should_restore =
+                  rest_type === 'long'
+                    ? f.recharge === 'long_rest' ||
+                      f.recharge === 'short_rest' ||
+                      f.recharge === 'turn'
+                    : f.recharge === 'short_rest' || f.recharge === 'turn';
+                return should_restore ? { ...f, remaining: f.total } : f;
               }
             );
             const restored_slots =
@@ -847,6 +914,7 @@ export const useEncounterStore = create<EncounterStore>()(
                       ...c,
                       hp_current: new_hp,
                       resources_remaining: restored_resources,
+                      activated_features_remaining: restored_features,
                       spell_slots_remaining: restored_slots,
                     }
                   : c

@@ -74,6 +74,7 @@ export interface Character {
   hp_current: number;
   ac: number;
   speed: number;
+  movement_speeds?: MovementSpeeds; // optional climb/swim/fly/burrow speeds for the battle map
   initiative_bonus: number;
   avatar?: string; // base64 data URL of character portrait
   abilities?: {
@@ -265,7 +266,15 @@ export interface AppliedCondition {
   level?: number; // for Exhaustion (1-6)
 }
 
-export type MovementSpeeds = Partial<Record<'walk' | 'climb' | 'swim' | 'fly' | 'burrow', number>>;
+export type MovementMode = 'walk' | 'climb' | 'swim' | 'fly' | 'burrow';
+export type MovementSpeeds = Partial<Record<MovementMode, number>>;
+
+export interface MovementSpeedOverride {
+  speeds: MovementSpeeds; // absolute temporary current speeds in feet
+  duration_type: 'until_start_next_turn' | 'manual' | 'fixed_rounds';
+  remaining_rounds?: number;
+  note?: string;
+}
 
 export interface Combatant {
   id: string;
@@ -286,7 +295,8 @@ export interface Combatant {
   bonus_action_used: boolean;
   reaction_used: boolean;
   movement_used: number; // feet
-  movement_speeds?: MovementSpeeds; // feet per turn; walk is used for the current battle-map range overlay
+  movement_speeds?: MovementSpeeds; // base feet per turn
+  movement_speed_override?: MovementSpeedOverride; // temporary current speeds for combat
   // Combat modifiers (DM toggles)
   has_flanking: boolean;
   cover: 'none' | 'half' | 'three-quarters' | 'total';

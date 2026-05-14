@@ -9,9 +9,11 @@ import { AddMonsterModal } from './AddMonsterModal';
 import { AddConditionModal } from './AddConditionModal';
 import { AITacticsTab } from './AITacticsTab';
 import { CombatStatsPanel } from './CombatStatsPanel';
+import { useIsAtLeast } from '@/hooks/useWindowWidth';
 import { getProjectorBus } from '@/utils/projectorBus';
-import type { Encounter, Combatant, Character, AppliedCondition } from '@/types/app';
+import type { Encounter, Combatant, Character, AppliedCondition, MovementMode, MovementSpeeds, MovementSpeedOverride } from '@/types/app';
 import type { Monster, MonsterSpeed, Spell } from '@/types/srd';
+import { formatMovementSpeeds, getEffectiveMovementSpeeds, MOVEMENT_LABELS, MOVEMENT_MODES } from '@/utils/movement';
 
 interface Props {
   encounter: Encounter;
@@ -29,6 +31,7 @@ export function CombatView({ encounter, onExit }: Props) {
     removeConditionFromCombatant,
     setInitiative,
     endEncounter,
+    updateCombatant,
   } = useEncounterStore();
   const { loaded, monsters: srd_monsters, spells, load } = useSRDStore();
   const { monsters: custom_monsters } = useCustomMonsterStore();
@@ -36,6 +39,10 @@ export function CombatView({ encounter, onExit }: Props) {
   const all_monsters = [...custom_monsters, ...srd_monsters];
   const { getActiveCampaign } = useCampaignStore();
   const campaign = getActiveCampaign();
+
+  // Layout breakpoint: md (>=1280px) shows the 3-column desktop layout;
+  // sm (1024-1279px) collapses the right tabs panel into a top tab bar.
+  const is_desktop = useIsAtLeast('md');
 
   useEffect(() => {
     if (!loaded) load();
@@ -132,9 +139,9 @@ export function CombatView({ encounter, onExit }: Props) {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div
-        className="flex justify-between items-center bg-bg-primary"
+        className="flex justify-between items-center bg-bg-primary flex-wrap gap-y-2"
         style={{
-          padding: '12px 24px',
+          padding: '12px 16px',
           borderBottom: '0.5px solid var(--color-border-tertiary)',
         }}
       >
@@ -249,9 +256,60 @@ export function CombatView({ encounter, onExit }: Props) {
         </div>
       </div>
 
+      {/* Right-panel tabs: shown above the 2-column main area on sm screens,
+          and as a 3rd column on md+ screens. Defined once, rendered twice. */}
+      {!is_desktop && (
+        <div
+          className="bg-bg-secondary overflow-hidden flex flex-col shrink-0"
+          style={{
+            padding: '10px 14px 0 14px',
+            maxHeight: '30vh',
+            borderBottom: '0.5px solid var(--color-border-tertiary)',
+          }}
+        >
+          <div
+            className="flex gap-1 mb-2 flex-wrap"
+            style={{ borderBottom: '0.5px solid var(--color-border-tertiary)' }}
+          >
+            <TabButton
+              active={false}
+              onClick={() => set_show_battle_map(true)}
+            >
+              🗺 Battle Map
+            </TabButton>
+            <TabButton active={active_tab === 'ai'} onClick={() => set_active_tab('ai')}>
+              🤖 AI
+            </TabButton>
+            <TabButton active={active_tab === 'log'} onClick={() => set_active_tab('log')}>
+              Log
+            </TabButton>
+            <TabButton active={active_tab === 'notes'} onClick={() => set_active_tab('notes')}>
+              Notes
+            </TabButton>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {active_tab === 'ai' && active ? (
+              <AITacticsTab
+                monster={source_monster}
+                combatant={active}
+                encounter={encounter}
+              />
+            ) : active_tab === 'log' ? (
+              <LogTab encounter={encounter} />
+            ) : (
+              <div className="text-[12px] text-text-tertiary italic">
+                Combat notes coming soon.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div
         className="flex-1 grid overflow-hidden"
-        style={{ gridTemplateColumns: '260px 1fr 320px' }}
+        style={{
+          gridTemplateColumns: is_desktop ? '260px 1fr 320px' : '240px 1fr',
+        }}
       >
         {/* COL 1: Initiative list with click-to-damage */}
         <div
@@ -360,6 +418,12 @@ export function CombatView({ encounter, onExit }: Props) {
                 onSetInitiative={(new_value) =>
                   setInitiative(encounter.id, viewed.id, new_value)
                 }
+                onUpdateMovementOverride={(override) =>
+                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: override })
+                }
+                onClearMovementOverride={() =>
+                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: undefined })
+                }
               />
             </>
           ) : (
@@ -367,11 +431,12 @@ export function CombatView({ encounter, onExit }: Props) {
           )}
         </div>
 
-        {/* COL 3: Tabs */}
-        <div
-          className="bg-bg-secondary overflow-hidden flex flex-col"
-          style={{ padding: '16px 14px' }}
-        >
+        {/* COL 3: Tabs (desktop only — on smaller screens these tabs are at the top) */}
+        {is_desktop && (
+          <div
+            className="bg-bg-secondary overflow-hidden flex flex-col"
+            style={{ padding: '16px 14px' }}
+          >
           <div
             className="flex gap-1 mb-3"
             style={{ borderBottom: '0.5px solid var(--color-border-tertiary)' }}
@@ -402,7 +467,8 @@ export function CombatView({ encounter, onExit }: Props) {
               </div>
             )}
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {show_add_combatant && (
@@ -752,6 +818,150 @@ function CombatantInitRow({
   );
 }
 
+
+function MovementSpeedPanel({
+  combatant,
+  onApply,
+  onClear,
+}: {
+  combatant: Combatant;
+  onApply: (override: MovementSpeedOverride) => void;
+  onClear: () => void;
+}) {
+  const base_speeds = combatant.movement_speeds ?? { walk: 30 };
+  const effective_speeds = getEffectiveMovementSpeeds(combatant);
+  const override = combatant.movement_speed_override;
+  const [open, set_open] = useState(false);
+  const [duration, set_duration] = useState<MovementSpeedOverride['duration_type']>('until_start_next_turn');
+  const [rounds, set_rounds] = useState('1');
+  const [draft, set_draft] = useState<Record<MovementMode, string>>(() => ({
+    walk: String(effective_speeds.walk ?? 30),
+    climb: effective_speeds.climb !== undefined ? String(effective_speeds.climb) : '',
+    swim: effective_speeds.swim !== undefined ? String(effective_speeds.swim) : '',
+    fly: effective_speeds.fly !== undefined ? String(effective_speeds.fly) : '',
+    burrow: effective_speeds.burrow !== undefined ? String(effective_speeds.burrow) : '',
+  }));
+
+  useEffect(() => {
+    set_draft({
+      walk: String(effective_speeds.walk ?? 30),
+      climb: effective_speeds.climb !== undefined ? String(effective_speeds.climb) : '',
+      swim: effective_speeds.swim !== undefined ? String(effective_speeds.swim) : '',
+      fly: effective_speeds.fly !== undefined ? String(effective_speeds.fly) : '',
+      burrow: effective_speeds.burrow !== undefined ? String(effective_speeds.burrow) : '',
+    });
+  }, [combatant.id, override]);
+
+  const apply = () => {
+    const speeds: MovementSpeeds = {};
+    for (const mode of MOVEMENT_MODES) {
+      const value = parseInt(draft[mode], 10);
+      if (Number.isFinite(value) && value > 0) speeds[mode] = value;
+    }
+    if (!speeds.walk) speeds.walk = 30;
+    onApply({
+      speeds,
+      duration_type: duration,
+      remaining_rounds: duration === 'fixed_rounds' ? Math.max(1, parseInt(rounds, 10) || 1) : undefined,
+    });
+    set_open(false);
+  };
+
+  const duration_label = override
+    ? override.duration_type === 'manual'
+      ? 'until cancelled'
+      : override.duration_type === 'fixed_rounds'
+        ? `${override.remaining_rounds ?? 1} round(s)`
+        : 'until start of next turn'
+    : null;
+
+  return (
+    <div
+      className="mb-4"
+      style={{
+        padding: '12px',
+        background: 'var(--color-background-secondary)',
+        borderRadius: 'var(--border-radius-md)',
+        border: override ? '0.5px solid var(--color-border-info)' : '0.5px solid var(--color-border-tertiary)',
+      }}
+    >
+      <div className="flex justify-between items-start gap-3">
+        <div>
+          <div className="text-[12px] font-medium text-text-secondary">Movement speeds</div>
+          <div className="text-[11px] text-text-tertiary mt-1">
+            Base: {formatMovementSpeeds(base_speeds)}
+          </div>
+          <div className="text-[12px] mt-1">
+            Current: <strong>{formatMovementSpeeds(effective_speeds)}</strong>
+            {duration_label && <span className="text-[11px] text-text-tertiary"> · {duration_label}</span>}
+          </div>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          {override && (
+            <button type="button" onClick={onClear} style={{ fontSize: '11px', padding: '4px 8px' }}>
+              Clear
+            </button>
+          )}
+          <button type="button" onClick={() => set_open((v) => !v)} style={{ fontSize: '11px', padding: '4px 8px' }}>
+            {open ? 'Close' : 'Set current speed'}
+          </button>
+        </div>
+      </div>
+
+      {open && (
+        <div className="mt-3">
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(95px, 1fr))' }}>
+            {MOVEMENT_MODES.map((mode) => (
+              <label key={mode} className="text-[11px] text-text-tertiary">
+                {MOVEMENT_LABELS[mode]} ft
+                <input
+                  type="number"
+                  min={0}
+                  value={draft[mode]}
+                  onChange={(e) => set_draft((current) => ({ ...current, [mode]: e.target.value }))}
+                  placeholder={mode === 'walk' ? '30' : '—'}
+                  className="w-full mt-1"
+                />
+              </label>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-3 flex-wrap items-end">
+            <label className="text-[11px] text-text-tertiary">
+              Duration
+              <select
+                value={duration}
+                onChange={(e) => set_duration(e.target.value as MovementSpeedOverride['duration_type'])}
+                className="block mt-1"
+                style={{ padding: '6px 8px' }}
+              >
+                <option value="until_start_next_turn">Until start of next turn</option>
+                <option value="manual">Until cancelled</option>
+                <option value="fixed_rounds">Fixed rounds</option>
+              </select>
+            </label>
+            {duration === 'fixed_rounds' && (
+              <label className="text-[11px] text-text-tertiary">
+                Rounds
+                <input
+                  type="number"
+                  min={1}
+                  value={rounds}
+                  onChange={(e) => set_rounds(e.target.value)}
+                  className="block mt-1"
+                  style={{ width: 80 }}
+                />
+              </label>
+            )}
+            <button type="button" onClick={apply} className="bg-accent-50 border-accent-300 text-accent-900 font-medium" style={{ padding: '6px 10px', fontSize: '12px' }}>
+              Apply speed
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Active combatant panel. For monsters: full statblock visible.
  * For PCs: only abilities/weapons shown, HP/AC hidden.
@@ -768,6 +978,8 @@ function ActiveCombatantPanel({
   onAddCondition,
   onRemoveCondition,
   onSetInitiative,
+  onUpdateMovementOverride,
+  onClearMovementOverride,
 }: {
   encounter_id: string;
   combatant: Combatant;
@@ -780,6 +992,8 @@ function ActiveCombatantPanel({
   onAddCondition: () => void;
   onRemoveCondition: (condition_id: string) => void;
   onSetInitiative: (new_value: number) => void;
+  onUpdateMovementOverride: (override: MovementSpeedOverride) => void;
+  onClearMovementOverride: () => void;
 }) {
   const [damage_input, set_damage_input] = useState('');
   const [heal_input, set_heal_input] = useState('');
@@ -895,6 +1109,12 @@ function ActiveCombatantPanel({
           </div>
         </div>
       )}
+
+      <MovementSpeedPanel
+        combatant={combatant}
+        onApply={onUpdateMovementOverride}
+        onClear={onClearMovementOverride}
+      />
 
       {/* Damage/Heal — works for both PCs (player tells DM what they did) and monsters */}
       <div

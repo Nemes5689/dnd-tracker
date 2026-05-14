@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import type { BattleMap, Combatant, CombatantTokenStyle, MapDrawing } from '@/types/app';
+import type { BattleMap, Combatant, CombatantTokenStyle, MapDrawing, MovementMode } from '@/types/app';
 import { stylizedHPLabel } from '@/utils/projectorBus';
 import { tokenCellSize } from '@/utils/tokenSize';
 import { DrawingLayer } from './DrawingLayer';
+import { getMovementSpeed, getRemainingMovementSpeed, MOVEMENT_LABELS } from '@/utils/movement';
 
 export interface BattleMapProps {
   map: BattleMap;
@@ -17,6 +18,7 @@ export interface BattleMapProps {
   projector_mode?: boolean;
   show_token_names?: boolean;
   hide_monster_hp_numbers?: boolean;
+  movement_mode?: MovementMode;
   // In projector mode: allow token movement, but disable HP popups
   allow_token_movement?: boolean;
   // Drawing layer props (optional)
@@ -33,15 +35,6 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 4;
 
 const FEET_PER_GRID_SQUARE = 5;
-
-function getWalkSpeed(combatant: Combatant | undefined): number {
-  return Math.max(0, combatant?.movement_speeds?.walk ?? 30);
-}
-
-function getRemainingWalkSpeed(combatant: Combatant | undefined): number {
-  if (!combatant) return 0;
-  return Math.max(0, getWalkSpeed(combatant) - (combatant.movement_used ?? 0));
-}
 
 function gridMoveDistanceFeet(from_x: number, from_y: number, to_x: number, to_y: number): number {
   // D&D-style grid movement for now: one orthogonal or diagonal square = 5 ft.
@@ -62,6 +55,7 @@ export function BattleMap({
   projector_mode = false,
   show_token_names = false,
   hide_monster_hp_numbers = false,
+  movement_mode = 'walk',
   allow_token_movement = true,
   drawing_enabled = false,
   drawing_color = '#dc2626',
@@ -294,7 +288,8 @@ export function BattleMap({
   const active_token_size_cells = active_combatant
     ? tokenCellSize(active_combatant.size)
     : 1;
-  const remaining_walk_ft = getRemainingWalkSpeed(active_combatant);
+  const active_movement_speed = getMovementSpeed(active_combatant, movement_mode);
+  const remaining_walk_ft = getRemainingMovementSpeed(active_combatant, movement_mode);
   const remaining_walk_cells = Math.floor(remaining_walk_ft / FEET_PER_GRID_SQUARE);
 
   const movement_range_cells = useMemo(() => {
@@ -589,10 +584,10 @@ export function BattleMap({
             pointerEvents: 'none',
           }}
         >
-          <strong>{active_combatant.name}</strong> walk range:{' '}
+          <strong>{active_combatant.name}</strong> {MOVEMENT_LABELS[movement_mode].toLowerCase()} range:{' '}
           <span style={{ color: '#15803D', fontWeight: 700 }}>{remaining_walk_ft} ft</span>
           <span style={{ color: 'var(--color-text-tertiary)' }}>
-            {' '}of {getWalkSpeed(active_combatant)} ft
+            {' '}of {active_movement_speed} ft
           </span>
         </div>
       )}

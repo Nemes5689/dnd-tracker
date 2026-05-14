@@ -6,7 +6,7 @@ import { AvatarCropper } from '@/components/common/AvatarCropper';
 import { ClassBuildEditor, normalizeCharacterBuild, formatCharacterBuildSummary } from '@/components/characters/ClassBuildEditor';
 import { ClassFeaturesPanel } from '@/components/characters/ClassFeaturesPanel';
 import { OriginEditor, OriginFeaturesPanel, formatOriginSummary, getBackgroundEquipmentChoiceText, getEffectiveFeatIds, normalizeOriginSelection, parseBackgroundSkills, parseBackgroundTool } from '@/components/characters/OriginEditor';
-import type { Character } from '@/types/app';
+import type { Character, MovementSpeeds } from '@/types/app';
 import { getBackgroundInfo, readPersistedOriginHomebrew } from '@/store/originHomebrewStore';
 import { ABILITY_ROLL_KEYS, ABILITY_ROLL_LABELS, formatAbilityRollSet, rollAbilitySet, type AbilityRollKey } from '@/utils/abilityRolls';
 import type { Spell } from '@/types/srd';
@@ -60,8 +60,8 @@ export function CharactersPage() {
   };
 
   return (
-    <div className="p-8 max-w-[900px]">
-      <div className="flex justify-between items-center mb-6">
+    <div className="page-padding max-w-[1200px]">
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-y-3">
         <div>
           <div className="text-[11px] text-text-tertiary mb-1">{active.name}</div>
           <h2>Characters</h2>
@@ -95,7 +95,7 @@ export function CharactersPage() {
       ) : (
         <div
           className="grid gap-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}
         >
           {active.characters.map((c) => (
             <CharacterCard
@@ -267,7 +267,13 @@ function CharacterForm({
     String(initial?.hp_current ?? initial?.hp_max ?? '')
   );
   const [ac, set_ac] = useState(String(initial?.ac ?? ''));
-  const [speed, set_speed] = useState(String(initial?.speed ?? 30));
+  const [speed, set_speed] = useState(String(initial?.movement_speeds?.walk ?? initial?.speed ?? 30));
+  const [has_climb_speed, set_has_climb_speed] = useState(initial?.movement_speeds?.climb !== undefined);
+  const [climb_speed, set_climb_speed] = useState(initial?.movement_speeds?.climb !== undefined ? String(initial.movement_speeds.climb) : '');
+  const [has_swim_speed, set_has_swim_speed] = useState(initial?.movement_speeds?.swim !== undefined);
+  const [swim_speed, set_swim_speed] = useState(initial?.movement_speeds?.swim !== undefined ? String(initial.movement_speeds.swim) : '');
+  const [has_fly_speed, set_has_fly_speed] = useState(initial?.movement_speeds?.fly !== undefined);
+  const [fly_speed, set_fly_speed] = useState(initial?.movement_speeds?.fly !== undefined ? String(initial.movement_speeds.fly) : '');
   const [init, set_init] = useState(String(initial?.initiative_bonus ?? 0));
   const [str, set_str] = useState(String(initial?.abilities?.str ?? 10));
   const [dex, set_dex] = useState(String(initial?.abilities?.dex ?? 10));
@@ -279,6 +285,9 @@ function CharacterForm({
   const [notes, set_notes] = useState(initial?.notes ?? '');
   const [avatar, set_avatar] = useState<string | undefined>(initial?.avatar);
   const [spell_ids, set_spell_ids] = useState<string[]>(initial?.spell_ids ?? []);
+  const [weapons, set_weapons] = useState<NonNullable<Character['weapons']>>(
+    initial?.weapons ?? []
+  );
   const [character_build, set_character_build] = useState(() =>
     normalizeCharacterBuild(initial?.character_build)
   );
@@ -406,6 +415,11 @@ function CharacterForm({
     const background_tool_proficiencies = parseBackgroundTool(background, origin_selection);
     const background_equipment = getBackgroundEquipmentChoiceText(background, origin_selection.background_equipment_choice);
     const effective_feat_ids = getEffectiveFeatIds(origin_selection);
+    const base_walk_speed = parseInt(speed, 10) || 30;
+    const movement_speeds: MovementSpeeds = { walk: base_walk_speed };
+    if (has_climb_speed) movement_speeds.climb = parseInt(climb_speed, 10) || base_walk_speed;
+    if (has_swim_speed) movement_speeds.swim = parseInt(swim_speed, 10) || base_walk_speed;
+    if (has_fly_speed) movement_speeds.fly = parseInt(fly_speed, 10) || base_walk_speed;
     const character: Character = {
       id: initial?.id ?? crypto.randomUUID(),
       name,
@@ -417,7 +431,8 @@ function CharacterForm({
       hp_max: hp_max_n,
       hp_current: Math.min(hp_current_n, hp_max_n),
       ac: parseInt(ac, 10),
-      speed: parseInt(speed, 10) || 30,
+      speed: base_walk_speed,
+      movement_speeds,
       initiative_bonus: parseInt(init, 10) || 0,
       avatar,
       notes: notes || undefined,
@@ -433,7 +448,7 @@ function CharacterForm({
       skill_proficiencies: Array.from(new Set([...(initial?.skill_proficiencies ?? []), ...background_skill_proficiencies])),
       tool_proficiencies: Array.from(new Set([...(initial?.tool_proficiencies ?? []), ...background_tool_proficiencies])),
       starting_equipment: background_equipment || initial?.starting_equipment,
-      weapons: initial?.weapons,
+      weapons: weapons.length > 0 ? weapons : undefined,
       spell_ids,
       character_build: character_build.enabled ? character_build : undefined,
     };
@@ -514,7 +529,7 @@ function CharacterForm({
       <div
         className="grid gap-3 mb-3"
         style={{
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
         }}
       >
         <FormField label="Name *" required>
@@ -567,7 +582,7 @@ function CharacterForm({
       <div
         className="grid gap-3 mb-4"
         style={{
-          gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
         }}
       >
         <FormField label="HP max *" required>
@@ -602,6 +617,37 @@ function CharacterForm({
             style={{ width: '100%', boxSizing: 'border-box' }}
           />
         </FormField>
+        <div className="md:col-span-2" style={{ gridColumn: '1 / -1' }}>
+          <div className="text-[11px] text-text-tertiary mb-2">
+            Optional movement modes for battle map range previews
+          </div>
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+            <MovementModeInput
+              label="Climb speed"
+              enabled={has_climb_speed}
+              value={climb_speed}
+              fallback={speed}
+              onEnabledChange={set_has_climb_speed}
+              onValueChange={set_climb_speed}
+            />
+            <MovementModeInput
+              label="Swim speed"
+              enabled={has_swim_speed}
+              value={swim_speed}
+              fallback={speed}
+              onEnabledChange={set_has_swim_speed}
+              onValueChange={set_swim_speed}
+            />
+            <MovementModeInput
+              label="Fly speed"
+              enabled={has_fly_speed}
+              value={fly_speed}
+              fallback={speed}
+              onEnabledChange={set_has_fly_speed}
+              onValueChange={set_fly_speed}
+            />
+          </div>
+        </div>
         <FormField label="Init bonus">
           <input
             value={init}
@@ -626,7 +672,7 @@ function CharacterForm({
             🎲 Roll abilities (4d6 drop lowest)
           </button>
         </div>
-        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(6, minmax(0, 1fr))' }}>
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
           {ABILITY_ROLL_KEYS.map((ability) => {
             const value = ability_values[ability];
             const score = parseInt(value, 10) || 10;
@@ -670,6 +716,8 @@ function CharacterForm({
 
       <OriginFeaturesPanel selection={origin_selection} />
       <ClassFeaturesPanel build={character_build} />
+
+      <WeaponsEditor weapons={weapons} onChange={set_weapons} />
 
       <FormField label="Capabilities & notes (visible to DM during combat)">
         <textarea
@@ -873,6 +921,53 @@ function SpellPicker({
   );
 }
 
+
+function MovementModeInput({
+  label,
+  enabled,
+  value,
+  fallback,
+  onEnabledChange,
+  onValueChange,
+}: {
+  label: string;
+  enabled: boolean;
+  value: string;
+  fallback: string;
+  onEnabledChange: (enabled: boolean) => void;
+  onValueChange: (value: string) => void;
+}) {
+  return (
+    <label
+      className="flex items-center gap-2 text-[11px] text-text-secondary"
+      style={{
+        padding: '8px',
+        border: '0.5px solid var(--color-border-tertiary)',
+        borderRadius: 'var(--border-radius-sm)',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(e) => {
+          onEnabledChange(e.target.checked);
+          if (e.target.checked && !value.trim()) onValueChange(fallback || '30');
+        }}
+      />
+      <span className="shrink-0">{label}</span>
+      <input
+        type="number"
+        min={0}
+        disabled={!enabled}
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        placeholder={fallback || '30'}
+        style={{ width: 76, marginLeft: 'auto' }}
+      />
+    </label>
+  );
+}
+
 /**
  * A labeled form field. Label sits above the input.
  */
@@ -902,6 +997,164 @@ function FormField({
         {required && <span style={{ color: 'var(--color-text-danger)' }}> *</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+// =============================================================================
+// Weapons editor: add / edit / remove weapon attacks for the character
+// =============================================================================
+
+function WeaponsEditor({
+  weapons,
+  onChange,
+}: {
+  weapons: NonNullable<Character['weapons']>;
+  onChange: (weapons: NonNullable<Character['weapons']>) => void;
+}) {
+  const update = (
+    index: number,
+    patch: Partial<NonNullable<Character['weapons']>[number]>
+  ) => {
+    const next = weapons.slice();
+    next[index] = { ...next[index], ...patch };
+    onChange(next);
+  };
+
+  const remove = (index: number) => {
+    onChange(weapons.filter((_, i) => i !== index));
+  };
+
+  const add = () => {
+    onChange([
+      ...weapons,
+      {
+        name: '',
+        attack_bonus: 0,
+        damage: '1d6',
+        damage_type: 'slashing',
+      },
+    ]);
+  };
+
+  return (
+    <div className="mb-4">
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-[12px] font-medium">Weapon attacks</div>
+        <button
+          onClick={add}
+          type="button"
+          style={{ fontSize: 11, padding: '5px 10px' }}
+        >
+          + Add weapon
+        </button>
+      </div>
+
+      {weapons.length === 0 ? (
+        <div className="text-[11px] text-text-tertiary italic">
+          No weapons yet. Click "Add weapon" to define an attack for combat (gets
+          clickable Attack / Damage / Crit buttons during fights).
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {weapons.map((w, i) => (
+            <div
+              key={i}
+              className="grid gap-2 items-end"
+              style={{
+                gridTemplateColumns:
+                  'repeat(auto-fit, minmax(110px, 1fr))',
+                padding: '10px 12px',
+                background: 'var(--color-background-secondary)',
+                borderRadius: 'var(--border-radius-md)',
+              }}
+            >
+              <label className="text-[10px] text-text-tertiary">
+                Name
+                <input
+                  value={w.name}
+                  onChange={(e) => update(i, { name: e.target.value })}
+                  placeholder="Longsword"
+                  style={{ width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                To hit
+                <input
+                  type="number"
+                  value={w.attack_bonus}
+                  onChange={(e) =>
+                    update(i, { attack_bonus: parseInt(e.target.value, 10) || 0 })
+                  }
+                  placeholder="+5"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    marginTop: 2,
+                  }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                Damage
+                <input
+                  value={w.damage}
+                  onChange={(e) => update(i, { damage: e.target.value })}
+                  placeholder="1d8+3"
+                  style={{ width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                />
+              </label>
+              <label className="text-[10px] text-text-tertiary">
+                Damage type
+                <select
+                  value={w.damage_type}
+                  onChange={(e) => update(i, { damage_type: e.target.value })}
+                  style={{ width: '100%', boxSizing: 'border-box', marginTop: 2 }}
+                >
+                  {[
+                    'acid',
+                    'bludgeoning',
+                    'cold',
+                    'fire',
+                    'force',
+                    'lightning',
+                    'necrotic',
+                    'piercing',
+                    'poison',
+                    'psychic',
+                    'radiant',
+                    'slashing',
+                    'thunder',
+                  ].map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                onClick={() => remove(i)}
+                type="button"
+                title="Remove this weapon"
+                style={{
+                  fontSize: 11,
+                  padding: '6px 10px',
+                  color: 'var(--color-text-danger)',
+                  borderColor: 'var(--color-border-danger)',
+                  alignSelf: 'end',
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          <div className="text-[10px] text-text-tertiary mt-1">
+            Tip: Damage supports compound formulas like <code>1d8+1d6+3</code>{' '}
+            (e.g. for Divine Smite or Sneak Attack). During combat, you'll see
+            Attack / Damage / Crit buttons that auto-roll these.
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { rollD20 } from '@/engine/dice';
 import { CombatView } from '@/components/combat/CombatView';
 import { EncounterSetup } from '@/components/combat/EncounterSetup';
 import type { Combatant } from '@/types/app';
+import { movementSpeedsFromMonsterSpeed } from '@/utils/movement';
 
 export function CombatPage() {
   const { getActiveCampaign, updateCampaign } = useCampaignStore();
@@ -179,23 +180,6 @@ export function rollInitiativeFor(modifier: number): number {
 }
 
 
-function movementSpeedsFromMonsterSpeed(
-  speed: import('@/types/srd').MonsterSpeed | undefined
-): Combatant['movement_speeds'] {
-  if (!speed) return { walk: 30 };
-  if (typeof speed === 'string') {
-    const speeds: NonNullable<Combatant['movement_speeds']> = {};
-    const re = /(?:(walk|climb|swim|fly|burrow)\s*)?(\d+)\s*ft/gi;
-    let match: RegExpExecArray | null;
-    while ((match = re.exec(speed))) {
-      const mode = (match[1]?.toLowerCase() ?? 'walk') as keyof NonNullable<Combatant['movement_speeds']>;
-      speeds[mode] = parseInt(match[2], 10);
-    }
-    return Object.keys(speeds).length ? speeds : { walk: 30 };
-  }
-  return { ...speed };
-}
-
 // Helper to convert a character into a Combatant
 export function characterToCombatant(
   character: import('@/types/app').Character,
@@ -217,7 +201,7 @@ export function characterToCombatant(
     bonus_action_used: false,
     reaction_used: false,
     movement_used: 0,
-    movement_speeds: { walk: character.speed || 30 },
+    movement_speeds: character.movement_speeds ?? { walk: character.speed || 30 },
     has_flanking: false,
     cover: 'none',
     spell_slots_remaining: character.spellcasting?.slots.map((s) => ({ ...s })),

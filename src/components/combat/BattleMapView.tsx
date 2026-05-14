@@ -4,7 +4,8 @@ import { processImageFile, formatBytes } from '@/utils/imageUtils';
 import { getProjectorBus } from '@/utils/projectorBus';
 import { BattleMap } from './BattleMap';
 import { TurnOrderBar } from './TurnOrderBar';
-import type { Encounter } from '@/types/app';
+import type { Encounter, MovementMode } from '@/types/app';
+import { getEffectiveMovementSpeeds, MOVEMENT_LABELS, MOVEMENT_MODES } from '@/utils/movement';
 
 interface Props {
   encounter: Encounter;
@@ -32,6 +33,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
   const [is_fullscreen, set_is_fullscreen] = useState(false);
   const [is_uploading, set_is_uploading] = useState(false);
   const [show_settings, set_show_settings] = useState(false);
+  const [movement_mode, set_movement_mode] = useState<MovementMode>('walk');
   const [projector_window, set_projector_window] = useState<Window | null>(
     null
   );
@@ -48,6 +50,13 @@ export function BattleMapView({ encounter, onExit }: Props) {
     (a, b) => b.initiative - a.initiative
   );
   const active_combatant = sorted[encounter.turn_index];
+  const active_movement_speeds = getEffectiveMovementSpeeds(active_combatant);
+
+  useEffect(() => {
+    if (!active_movement_speeds[movement_mode]) {
+      set_movement_mode('walk');
+    }
+  }, [active_combatant?.id, active_movement_speeds, movement_mode]);
 
   // Broadcast encounter state to projector window whenever it changes
   useEffect(() => {
@@ -255,6 +264,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
             onDamageMonster={handleDamageMonster}
             onHealMonster={handleHealMonster}
             show_grid={active_map.show_grid}
+            movement_mode={movement_mode}
             fullscreen
             show_token_names
             drawing_enabled={drawing_enabled}
@@ -670,7 +680,42 @@ export function BattleMapView({ encounter, onExit }: Props) {
             </div>
           )}
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
+            {active_map && active_combatant && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 12,
+                  zIndex: 35,
+                  background: 'rgba(255,255,255,0.96)',
+                  border: '0.5px solid var(--color-border-secondary)',
+                  borderRadius: 'var(--border-radius-md)',
+                  padding: '6px 8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                }}
+              >
+                <span className="text-[11px] text-text-tertiary">Move mode</span>
+                <select
+                  value={movement_mode}
+                  onChange={(e) => set_movement_mode(e.target.value as MovementMode)}
+                  className="text-[12px]"
+                  style={{ padding: '4px 8px' }}
+                >
+                  {MOVEMENT_MODES.map((mode) => {
+                    const value = active_movement_speeds[mode];
+                    return (
+                      <option key={mode} value={mode} disabled={!value}>
+                        {MOVEMENT_LABELS[mode]} {value ? `${value} ft` : '—'}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            )}
             {active_map ? (
               <BattleMap
                 map={active_map}
@@ -681,6 +726,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
                 onDamageMonster={handleDamageMonster}
                 onHealMonster={handleHealMonster}
                 show_grid={active_map.show_grid}
+                movement_mode={movement_mode}
                 show_token_names
                 drawing_enabled={drawing_enabled}
                 drawing_color={drawing_color}
