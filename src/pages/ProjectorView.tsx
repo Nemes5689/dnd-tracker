@@ -88,6 +88,12 @@ export function ProjectorView() {
   }
 
   const handleMoveToken = (combatant_id: string, x: number, y: number) => {
+    const old_token = active_map.tokens.find((t) => t.combatant_id === combatant_id);
+    const is_active_token = combatant_id === active_combatant?.id;
+    const moved_ft = old_token
+      ? Math.max(Math.abs(x - old_token.x), Math.abs(y - old_token.y)) * 5
+      : 0;
+
     // Send move request back to DM window via the bus.
     // DM applies it to store, then re-broadcasts updated encounter.
     const bus = getProjectorBus();
@@ -101,9 +107,14 @@ export function ProjectorView() {
       timestamp: Date.now(),
     });
 
-    // Optimistic local update so the projector responds instantly
+    // Optimistic local update so the projector responds instantly, including movement spent.
     set_encounter({
       ...encounter,
+      combatants: encounter.combatants.map((c) =>
+        is_active_token && c.id === combatant_id && moved_ft > 0
+          ? { ...c, movement_used: (c.movement_used ?? 0) + moved_ft }
+          : c
+      ),
       maps: (encounter.maps ?? []).map((m) =>
         m.id === active_map.id
           ? {

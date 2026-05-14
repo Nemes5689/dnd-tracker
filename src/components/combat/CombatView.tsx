@@ -70,6 +70,14 @@ export function CombatView({ encounter, onExit }: Props) {
         });
       } else if (msg.type === 'move_token') {
         if (msg.encounter_id === encounter.id) {
+          const moved_map = (encounter.maps ?? []).find((m) => m.id === msg.map_id);
+          const old_token = moved_map?.tokens.find(
+            (t) => t.combatant_id === msg.combatant_id
+          );
+          const moving_combatant = encounter.combatants.find(
+            (c) => c.id === msg.combatant_id
+          );
+
           setTokenPosition(
             msg.encounter_id,
             msg.map_id,
@@ -77,6 +85,18 @@ export function CombatView({ encounter, onExit }: Props) {
             msg.x,
             msg.y
           );
+
+          // Projector-initiated movement should spend movement exactly like DM map movement.
+          // New placement does not spend movement; dragging an already placed active token does.
+          if (old_token && moving_combatant?.id === active?.id) {
+            const moved_ft =
+              Math.max(Math.abs(msg.x - old_token.x), Math.abs(msg.y - old_token.y)) * 5;
+            if (moved_ft > 0) {
+              updateCombatant(encounter.id, msg.combatant_id, {
+                movement_used: (moving_combatant.movement_used ?? 0) + moved_ft,
+              });
+            }
+          }
         }
       }
     });
