@@ -54,6 +54,31 @@ function formatFeatureList(label: string, features: MonsterFeature[] | undefined
     .join('\n')}`;
 }
 
+
+function formatFeatureNames(label: string, features: MonsterFeature[] | undefined): string {
+  const items = features ?? [];
+  if (items.length === 0) return `${label}: none`;
+  return `${label}: ${items.map((f) => f.name || '(unnamed)').join(', ')}`;
+}
+
+function recommendedActionsChecklist(monster: Monster, language: 'magyar' | 'english'): string {
+  const lines: string[] = [];
+  lines.push(formatFeatureNames(language === 'magyar' ? 'Választható akciónevek' : 'Available action names', monster.actions));
+  lines.push(formatFeatureNames(language === 'magyar' ? 'Választható bonus akciónevek' : 'Available bonus action names', monster.bonus_actions));
+  lines.push(formatFeatureNames(language === 'magyar' ? 'Választható reakciónevek' : 'Available reaction names', monster.reactions));
+  lines.push(formatFeatureNames(language === 'magyar' ? 'Választható legendary action nevek' : 'Available legendary action names', monster.legendary_actions));
+  if (monster.weapon_attacks?.length) {
+    lines.push(`${language === 'magyar' ? 'Választható fegyveres támadások' : 'Available weapon attacks'}: ${monster.weapon_attacks.map((a) => a.name).join(', ')}`);
+  }
+  const spell_names = [
+    ...(monster.spellcasting?.cantrips ?? []),
+    ...(monster.spellcasting?.spells_known ?? []),
+    ...(monster.spellcasting?.spell_ids ?? []),
+  ];
+  lines.push(`${language === 'magyar' ? 'Választható spellek' : 'Available spells'}: ${spell_names.length ? Array.from(new Set(spell_names)).join(', ') : 'none'}`);
+  return lines.join('\n');
+}
+
 function formatRecord(label: string, data: Record<string, number> | undefined): string {
   const entries = Object.entries(data ?? {});
   if (entries.length === 0) return `${label}: none`;
@@ -120,7 +145,7 @@ function formatCombatantLine(c: Combatant, language: 'magyar' | 'english'): stri
   return `- ${c.name} [${sideLabel(c, language)}] AC ${c.ac}, HP ${c.hp_current}/${c.hp_max} + temp ${c.hp_temp}, ${hpStatus(c, language)}, init ${c.initiative}, speeds ${speeds}, movement used ${c.movement_used ?? 0} ft, conditions: ${formatConditions(c)}, action used ${yesNo(c.action_used, language)}, bonus used ${yesNo(c.bonus_action_used, language)}, reaction used ${yesNo(c.reaction_used, language)}`;
 }
 
-function formatMonsterFullStatblock(monster: Monster, combatant: Combatant): string {
+function formatMonsterFullStatblock(monster: Monster, combatant: Combatant, language: 'magyar' | 'english'): string {
   const ability_str = ['str', 'dex', 'con', 'int', 'wis', 'cha']
     .map((ab) => {
       const m = monster.abilities[ab as keyof typeof monster.abilities];
@@ -156,6 +181,7 @@ function formatMonsterFullStatblock(monster: Monster, combatant: Combatant): str
     formatList('Condition immunities', monster.condition_immunities),
     formatList('Gear', monster.gear),
     formatFeatureList('Traits', monster.traits),
+    recommendedActionsChecklist(monster, language),
     formatFeatureList('Actions', monster.actions),
     formatFeatureList('Bonus actions', monster.bonus_actions),
     formatFeatureList('Reactions', monster.reactions),
@@ -179,10 +205,14 @@ function buildSystemPrompt(language: 'magyar' | 'english'): string {
 A válaszodat MINDIG pontosan ebben a formátumban add meg, két szekcióval:
 
 **Akció:**
-[Itt írd le rövid, konkrét mechanikus akciót — mozgás, akció, bonus akció. Például: "Mozog 30 lábat a wizard felé, megtámadja a greatsworddel +5 to hit, 2d6+3 slashing sebzéssel. Bonus akció: Second Wind."]
+Mozgás: [mennyi láb, milyen speed: walk/fly/climb/swim/burrow, pontos cél/helyzet].
+Használja: [PONTOS akció/spell/feature/támadás neve a statblockból]. Célpont: [név]. Dobás/DC: [to hit bónusz vagy save DC]. Sebzés/hatás: [sebzéskocka + típus vagy pontos hatás]. Bonus akció: [név vagy „nincs”].
 
 **Narratíva:**
-[Itt 2-3 mondatban írd le színesen, mit tesz a lény és miért. Atmoszférikus, dramatikus stílus.]
+[1-2 mondatban írd le színesen, mit tesz a lény és miért.]
+
+Rossz példa, amit tilos írni: „uses its”, „uses an attack”, „támad”, „varázsol” konkrét név nélkül.
+Jó példa: „Használja: Bite. Célpont: Avernus. Dobás/DC: +6 to hit. Sebzés/hatás: 2d10+4 piercing.”
 
 Fontos szabályok:
 - A party oldala: játékos karakterek + ally/summon lények. Ők csapattársak.
@@ -193,7 +223,10 @@ Fontos szabályok:
 - A szörny intelligenciája számít: alacsony INT (8 alatt) = ösztönös, ragadozó, kiszámítható; magas INT (12+) = stratégiai, kiszámolt.
 - A sebzett, intelligens lény visszavonulhat; az ösztönös vagy élőholt lény kevésbé.
 - Használd a statblock minden releváns részét: akciók, bonus akciók, reakciók, legendary actionök, spellek, sebzés-immunitások/rezisztenciák, mozgásmódok.
-- Tartsd RÖVIDEN: Akció max 2 mondat, narratíva max 3 mondat.
+- Az Akció szekcióban KÖTELEZŐ megnevezni a használt akciót/spellt/feature-t pontos névvel. Ne hagyj félbe mondatot.
+- Ha nem találsz használható támadást/spellt, írd ezt: „Használja: Dodge.” vagy „Használja: Dash.”
+- Ne írj olyat, hogy „and uses” vagy „majd használja” folytatás nélkül.
+- Tartsd RÖVIDEN, de legyen teljes: Akció max 4 rövid sor, narratíva max 2 mondat.
 
 NE írj mást a két szekción kívül. NE adj több variációt egy válaszban. NE írj bevezetőt vagy összefoglalót.`;
   }
@@ -203,10 +236,14 @@ NE írj mást a két szekción kívül. NE adj több variációt egy válaszban.
 ALWAYS format your response in EXACTLY this structure with two sections:
 
 **Action:**
-[Short, concrete mechanical action — movement, action, bonus action. Example: "Move 30ft toward wizard, attack with greatsword +5 to hit, 2d6+3 slashing damage. Bonus action: Second Wind."]
+Movement: [distance in ft, speed mode: walk/fly/climb/swim/burrow, exact target/position].
+Uses: [EXACT action/spell/feature/attack name from the statblock]. Target: [name]. Roll/DC: [to-hit bonus or save DC]. Damage/effect: [damage dice + type or exact effect]. Bonus action: [name or “none”].
 
 **Narration:**
-[2-3 sentences describing what the creature does and why, in atmospheric prose.]
+[1-2 sentences describing what the creature does and why.]
+
+Bad examples that are forbidden: “uses its”, “uses an attack”, “casts a spell”, “attacks” without the exact name.
+Good example: “Uses: Bite. Target: Avernus. Roll/DC: +6 to hit. Damage/effect: 2d10+4 piercing.”
 
 Important rules:
 - Party side: player characters + ally/summon creatures. They are teammates.
@@ -217,7 +254,10 @@ Important rules:
 - The creature's intelligence matters: low INT (under 8) = instinctual, predatory, predictable; high INT (12+) = strategic, calculating.
 - A wounded intelligent creature may retreat; instinctual or undead creatures are less likely to.
 - Use all relevant statblock options: actions, bonus actions, reactions, legendary actions, spells, damage immunities/resistances, movement modes.
-- Keep it SHORT: Action max 2 sentences, Narration max 3 sentences.
+- In the Action section, you MUST name the exact action/spell/feature used. Never leave a sentence unfinished.
+- If no useful attack/spell is available, write “Uses: Dodge.” or “Uses: Dash.”
+- Never write “and uses” or “uses its” without the exact action name immediately after it.
+- Keep it short but complete: Action max 4 short lines, Narration max 2 sentences.
 
 Do NOT write anything outside these two sections. Do NOT give multiple variations in one response. Do NOT write introductions or summaries.`;
 }
@@ -241,7 +281,7 @@ function buildUserPrompt({
 
   if (is_magyar) {
     return `## Aktuális cselekvő lény teljes statblockja és harci állapota
-${formatMonsterFullStatblock(monster, combatant)}
+${formatMonsterFullStatblock(monster, combatant, language)}
 
 ## Oldalak
 - Party oldal: játékos karakterek + ally/summon lények. Az ally/summon lények csapattársak, és a szörnyeket támadják/akadályozzák.
@@ -259,11 +299,11 @@ ${sorted.map((c) => formatCombatantLine(c, language)).join('\n')}
 
 **Aktuális kör:** ${encounter.round}
 
-Adj egy taktikát ${combatant.name} számára a fenti információk alapján. Csak a két szekciót írd: **Akció:** és **Narratíva:**`;
+Adj egy taktikát ${combatant.name} számára a fenti információk alapján. Az **Akció:** részben kötelező legyen benne a pontos használt akció/spell/feature neve, célpontja, dobása vagy DC-je, sebzése vagy hatása. Csak a két szekciót írd: **Akció:** és **Narratíva:**`;
   }
 
   return `## Full statblock and combat state for acting creature
-${formatMonsterFullStatblock(monster, combatant)}
+${formatMonsterFullStatblock(monster, combatant, language)}
 
 ## Sides
 - Party side: player characters + ally/summon creatures. Ally/summon creatures are teammates and should attack/hinder monsters.
@@ -281,7 +321,7 @@ ${sorted.map((c) => formatCombatantLine(c, language)).join('\n')}
 
 **Current round:** ${encounter.round}
 
-Suggest tactics for ${combatant.name} using the information above. Write only the two sections: **Action:** and **Narration:**`;
+Suggest tactics for ${combatant.name} using the information above. In **Action:** you must include the exact action/spell/feature name, target, roll or DC, and damage or effect. Write only the two sections: **Action:** and **Narration:**`;
 }
 
 export function buildTacticsMessages(args: BuildPromptArgs) {

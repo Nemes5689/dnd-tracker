@@ -18,6 +18,8 @@ interface Suggestion {
   narration?: string;
   // Was the response parsed into structured sections?
   parsed: boolean;
+  // Looks cut off or missing the exact action name.
+  incomplete?: boolean;
 }
 
 const NUM_SUGGESTIONS = 3;
@@ -83,7 +85,7 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
         model: ai_config.model,
         messages,
         temperature: 0.7 + i * 0.15,
-        max_tokens: 500,
+        max_tokens: 900,
       }));
 
       const responses = await chatCompletionBatchWithProvider(
@@ -91,7 +93,7 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
         requests
       );
 
-      const parsed = responses.map((r) => parseTacticsResponse(r.text));
+      const parsed = responses.map((r) => markIncompleteSuggestion(parseTacticsResponse(r.text)));
       set_suggestions(parsed);
 
       // Auto-show raw if all responses had parsing issues
@@ -236,6 +238,15 @@ function SuggestionCard({
         </div>
       </div>
 
+      {suggestion.incomplete && (
+        <div
+          className="text-[10px] mb-2 italic"
+          style={{ color: 'var(--color-text-danger)' }}
+        >
+          This AI answer looks incomplete. Try again or use a stronger model.
+        </div>
+      )}
+
       {!has_content ? (
         <div
           className="text-[11px] italic"
@@ -356,6 +367,19 @@ function parseTacticsResponse(raw: string): Suggestion {
 
   // No structured format detected
   return { raw: text, parsed: false };
+}
+
+
+function markIncompleteSuggestion(suggestion: Suggestion): Suggestion {
+  const action = (suggestion.action || suggestion.raw || '').trim();
+  const lower = action.toLowerCase();
+  const suspicious_end = /\b(uses|use|casts|cast|with|and|then|majd|használja|hasznal|varázsol|támad|tamad)\s*[:.,;\-]*$/i.test(action);
+  const vague_use = /\b(uses its|uses an attack|uses attack|casts a spell|makes an attack)\b/i.test(lower);
+  const has_exact_use_line = /\b(uses|haszn[aá]lja)\s*:\s*[^.\n]{2,}/i.test(action);
+  const has_roll_or_dc = /(\+\d+\s*(to hit|hit)|dc\s*\d+|ment[őo]\s*dc\s*\d+)/i.test(action);
+  const has_damage_or_effect = /(\d+d\d+|damage|sebz|effect|hat[aá]s|condition|állapot)/i.test(action);
+  const incomplete = suspicious_end || vague_use || (!has_exact_use_line && !has_roll_or_dc && !has_damage_or_effect);
+  return { ...suggestion, incomplete };
 }
 
 /**
