@@ -342,9 +342,17 @@ export interface TargetKnowledge {
 }
 
 // Settings
+export type AIProvider = 'openrouter' | 'google-ai-studio' | 'openai-compatible';
+
 export interface Settings {
+  ai_provider: AIProvider;
   openrouter_api_key: string;
+  google_ai_api_key: string;
+  custom_ai_api_key: string;
+  custom_ai_base_url: string;
   default_model: string;
+  google_ai_model: string;
+  custom_ai_model: string;
   ai_language: 'magyar' | 'english';
   auto_roll: boolean;
   auto_ai_on_monster_turn: boolean;

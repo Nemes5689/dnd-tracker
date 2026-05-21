@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useSettingsStore } from '@/store/settingsStore';
-import { chatCompletionBatch } from '@/utils/openRouterClient';
+import { getAIProviderConfig, useSettingsStore } from '@/store/settingsStore';
+import { chatCompletionBatchWithProvider } from '@/utils/openRouterClient';
 import { buildTacticsMessages } from '@/ai/promptBuilder';
 import type { Combatant, Encounter } from '@/types/app';
 import type { Monster } from '@/types/srd';
@@ -32,8 +32,7 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
   if (combatant.is_player) {
     return (
       <div className="text-[12px] text-text-tertiary italic p-2">
-        AI tactics suggestions are only available for monsters. Player characters
-        decide their own actions.
+        AI tactics suggestions are available for monsters and ally/summon statblocks. Player characters decide their own actions.
       </div>
     );
   }
@@ -41,13 +40,15 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
   if (!monster) {
     return (
       <div className="text-[12px] text-text-tertiary italic p-2">
-        AI tactics need a monster statblock. This combatant has no source
-        monster (custom or removed).
+        AI tactics need a statblock. This combatant has no source statblock
+        (custom or removed).
       </div>
     );
   }
 
-  if (!settings.openrouter_api_key) {
+  const ai_config = getAIProviderConfig(settings);
+
+  if (!ai_config.api_key) {
     return (
       <div
         className="text-[12px] p-3 leading-relaxed"
@@ -58,10 +59,9 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
           color: 'var(--color-text-info)',
         }}
       >
-        <strong>OpenRouter API key needed.</strong>
+        <strong>AI API key needed.</strong>
         <br />
-        Add your key in Settings to enable AI tactics suggestions. The free
-        models work great and cost nothing.
+        Add a key in Settings to enable AI tactics suggestions. OpenRouter, Google AI Studio and custom OpenAI-compatible APIs are supported.
       </div>
     );
   }
@@ -80,14 +80,14 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
       });
 
       const requests = Array.from({ length: NUM_SUGGESTIONS }, (_, i) => ({
-        model: settings.default_model,
+        model: ai_config.model,
         messages,
         temperature: 0.7 + i * 0.15,
         max_tokens: 500,
       }));
 
-      const responses = await chatCompletionBatch(
-        settings.openrouter_api_key,
+      const responses = await chatCompletionBatchWithProvider(
+        ai_config,
         requests
       );
 
@@ -124,7 +124,7 @@ export function AITacticsTab({ monster, combatant, encounter }: Props) {
             Generating {NUM_SUGGESTIONS} tactics suggestions…
           </div>
           <div className="text-[10px] text-text-tertiary mt-1">
-            Using {settings.default_model}
+            Using {ai_config.provider} · {ai_config.model}
           </div>
         </div>
       )}

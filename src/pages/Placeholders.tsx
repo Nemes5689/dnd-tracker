@@ -41,78 +41,176 @@ export function SettingsPage() {
       >
         <div className="text-[14px] font-medium mb-1">AI provider</div>
         <div className="text-[12px] text-text-secondary mb-4">
-          Bring your own OpenRouter API key. Your key stays in this browser
-          only.
+          Choose OpenRouter, Google AI Studio, or any OpenAI-compatible API.
+          API keys stay in this browser only.
         </div>
 
         <label className="text-[11px] text-text-tertiary block mb-1">
-          OpenRouter API key
+          Provider
         </label>
-        <input
-          type="password"
-          value={settings.openrouter_api_key}
-          onChange={(e) => settings.update({ openrouter_api_key: e.target.value })}
-          className="w-full font-mono"
-          placeholder="sk-or-v1-..."
-        />
-        <div className="text-[11px] text-text-tertiary mt-1">
-          Don't have one?{' '}
-          <a
-            href="https://openrouter.ai/sign-up"
-            target="_blank"
-            rel="noreferrer"
-            style={{ color: 'var(--color-text-info)' }}
-          >
-            Get one free at openrouter.ai →
-          </a>
-        </div>
+        <select
+          value={settings.ai_provider}
+          onChange={(e) =>
+            settings.update({
+              ai_provider: e.target.value as 'openrouter' | 'google-ai-studio' | 'openai-compatible',
+            })
+          }
+          className="w-full"
+        >
+          <option value="openrouter">OpenRouter</option>
+          <option value="google-ai-studio">Google AI Studio / Gemini API</option>
+          <option value="openai-compatible">Custom OpenAI-compatible API</option>
+        </select>
 
-        <div className="mt-4">
-          <label className="text-[11px] text-text-tertiary block mb-1">
-            Model
-          </label>
-          <select
-            value={settings.default_model}
-            onChange={(e) => settings.update({ default_model: e.target.value })}
-            className="w-full"
-          >
-            <optgroup label="Free models (no credits needed)">
-              <option value="openrouter/free">
-                openrouter/free — auto-router (recommended)
-              </option>
-              <option value="meta-llama/llama-3.3-70b-instruct:free">
-                Llama 3.3 70B (free) — general purpose
-              </option>
-              <option value="google/gemma-3-27b-it:free">
-                Gemma 3 27B (free) — Google
-              </option>
-              <option value="z-ai/glm-4.5-air:free">
-                GLM 4.5 Air (free) — Z.AI
-              </option>
-              <option value="qwen/qwen3-next-80b-a3b-instruct:free">
-                Qwen3 Next 80B (free)
-              </option>
-              <option value="nvidia/nemotron-3-nano-30b-a3b:free">
-                Nemotron 3 Nano 30B (free) — NVIDIA, fast
-              </option>
-            </optgroup>
-            <optgroup label="Paid models (better quality)">
-              <option value="anthropic/claude-haiku-4-5">
-                anthropic/claude-haiku-4-5 (~$0.50 / session)
-              </option>
-              <option value="anthropic/claude-sonnet-4-6">
-                anthropic/claude-sonnet-4-6 (~$2-3 / session)
-              </option>
-              <option value="openai/gpt-4o-mini">
-                openai/gpt-4o-mini (~$0.30 / session)
-              </option>
-            </optgroup>
-          </select>
-          <div className="text-[11px] text-text-tertiary mt-1">
-            "openrouter/free" auto-selects an available free model. Free models
-            have rate limits (~20 req/min, 200/day) but cost nothing.
-          </div>
-        </div>
+        {settings.ai_provider === 'openrouter' && (
+          <>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                OpenRouter API key
+              </label>
+              <input
+                type="password"
+                value={settings.openrouter_api_key}
+                onChange={(e) => settings.update({ openrouter_api_key: e.target.value })}
+                className="w-full font-mono"
+                placeholder="sk-or-v1-..."
+              />
+              <div className="text-[11px] text-text-tertiary mt-1">
+                Don't have one?{' '}
+                <a
+                  href="https://openrouter.ai/sign-up"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: 'var(--color-text-info)' }}
+                >
+                  Get one free at openrouter.ai →
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                OpenRouter model
+              </label>
+              <select
+                value={settings.default_model}
+                onChange={(e) => settings.update({ default_model: e.target.value })}
+                className="w-full"
+              >
+                <optgroup label="Free models (no credits needed)">
+                  <option value="openrouter/free">
+                    openrouter/free — auto-router (recommended)
+                  </option>
+                  <option value="meta-llama/llama-3.3-70b-instruct:free">
+                    Llama 3.3 70B (free) — general purpose
+                  </option>
+                  <option value="google/gemma-3-27b-it:free">
+                    Gemma 3 27B (free) — Google
+                  </option>
+                  <option value="z-ai/glm-4.5-air:free">
+                    GLM 4.5 Air (free) — Z.AI
+                  </option>
+                  <option value="qwen/qwen3-next-80b-a3b-instruct:free">
+                    Qwen3 Next 80B (free)
+                  </option>
+                  <option value="nvidia/nemotron-3-nano-30b-a3b:free">
+                    Nemotron 3 Nano 30B (free) — NVIDIA, fast
+                  </option>
+                </optgroup>
+                <optgroup label="Paid models (better quality)">
+                  <option value="anthropic/claude-haiku-4-5">
+                    anthropic/claude-haiku-4-5
+                  </option>
+                  <option value="anthropic/claude-sonnet-4-6">
+                    anthropic/claude-sonnet-4-6
+                  </option>
+                  <option value="openai/gpt-4o-mini">
+                    openai/gpt-4o-mini
+                  </option>
+                </optgroup>
+              </select>
+              <div className="text-[11px] text-text-tertiary mt-1">
+                "openrouter/free" auto-selects an available free model.
+              </div>
+            </div>
+          </>
+        )}
+
+        {settings.ai_provider === 'google-ai-studio' && (
+          <>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                Google AI Studio API key
+              </label>
+              <input
+                type="password"
+                value={settings.google_ai_api_key}
+                onChange={(e) => settings.update({ google_ai_api_key: e.target.value })}
+                className="w-full font-mono"
+                placeholder="AIza..."
+              />
+              <div className="text-[11px] text-text-tertiary mt-1">
+                Create a key in Google AI Studio, then paste it here.
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                Gemini model
+              </label>
+              <input
+                value={settings.google_ai_model}
+                onChange={(e) => settings.update({ google_ai_model: e.target.value })}
+                className="w-full font-mono"
+                placeholder="gemini-1.5-flash"
+              />
+              <div className="text-[11px] text-text-tertiary mt-1">
+                Examples: gemini-1.5-flash, gemini-1.5-pro, gemini-2.0-flash.
+              </div>
+            </div>
+          </>
+        )}
+
+        {settings.ai_provider === 'openai-compatible' && (
+          <>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                API key
+              </label>
+              <input
+                type="password"
+                value={settings.custom_ai_api_key}
+                onChange={(e) => settings.update({ custom_ai_api_key: e.target.value })}
+                className="w-full font-mono"
+                placeholder="sk-..."
+              />
+            </div>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                Base URL
+              </label>
+              <input
+                value={settings.custom_ai_base_url}
+                onChange={(e) => settings.update({ custom_ai_base_url: e.target.value })}
+                className="w-full font-mono"
+                placeholder="https://api.openai.com/v1"
+              />
+              <div className="text-[11px] text-text-tertiary mt-1">
+                For custom providers the app needs both the key and the compatible API base URL. The app appends /chat/completions automatically unless you paste the full endpoint.
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="text-[11px] text-text-tertiary block mb-1">
+                Model
+              </label>
+              <input
+                value={settings.custom_ai_model}
+                onChange={(e) => settings.update({ custom_ai_model: e.target.value })}
+                className="w-full font-mono"
+                placeholder="gpt-4o-mini"
+              />
+            </div>
+          </>
+        )}
 
         <div className="mt-4">
           <label className="text-[11px] text-text-tertiary block mb-1">
