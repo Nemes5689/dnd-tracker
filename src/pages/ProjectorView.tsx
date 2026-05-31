@@ -170,9 +170,10 @@ export function ProjectorView() {
           show_grid={active_map.show_grid}
           fullscreen
           projector_mode
-          show_token_names
           hide_monster_hp_numbers
           allow_token_movement
+          show_movement_range={false}
+          show_movement_summary={false}
           onMoveToken={handleMoveToken}
         />
 

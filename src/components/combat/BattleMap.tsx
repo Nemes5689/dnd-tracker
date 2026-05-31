@@ -19,6 +19,8 @@ export interface BattleMapProps {
   show_token_names?: boolean;
   hide_monster_hp_numbers?: boolean;
   movement_mode?: MovementMode;
+  show_movement_range?: boolean;
+  show_movement_summary?: boolean;
   // In projector mode: allow token movement, but disable HP popups
   allow_token_movement?: boolean;
   // Drawing layer props (optional)
@@ -56,6 +58,8 @@ export function BattleMap({
   show_token_names = false,
   hide_monster_hp_numbers = false,
   movement_mode = 'walk',
+  show_movement_range = true,
+  show_movement_summary = true,
   allow_token_movement = true,
   drawing_enabled = false,
   drawing_color = '#dc2626',
@@ -438,7 +442,7 @@ export function BattleMap({
           </svg>
         )}
 
-        {movement_range_cells.length > 0 && !drawing_enabled && (
+        {show_movement_range && movement_range_cells.length > 0 && !drawing_enabled && (
           <svg
             style={{
               position: 'absolute',
@@ -530,7 +534,7 @@ export function BattleMap({
               interactive={allow_token_movement}
               can_open_hp_popup={!projector_mode}
               map_rotation={rotation}
-              movement_label={c.id === active_combatant_id ? `${remaining_walk_ft} ft` : undefined}
+              movement_label={show_movement_summary && c.id === active_combatant_id ? `${remaining_walk_ft} ft` : undefined}
               onPointerDown={(e) =>
                 handleTokenPointerDown(e, c.id, tp.x, tp.y)
               }
@@ -567,7 +571,7 @@ export function BattleMap({
         )}
       </div>
 
-      {active_combatant && active_token && (
+      {show_movement_summary && active_combatant && active_token && (
         <div
           style={{
             position: 'absolute',
