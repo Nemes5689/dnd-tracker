@@ -144,7 +144,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
 
       <div
         className="grid gap-6"
-        style={{ gridTemplateColumns: '1fr 1fr' }}
+        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}
       >
         {/* LEFT: Add party */}
         <div>
@@ -331,7 +331,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
                 .map((c) => (
                   <div
                     key={c.id}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 min-w-0"
                     style={{
                       padding: '8px 12px',
                       border: '0.5px solid var(--color-border-tertiary)',
@@ -349,11 +349,18 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
                           initiative: parseInt(e.target.value, 10) || 0,
                         })
                       }
+                      className="shrink-0"
+                      aria-label={`${c.name} initiative`}
                       style={{
-                        width: '50px',
-                        height: '28px',
+                        width: '64px',
+                        minWidth: '64px',
+                        height: '34px',
+                        boxSizing: 'border-box',
+                        padding: '0 8px',
                         textAlign: 'center',
-                        fontSize: '12px',
+                        fontSize: '13px',
+                        lineHeight: '34px',
+                        fontVariantNumeric: 'tabular-nums',
                       }}
                     />
                     <span className="text-[12px] flex-1">{c.name}</span>
