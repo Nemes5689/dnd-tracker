@@ -8,18 +8,268 @@ import { OriginFeaturesPanel, formatOriginSummary } from '@/components/character
 import { formatCharacterBuildSummary } from '@/components/characters/ClassBuildEditor';
 import type { MonsterSpeed, Monster, Spell } from '@/types/srd';
 
+type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
+type NumberRange = { min: string; max: string };
+
+const ABILITIES: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+const DAMAGE_TYPES = [
+  'Acid',
+  'Bludgeoning',
+  'Cold',
+  'Fire',
+  'Force',
+  'Lightning',
+  'Necrotic',
+  'Piercing',
+  'Poison',
+  'Psychic',
+  'Radiant',
+  'Slashing',
+  'Thunder',
+];
+
+const COMMON_CONDITIONS = [
+  'Blinded',
+  'Charmed',
+  'Deafened',
+  'Exhaustion',
+  'Frightened',
+  'Grappled',
+  'Incapacitated',
+  'Invisible',
+  'Paralyzed',
+  'Petrified',
+  'Poisoned',
+  'Prone',
+  'Restrained',
+  'Stunned',
+  'Unconscious',
+];
+
+const SPEED_TYPES = ['walk', 'climb', 'fly', 'swim', 'burrow', 'hover'];
+const SENSE_TYPES = ['blindsight', 'darkvision', 'tremorsense', 'truesight'];
+
+const FEATURE_FILTERS = [
+  { key: 'multiattack', label: 'Multiattack' },
+  { key: 'spellcasting', label: 'Spellcasting' },
+  { key: 'legendary-actions', label: 'Legendary Actions' },
+  { key: 'bonus-actions', label: 'Bonus Actions' },
+  { key: 'reactions', label: 'Reactions' },
+  { key: 'legendary-resistance', label: 'Legendary Resistance' },
+  { key: 'magic-resistance', label: 'Magic Resistance' },
+  { key: 'pack-tactics', label: 'Pack Tactics' },
+  { key: 'flyby', label: 'Flyby' },
+  { key: 'regeneration', label: 'Regeneration' },
+  { key: 'spider-climb', label: 'Spider Climb' },
+  { key: 'false-appearance', label: 'False Appearance' },
+  { key: 'recharge', label: 'Recharge' },
+];
+
+function normalizeText(value: unknown): string {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function crToNumber(cr: string | null | undefined): number | null {
+  if (!cr || cr === 'Unknown') return null;
+  if (cr.includes('/')) {
+    const [a, b] = cr.split('/').map(Number);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || b === 0) return null;
+    return a / b;
+  }
+  const n = Number(cr);
+  return Number.isFinite(n) ? n : null;
+}
+
+function rangePass(value: number | null | undefined, range: NumberRange): boolean {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return !range.min && !range.max;
+  }
+  const min = range.min === '' ? null : Number(range.min);
+  const max = range.max === '' ? null : Number(range.max);
+  if (min !== null && Number.isFinite(min) && value < min) return false;
+  if (max !== null && Number.isFinite(max) && value > max) return false;
+  return true;
+}
+
+function matchesAnySelected(values: string[], selected: string[]): boolean {
+  if (selected.length === 0) return true;
+  const normalizedValues = values.map(normalizeText);
+  return selected.some((target) => normalizedValues.some((value) => value.includes(normalizeText(target))));
+}
+
+function getSpeedModes(speed: MonsterSpeed | undefined): string[] {
+  if (!speed || typeof speed === 'string') return [];
+  return Object.entries(speed)
+    .filter(([, value]) => Number(value) > 0)
+    .map(([key]) => key.toLowerCase());
+}
+
+function getFeatureText(monster: Monster): string {
+  const sections = [
+    ...(monster.traits ?? []),
+    ...(monster.actions ?? []),
+    ...(monster.bonus_actions ?? []),
+    ...(monster.reactions ?? []),
+    ...(monster.legendary_actions ?? []),
+  ];
+  return sections.map((f) => `${f.name} ${f.description}`).join(' ').toLowerCase();
+}
+
+function hasFeature(monster: Monster, key: string): boolean {
+  const text = getFeatureText(monster);
+  if (key === 'multiattack') return (monster.actions ?? []).some((a) => normalizeText(a.name).includes('multiattack'));
+  if (key === 'spellcasting') return Boolean(monster.spellcasting) || text.includes('spellcasting') || text.includes('innate spellcasting');
+  if (key === 'legendary-actions') return (monster.legendary_actions ?? []).length > 0;
+  if (key === 'bonus-actions') return (monster.bonus_actions ?? []).length > 0;
+  if (key === 'reactions') return (monster.reactions ?? []).length > 0;
+  if (key === 'legendary-resistance') return text.includes('legendary resistance');
+  if (key === 'magic-resistance') return text.includes('magic resistance');
+  if (key === 'pack-tactics') return text.includes('pack tactics');
+  if (key === 'flyby') return text.includes('flyby');
+  if (key === 'regeneration') return text.includes('regeneration') || text.includes('regenerate');
+  if (key === 'spider-climb') return text.includes('spider climb');
+  if (key === 'false-appearance') return text.includes('false appearance');
+  if (key === 'recharge') return /recharge\s+\d/i.test(text) || text.includes('recharges after');
+  return false;
+}
+
+function uniq(values: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(values.filter((v): v is string => Boolean(v && v.trim())))).sort((a, b) => a.localeCompare(b));
+}
+
+function toggleValue(values: string[], value: string): string[] {
+  return values.includes(value) ? values.filter((v) => v !== value) : [...values, value];
+}
+
+function FilterChips({
+  label,
+  options,
+  selected,
+  onChange,
+  maxVisible = 18,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  maxVisible?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? options : options.slice(0, maxVisible);
+  if (options.length === 0) return null;
+  return (
+    <div className="mb-3">
+      <div className="flex justify-between items-center mb-1">
+        <div className="text-[11px] font-medium text-text-secondary">{label}</div>
+        {selected.length > 0 && (
+          <button
+            onClick={() => onChange([])}
+            className="text-[10px]"
+            style={{ padding: '1px 6px' }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {visible.map((option) => {
+          const active = selected.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(toggleValue(selected, option))}
+              title={option}
+              style={{
+                fontSize: '10px',
+                padding: '3px 6px',
+                borderRadius: '999px',
+                background: active ? 'var(--color-background-info)' : 'var(--color-background-secondary)',
+                borderColor: active ? 'var(--color-border-info)' : 'var(--color-border-tertiary)',
+                color: active ? 'var(--color-text-info)' : undefined,
+              }}
+            >
+              {option}
+            </button>
+          );
+        })}
+        {options.length > maxVisible && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            style={{ fontSize: '10px', padding: '3px 6px', borderRadius: '999px' }}
+          >
+            {expanded ? 'Less' : `+${options.length - maxVisible}`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RangeInputs({
+  label,
+  value,
+  onChange,
+  placeholderMin = 'min',
+  placeholderMax = 'max',
+}: {
+  label: string;
+  value: NumberRange;
+  onChange: (next: NumberRange) => void;
+  placeholderMin?: string;
+  placeholderMax?: string;
+}) {
+  return (
+    <div>
+      <div className="text-[11px] font-medium text-text-secondary mb-1">{label}</div>
+      <div className="flex gap-1">
+        <input
+          value={value.min}
+          onChange={(e) => onChange({ ...value, min: e.target.value })}
+          placeholder={placeholderMin}
+          style={{ height: 26, fontSize: '11px', width: '50%' }}
+        />
+        <input
+          value={value.max}
+          onChange={(e) => onChange({ ...value, max: e.target.value })}
+          placeholder={placeholderMax}
+          style={{ height: 26, fontSize: '11px', width: '50%' }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function BestiaryPage() {
   const { loaded, loading, monsters: srd_monsters, load } = useSRDStore();
   const { monsters: custom_monsters, deleteMonster } = useCustomMonsterStore();
 
   const [search, setSearch] = useState('');
-  const [crFilter, setCrFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [source_filter, set_source_filter] = useState<'all' | 'srd' | 'custom'>('all');
   const [selected, setSelected] = useState<Monster | null>(null);
   const [show_form, set_show_form] = useState(false);
   const [duplicate_source, set_duplicate_source] = useState<Monster | null>(null);
   const [edit_id, set_edit_id] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const [crRange, setCrRange] = useState<NumberRange>({ min: '', max: '' });
+  const [acRange, setAcRange] = useState<NumberRange>({ min: '', max: '' });
+  const [hpRange, setHpRange] = useState<NumberRange>({ min: '', max: '' });
+  const [ppRange, setPpRange] = useState<NumberRange>({ min: '', max: '' });
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedResistances, setSelectedResistances] = useState<string[]>([]);
+  const [selectedImmunities, setSelectedImmunities] = useState<string[]>([]);
+  const [selectedVulnerabilities, setSelectedVulnerabilities] = useState<string[]>([]);
+  const [selectedConditionImmunities, setSelectedConditionImmunities] = useState<string[]>([]);
+  const [selectedSpeedModes, setSelectedSpeedModes] = useState<string[]>([]);
+  const [selectedSenseTypes, setSelectedSenseTypes] = useState<string[]>([]);
+  const [selectedSaves, setSelectedSaves] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
   useEffect(() => {
     if (!loaded) load();
@@ -30,22 +280,99 @@ export function BestiaryPage() {
     [custom_monsters, srd_monsters]
   );
 
-  const allTypes = useMemo(() => {
-    const types = new Set<string>();
-    all_monsters.forEach((m) => m.type && types.add(m.type));
-    return Array.from(types).sort();
+  const filterOptions = useMemo(() => {
+    const types = uniq(all_monsters.map((m) => m.type));
+    const sizes = uniq(all_monsters.map((m) => m.size));
+    const sources = uniq(all_monsters.map((m) => m.source));
+    const resistances = uniq([...DAMAGE_TYPES, ...all_monsters.flatMap((m) => m.damage_resistances ?? [])]);
+    const immunities = uniq([...DAMAGE_TYPES, ...all_monsters.flatMap((m) => m.damage_immunities ?? [])]);
+    const vulnerabilities = uniq([...DAMAGE_TYPES, ...all_monsters.flatMap((m) => m.damage_vulnerabilities ?? [])]);
+    const conditionImmunities = uniq([...COMMON_CONDITIONS, ...all_monsters.flatMap((m) => m.condition_immunities ?? [])]);
+    const speeds = uniq([...SPEED_TYPES, ...all_monsters.flatMap((m) => getSpeedModes(m.speed))]);
+    const senses = uniq([...SENSE_TYPES, ...all_monsters.flatMap((m) => Object.keys(m.senses ?? {}))]);
+    const skills = uniq(all_monsters.flatMap((m) => Object.keys(m.skills ?? {}))).map((s) => s.replace(/_/g, ' '));
+    return { types, sizes, sources, resistances, immunities, vulnerabilities, conditionImmunities, speeds, senses, skills };
   }, [all_monsters]);
+
+  const hasAdvancedFilters =
+    crRange.min || crRange.max || acRange.min || acRange.max || hpRange.min || hpRange.max ||
+    ppRange.min || ppRange.max || selectedTypes.length || selectedSizes.length || selectedSources.length ||
+    selectedResistances.length || selectedImmunities.length || selectedVulnerabilities.length ||
+    selectedConditionImmunities.length || selectedSpeedModes.length || selectedSenseTypes.length ||
+    selectedSaves.length || selectedSkills.length || selectedFeatures.length;
+
+  const resetAdvancedFilters = () => {
+    setCrRange({ min: '', max: '' });
+    setAcRange({ min: '', max: '' });
+    setHpRange({ min: '', max: '' });
+    setPpRange({ min: '', max: '' });
+    setSelectedTypes([]);
+    setSelectedSizes([]);
+    setSelectedSources([]);
+    setSelectedResistances([]);
+    setSelectedImmunities([]);
+    setSelectedVulnerabilities([]);
+    setSelectedConditionImmunities([]);
+    setSelectedSpeedModes([]);
+    setSelectedSenseTypes([]);
+    setSelectedSaves([]);
+    setSelectedSkills([]);
+    setSelectedFeatures([]);
+  };
 
   const filtered = useMemo(() => {
     return all_monsters.filter((m) => {
       if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (crFilter !== 'all' && m.cr !== crFilter) return false;
-      if (typeFilter !== 'all' && m.type !== typeFilter) return false;
       if (source_filter === 'srd' && m.source === 'Custom') return false;
       if (source_filter === 'custom' && m.source !== 'Custom') return false;
+
+      if (!rangePass(crToNumber(m.cr), crRange)) return false;
+      if (!rangePass(m.ac, acRange)) return false;
+      if (!rangePass(m.hp, hpRange)) return false;
+      if (!rangePass(m.passive_perception, ppRange)) return false;
+
+      if (!matchesAnySelected(m.type ? [m.type] : [], selectedTypes)) return false;
+      if (!matchesAnySelected(m.size ? [m.size] : [], selectedSizes)) return false;
+      if (!matchesAnySelected(m.source ? [m.source] : [], selectedSources)) return false;
+      if (!matchesAnySelected(m.damage_resistances ?? [], selectedResistances)) return false;
+      if (!matchesAnySelected(m.damage_immunities ?? [], selectedImmunities)) return false;
+      if (!matchesAnySelected(m.damage_vulnerabilities ?? [], selectedVulnerabilities)) return false;
+      if (!matchesAnySelected(m.condition_immunities ?? [], selectedConditionImmunities)) return false;
+      if (!matchesAnySelected(getSpeedModes(m.speed), selectedSpeedModes)) return false;
+      if (!matchesAnySelected(Object.keys(m.senses ?? {}), selectedSenseTypes)) return false;
+
+      if (selectedSaves.length > 0) {
+        const saveKeys = Object.keys(m.saves ?? {}).map((key) => key.toLowerCase());
+        if (!selectedSaves.some((ab) => saveKeys.includes(ab))) return false;
+      }
+      if (selectedSkills.length > 0) {
+        const skillKeys = Object.keys(m.skills ?? {}).map((key) => key.replace(/_/g, ' ').toLowerCase());
+        if (!selectedSkills.some((skill) => skillKeys.includes(skill.toLowerCase()))) return false;
+      }
+      if (selectedFeatures.length > 0 && !selectedFeatures.every((key) => hasFeature(m, key))) return false;
       return true;
     });
-  }, [all_monsters, search, crFilter, typeFilter, source_filter]);
+  }, [
+    all_monsters,
+    search,
+    source_filter,
+    crRange,
+    acRange,
+    hpRange,
+    ppRange,
+    selectedTypes,
+    selectedSizes,
+    selectedSources,
+    selectedResistances,
+    selectedImmunities,
+    selectedVulnerabilities,
+    selectedConditionImmunities,
+    selectedSpeedModes,
+    selectedSenseTypes,
+    selectedSaves,
+    selectedSkills,
+    selectedFeatures,
+  ]);
 
   useEffect(() => {
     if (!selected && filtered.length > 0) setSelected(filtered[0]);
@@ -80,7 +407,7 @@ export function BestiaryPage() {
 
   return (
     <>
-      <div className="grid h-full" style={{ gridTemplateColumns: '320px 1fr' }}>
+      <div className="grid h-full" style={{ gridTemplateColumns: '340px 1fr' }}>
         <div className="border-r border-border-tertiary bg-bg-primary p-4 flex flex-col overflow-hidden">
           <div className="flex justify-between items-center mb-3">
             <h2>Bestiary</h2>
@@ -132,27 +459,60 @@ export function BestiaryPage() {
           </div>
 
           <div className="flex gap-2 mb-3">
-            <select
-              value={crFilter}
-              onChange={(e) => setCrFilter(e.target.value)}
-              style={{ fontSize: '11px', height: '28px', flex: 1 }}
+            <button
+              onClick={() => setShowAdvanced((v) => !v)}
+              style={{
+                flex: 1,
+                fontSize: '12px',
+                padding: '6px 10px',
+                background: showAdvanced || hasAdvancedFilters ? 'var(--color-background-info)' : undefined,
+                borderColor: showAdvanced || hasAdvancedFilters ? 'var(--color-border-info)' : undefined,
+                color: showAdvanced || hasAdvancedFilters ? 'var(--color-text-info)' : undefined,
+              }}
             >
-              <option value="all">All CR</option>
-              {['0', '1/8', '1/4', '1/2', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '12', '15', '17', '20', '24'].map((cr) => (
-                <option key={cr} value={cr}>CR {cr}</option>
-              ))}
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              style={{ fontSize: '11px', height: '28px', flex: 1 }}
-            >
-              <option value="all">All types</option>
-              {allTypes.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
+              {showAdvanced ? 'Hide filters' : 'Advanced filters'}{hasAdvancedFilters ? ' • active' : ''}
+            </button>
+            <button onClick={resetAdvancedFilters} disabled={!hasAdvancedFilters} style={{ fontSize: '12px', padding: '6px 10px' }}>
+              Reset
+            </button>
           </div>
+
+          {showAdvanced && (
+            <div
+              className="mb-3 overflow-y-auto"
+              style={{
+                maxHeight: '42vh',
+                paddingRight: 4,
+                borderBottom: '1px solid var(--color-border-tertiary)',
+              }}
+            >
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <RangeInputs label="CR" value={crRange} onChange={setCrRange} placeholderMin="min" placeholderMax="max" />
+                <RangeInputs label="AC" value={acRange} onChange={setAcRange} />
+                <RangeInputs label="HP" value={hpRange} onChange={setHpRange} />
+                <RangeInputs label="Passive Perception" value={ppRange} onChange={setPpRange} />
+              </div>
+
+              <FilterChips label="Type" options={filterOptions.types} selected={selectedTypes} onChange={setSelectedTypes} maxVisible={14} />
+              <FilterChips label="Size" options={filterOptions.sizes} selected={selectedSizes} onChange={setSelectedSizes} maxVisible={10} />
+              <FilterChips label="Book / Source" options={filterOptions.sources} selected={selectedSources} onChange={setSelectedSources} maxVisible={10} />
+              <FilterChips label="Damage Resistance" options={filterOptions.resistances} selected={selectedResistances} onChange={setSelectedResistances} maxVisible={12} />
+              <FilterChips label="Damage Immunity" options={filterOptions.immunities} selected={selectedImmunities} onChange={setSelectedImmunities} maxVisible={12} />
+              <FilterChips label="Damage Vulnerability" options={filterOptions.vulnerabilities} selected={selectedVulnerabilities} onChange={setSelectedVulnerabilities} maxVisible={12} />
+              <FilterChips label="Condition Immunity" options={filterOptions.conditionImmunities} selected={selectedConditionImmunities} onChange={setSelectedConditionImmunities} maxVisible={14} />
+              <FilterChips label="Speed Type" options={filterOptions.speeds} selected={selectedSpeedModes} onChange={setSelectedSpeedModes} maxVisible={12} />
+              <FilterChips label="Senses" options={filterOptions.senses} selected={selectedSenseTypes} onChange={setSelectedSenseTypes} maxVisible={12} />
+              <FilterChips label="Has Save" options={ABILITIES} selected={selectedSaves} onChange={setSelectedSaves} maxVisible={6} />
+              <FilterChips label="Has Skill" options={filterOptions.skills} selected={selectedSkills} onChange={setSelectedSkills} maxVisible={12} />
+              <FilterChips
+                label="Traits / Actions"
+                options={FEATURE_FILTERS.map((f) => f.key)}
+                selected={selectedFeatures}
+                onChange={setSelectedFeatures}
+                maxVisible={13}
+              />
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto -mx-1 px-1">
             <div className="text-[10px] text-text-tertiary mb-1 px-2">
@@ -177,7 +537,6 @@ export function BestiaryPage() {
                     gap: 8,
                   }}
                 >
-                  {/* Avatar — only shown if custom monster has one */}
                   {is_custom && m.avatar && (
                     <div
                       style={{
@@ -269,8 +628,6 @@ function MonsterDetail({
     <div>
       <div className="flex justify-between items-start mb-1">
         <div className="flex items-center gap-3">
-          {/* Avatar — only shown if there's actually an avatar (so SRD entries
-              without one don't get a placeholder taking up space) */}
           {monster.avatar && (
             <div
               style={{
@@ -352,8 +709,9 @@ function MonsterDetail({
       </div>
 
       <div className="grid gap-2 mb-4" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
-        {(['str', 'dex', 'con', 'int', 'wis', 'cha'] as const).map((ab) => {
+        {ABILITIES.map((ab) => {
           const a = monster.abilities[ab];
+          const save = monster.saves?.[ab];
           return (
             <div key={ab} className="bg-bg-primary text-center" style={{ padding: '8px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-md)' }}>
               <div className="text-[10px] text-text-tertiary">{ab.toUpperCase()}</div>
@@ -361,7 +719,7 @@ function MonsterDetail({
                 {a.score} ({a.modifier >= 0 ? '+' : ''}{a.modifier})
               </div>
               <div className="text-[10px] text-text-tertiary">
-                save {monster.saves[ab] >= 0 ? '+' : ''}{monster.saves[ab]}
+                {typeof save === 'number' ? `save ${save >= 0 ? '+' : ''}${save}` : 'save —'}
               </div>
             </div>
           );
@@ -369,35 +727,32 @@ function MonsterDetail({
       </div>
 
       <div className="text-[12px] leading-7 text-text-secondary mb-4">
-        {Object.keys(monster.skills).length > 0 && (
+        {Object.keys(monster.skills ?? {}).length > 0 && (
           <div>
             <strong className="text-text-primary font-medium">Skills</strong>{' '}
-            {Object.entries(monster.skills).map(([s, b]) => `${s} ${b >= 0 ? '+' : ''}${b}`).join(', ')}
+            {Object.entries(monster.skills).map(([s, b]) => `${s.replace(/_/g, ' ')} ${b >= 0 ? '+' : ''}${b}`).join(', ')}
           </div>
         )}
-        {monster.damage_resistances.length > 0 && (
-          <div><strong className="text-text-primary font-medium">Resistances</strong> {monster.damage_resistances.join(', ')}</div>
+        {(monster.damage_resistances ?? []).length > 0 && (
+          <div><strong className="text-text-primary font-medium">Damage Resistances</strong> {monster.damage_resistances.join(', ')}</div>
         )}
-        {monster.damage_immunities.length > 0 && (
+        {(monster.damage_immunities ?? []).length > 0 && (
           <div><strong className="text-text-primary font-medium">Damage Immunities</strong> {monster.damage_immunities.join(', ')}</div>
         )}
-        {monster.damage_vulnerabilities.length > 0 && (
-          <div><strong className="text-text-primary font-medium">Vulnerabilities</strong> {monster.damage_vulnerabilities.join(', ')}</div>
+        {(monster.damage_vulnerabilities ?? []).length > 0 && (
+          <div><strong className="text-text-primary font-medium">Damage Vulnerabilities</strong> {monster.damage_vulnerabilities.join(', ')}</div>
         )}
-        {monster.condition_immunities.length > 0 && (
+        {(monster.condition_immunities ?? []).length > 0 && (
           <div><strong className="text-text-primary font-medium">Condition Immunities</strong> {monster.condition_immunities.join(', ')}</div>
         )}
-        {(Object.keys(monster.senses).length > 0 || monster.passive_perception !== null) && (
+        {Object.keys(monster.senses ?? {}).length > 0 && (
           <div>
             <strong className="text-text-primary font-medium">Senses</strong>{' '}
-            {Object.entries(monster.senses).map(([k, v]) => {
-              const note = monster.senses_notes?.[k] ? ` ${monster.senses_notes[k]}` : '';
-              return `${k.replace(/_/g, ' ')} ${v} ft${note}`;
-            }).join(', ')}
-            {monster.passive_perception !== null && `${Object.keys(monster.senses).length > 0 ? '; ' : ''}Passive Perception ${monster.passive_perception}`}
+            {formatSenses(monster)}
+            {monster.passive_perception && `; Passive Perception ${monster.passive_perception}`}
           </div>
         )}
-        {monster.languages.length > 0 && (
+        {(monster.languages ?? []).length > 0 && (
           <div><strong className="text-text-primary font-medium">Languages</strong> {monster.languages.join(', ')}</div>
         )}
       </div>
@@ -412,7 +767,6 @@ function MonsterDetail({
       <FeatureSection title="Reactions" features={monster.reactions} />
       <FeatureSection title="Legendary Actions" features={monster.legendary_actions} />
 
-      {/* Gallery */}
       {gallery.length > 0 && (
         <div className="mt-6">
           <div className="text-[12px] font-medium text-text-secondary mb-2">
@@ -458,7 +812,6 @@ function MonsterDetail({
     </div>
   );
 }
-
 
 function formatSpellLevel(level: number): string {
   return level === 0 ? 'Cantrip' : `Level ${level}`;
@@ -547,6 +900,13 @@ function FeatureSection({
       </div>
     </div>
   );
+}
+
+function formatSenses(monster: Monster): string {
+  const notes = (monster as Monster & { senses_notes?: Record<string, string> }).senses_notes ?? {};
+  return Object.entries(monster.senses ?? {})
+    .map(([key, value]) => `${key} ${value} ft${notes[key] ? ` ${notes[key]}` : ''}`)
+    .join(', ');
 }
 
 function formatSpeed(speed: MonsterSpeed | undefined): string {
