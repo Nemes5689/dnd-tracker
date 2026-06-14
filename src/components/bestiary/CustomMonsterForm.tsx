@@ -26,6 +26,70 @@ function formatSpellMeta(spell: Spell): string {
   return tags.join(' · ');
 }
 
+
+type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
+const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+function abilityModifier(score: number): number {
+  return Math.floor((score - 10) / 2);
+}
+
+function splitList(value: string): string[] {
+  return value
+    .split(/[\n,]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function formatNumberRecord(record?: Record<string, number>): string {
+  if (!record) return '';
+  return Object.entries(record)
+    .map(([key, value]) => `${key} ${value >= 0 ? '+' : ''}${value}`)
+    .join(', ');
+}
+
+function parseNumberRecord(value: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  splitList(value).forEach((raw) => {
+    const match = raw.match(/^(.+?)\s*([+-]?\d+)$/);
+    if (!match) return;
+    out[match[1].trim().toLowerCase()] = parseInt(match[2], 10);
+  });
+  return out;
+}
+
+function normalizeSenseKey(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function formatSenseKey(value: string): string {
+  return value.replace(/_/g, ' ');
+}
+
+function formatSenses(senses?: Record<string, number>, notes?: Record<string, string>): string {
+  if (!senses) return '';
+  return Object.entries(senses)
+    .map(([key, value]) => {
+      const note = notes?.[key] ? ` ${notes[key]}` : '';
+      return `${formatSenseKey(key)} ${value} ft${note}`;
+    })
+    .join(', ');
+}
+
+function parseSenses(value: string): { senses: Record<string, number>; senses_notes: Record<string, string> } {
+  const senses: Record<string, number> = {};
+  const senses_notes: Record<string, string> = {};
+  splitList(value).forEach((raw) => {
+    const match = raw.match(/^(.+?)\s+(-?\d+)\s*(?:ft\.?|feet)?\s*(.*)$/i);
+    if (!match) return;
+    const key = normalizeSenseKey(match[1]);
+    senses[key] = parseInt(match[2], 10);
+    const note = match[3].trim();
+    if (note) senses_notes[key] = note;
+  });
+  return { senses, senses_notes };
+}
+
 interface Props {
   initial?: Partial<Monster>;
   // If editing an existing custom monster (not duplicating)
@@ -75,6 +139,35 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
   const [wis, set_wis] = useState(String(initial?.abilities?.wis?.score ?? 10));
   const [cha, set_cha] = useState(String(initial?.abilities?.cha?.score ?? 10));
   const [ability_roll_summary, set_ability_roll_summary] = useState('');
+
+  const formatModifier = (value: number) => `${value >= 0 ? '+' : ''}${value}`;
+  const abilityModFromText = (value: string) => abilityModifier(parseInt(value, 10) || 10);
+
+  const [save_overrides, set_save_overrides] = useState<Record<string, string>>(() => {
+    const saves = initial?.saves ?? {};
+    return Object.fromEntries(
+      ABILITY_KEYS.map((key) => [
+        key,
+        saves[key] !== undefined ? String(saves[key]) : '',
+      ])
+    );
+  });
+  const [skills_text, set_skills_text] = useState(() => formatNumberRecord(initial?.skills));
+  const [senses_text, set_senses_text] = useState(() => formatSenses(initial?.senses, initial?.senses_notes));
+  const [languages_text, set_languages_text] = useState(() => (initial?.languages ?? []).join(', '));
+  const [damage_resistances_text, set_damage_resistances_text] = useState(() => (initial?.damage_resistances ?? []).join(', '));
+  const [damage_immunities_text, set_damage_immunities_text] = useState(() => (initial?.damage_immunities ?? []).join(', '));
+  const [damage_vulnerabilities_text, set_damage_vulnerabilities_text] = useState(() => (initial?.damage_vulnerabilities ?? []).join(', '));
+  const [condition_immunities_text, set_condition_immunities_text] = useState(() => (initial?.condition_immunities ?? []).join(', '));
+  const [gear_text, set_gear_text] = useState(() => (initial?.gear ?? []).join(', '));
+  const [passive_perception_text, set_passive_perception_text] = useState(() =>
+    initial?.passive_perception !== undefined && initial?.passive_perception !== null
+      ? String(initial.passive_perception)
+      : ''
+  );
+  const [xp_text, set_xp_text] = useState(() =>
+    initial?.xp !== undefined && initial?.xp !== null ? String(initial.xp) : ''
+  );
 
   const [traits, set_traits] = useState<MonsterFeature[]>(
     initial?.traits ?? []
@@ -229,7 +322,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
     });
   };
 
-  const ab_mod = (score: number) => Math.floor((score - 10) / 2);
+  const ab_mod = abilityModifier;
 
   const ability_setters: Record<AbilityRollKey, (value: string) => void> = {
     str: set_str,
@@ -266,6 +359,24 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
     const cleanFeatures = (list: MonsterFeature[]) =>
       list.filter((f) => f.name.trim() || f.description.trim());
 
+    const ability_values = {
+      str: parseInt(str, 10) || 10,
+      dex: parseInt(dex, 10) || 10,
+      con: parseInt(con, 10) || 10,
+      int: parseInt(int_, 10) || 10,
+      wis: parseInt(wis, 10) || 10,
+      cha: parseInt(cha, 10) || 10,
+    };
+    const saves_record = Object.fromEntries(
+      ABILITY_KEYS.map((key) => [
+        key,
+        save_overrides[key]?.trim()
+          ? parseInt(save_overrides[key], 10) || 0
+          : ab_mod(ability_values[key]),
+      ])
+    ) as Record<string, number>;
+    const parsed_senses = parseSenses(senses_text);
+
     const monster_data: any = {
       name: name.trim(),
       size,
@@ -278,32 +389,28 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
       speed: buildStructuredSpeed(),
       initiative: { modifier: parseInt(init_mod, 10) || 0, score: null },
       abilities: {
-        str: { score: parseInt(str, 10) || 10, modifier: ab_mod(parseInt(str, 10) || 10) },
-        dex: { score: parseInt(dex, 10) || 10, modifier: ab_mod(parseInt(dex, 10) || 10) },
-        con: { score: parseInt(con, 10) || 10, modifier: ab_mod(parseInt(con, 10) || 10) },
-        int: { score: parseInt(int_, 10) || 10, modifier: ab_mod(parseInt(int_, 10) || 10) },
-        wis: { score: parseInt(wis, 10) || 10, modifier: ab_mod(parseInt(wis, 10) || 10) },
-        cha: { score: parseInt(cha, 10) || 10, modifier: ab_mod(parseInt(cha, 10) || 10) },
+        str: { score: ability_values.str, modifier: ab_mod(ability_values.str) },
+        dex: { score: ability_values.dex, modifier: ab_mod(ability_values.dex) },
+        con: { score: ability_values.con, modifier: ab_mod(ability_values.con) },
+        int: { score: ability_values.int, modifier: ab_mod(ability_values.int) },
+        wis: { score: ability_values.wis, modifier: ab_mod(ability_values.wis) },
+        cha: { score: ability_values.cha, modifier: ab_mod(ability_values.cha) },
       },
-      saves: {
-        str: ab_mod(parseInt(str, 10) || 10),
-        dex: ab_mod(parseInt(dex, 10) || 10),
-        con: ab_mod(parseInt(con, 10) || 10),
-        int: ab_mod(parseInt(int_, 10) || 10),
-        wis: ab_mod(parseInt(wis, 10) || 10),
-        cha: ab_mod(parseInt(cha, 10) || 10),
-      },
-      skills: initial?.skills ?? {},
-      senses: initial?.senses ?? {},
-      passive_perception: 10 + ab_mod(parseInt(wis, 10) || 10),
-      languages: initial?.languages ?? [],
+      saves: saves_record,
+      skills: parseNumberRecord(skills_text),
+      senses: parsed_senses.senses,
+      senses_notes: Object.keys(parsed_senses.senses_notes).length > 0 ? parsed_senses.senses_notes : undefined,
+      passive_perception: passive_perception_text.trim()
+        ? parseInt(passive_perception_text, 10) || null
+        : 10 + ab_mod(ability_values.wis),
+      languages: splitList(languages_text),
       cr,
-      xp: initial?.xp ?? null,
-      damage_resistances: initial?.damage_resistances ?? [],
-      damage_immunities: initial?.damage_immunities ?? [],
-      damage_vulnerabilities: initial?.damage_vulnerabilities ?? [],
-      condition_immunities: initial?.condition_immunities ?? [],
-      gear: initial?.gear ?? [],
+      xp: xp_text.trim() ? parseInt(xp_text, 10) || null : null,
+      damage_resistances: splitList(damage_resistances_text),
+      damage_immunities: splitList(damage_immunities_text),
+      damage_vulnerabilities: splitList(damage_vulnerabilities_text),
+      condition_immunities: splitList(condition_immunities_text),
+      gear: splitList(gear_text),
       traits: cleanFeatures(traits),
       actions: cleanFeatures(actions),
       bonus_actions: cleanFeatures(bonus_actions),
@@ -810,6 +917,139 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
         </Section>
 
 
+        <Section title="Defenses, senses, saves & skills">
+          <div className="text-[11px] text-text-tertiary mb-3">
+            These fields appear above Traits in the stat block. Use comma-separated values.
+          </div>
+
+          <div className="mb-3">
+            <div className="text-[11px] text-text-tertiary mb-2">
+              Saving throws. Leave a field blank to use the ability modifier; type any number to override it.
+            </div>
+            <div
+              className="grid gap-2"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}
+            >
+              {([
+                ['str', str],
+                ['dex', dex],
+                ['con', con],
+                ['int', int_],
+                ['wis', wis],
+                ['cha', cha],
+              ] as [AbilityKey, string][]).map(([ability, val]) => {
+                const default_mod = abilityModFromText(val);
+                const overridden = save_overrides[ability]?.trim() !== '';
+                const shown = overridden ? parseInt(save_overrides[ability], 10) || 0 : default_mod;
+                return (
+                  <div key={ability}>
+                    <div className="text-[11px] text-text-tertiary text-center mb-1">
+                      {ability.toUpperCase()} save
+                    </div>
+                    <input
+                      value={save_overrides[ability] ?? ''}
+                      onChange={(e) =>
+                        set_save_overrides((prev) => ({ ...prev, [ability]: e.target.value }))
+                      }
+                      placeholder={formatModifier(default_mod)}
+                      className="w-full text-center"
+                    />
+                    <div className="text-[10px] text-text-tertiary text-center mt-1">
+                      final {formatModifier(shown)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <FieldLabel label="Skills">
+              <textarea
+                value={skills_text}
+                onChange={(e) => set_skills_text(e.target.value)}
+                placeholder="perception +5, stealth +7, athletics +9"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Senses">
+              <textarea
+                value={senses_text}
+                onChange={(e) => set_senses_text(e.target.value)}
+                placeholder="darkvision 60 ft, blindsight 60 ft (can't see beyond this radius)"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Passive Perception">
+              <input
+                value={passive_perception_text}
+                onChange={(e) => set_passive_perception_text(e.target.value)}
+                placeholder={String(10 + abilityModFromText(wis))}
+                className="w-full"
+              />
+            </FieldLabel>
+            <FieldLabel label="XP">
+              <input
+                value={xp_text}
+                onChange={(e) => set_xp_text(e.target.value)}
+                placeholder="700"
+                className="w-full"
+              />
+            </FieldLabel>
+          </div>
+
+          <div className="grid gap-3 mt-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <FieldLabel label="Damage Resistances">
+              <textarea
+                value={damage_resistances_text}
+                onChange={(e) => set_damage_resistances_text(e.target.value)}
+                placeholder="cold, fire, lightning"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Damage Immunities">
+              <textarea
+                value={damage_immunities_text}
+                onChange={(e) => set_damage_immunities_text(e.target.value)}
+                placeholder="poison, psychic"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Damage Vulnerabilities">
+              <textarea
+                value={damage_vulnerabilities_text}
+                onChange={(e) => set_damage_vulnerabilities_text(e.target.value)}
+                placeholder="radiant"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Condition Immunities">
+              <textarea
+                value={condition_immunities_text}
+                onChange={(e) => set_condition_immunities_text(e.target.value)}
+                placeholder="blinded, charmed, frightened, poisoned"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Languages">
+              <textarea
+                value={languages_text}
+                onChange={(e) => set_languages_text(e.target.value)}
+                placeholder="Common, Draconic, understands its creator but can't speak"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+            <FieldLabel label="Gear">
+              <textarea
+                value={gear_text}
+                onChange={(e) => set_gear_text(e.target.value)}
+                placeholder="chain mail, shield, longsword"
+                style={textareaStyle}
+              />
+            </FieldLabel>
+          </div>
+        </Section>
+
         <Section title="Spellcasting">
           <label className="flex items-center gap-2 text-[12px] text-text-secondary mb-3">
             <input
@@ -1138,6 +1378,14 @@ function SpellPicker({
     </div>
   );
 }
+
+const textareaStyle: React.CSSProperties = {
+  width: '100%',
+  minHeight: '44px',
+  fontSize: '12px',
+  resize: 'vertical',
+  boxSizing: 'border-box',
+};
 
 const miniBtn: React.CSSProperties = {
   width: 22,

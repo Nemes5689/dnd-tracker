@@ -379,13 +379,22 @@ function MonsterDetail({
           <div><strong className="text-text-primary font-medium">Resistances</strong> {monster.damage_resistances.join(', ')}</div>
         )}
         {monster.damage_immunities.length > 0 && (
-          <div><strong className="text-text-primary font-medium">Immunities</strong> {monster.damage_immunities.join(', ')}</div>
+          <div><strong className="text-text-primary font-medium">Damage Immunities</strong> {monster.damage_immunities.join(', ')}</div>
         )}
-        {Object.keys(monster.senses).length > 0 && (
+        {monster.damage_vulnerabilities.length > 0 && (
+          <div><strong className="text-text-primary font-medium">Vulnerabilities</strong> {monster.damage_vulnerabilities.join(', ')}</div>
+        )}
+        {monster.condition_immunities.length > 0 && (
+          <div><strong className="text-text-primary font-medium">Condition Immunities</strong> {monster.condition_immunities.join(', ')}</div>
+        )}
+        {(Object.keys(monster.senses).length > 0 || monster.passive_perception !== null) && (
           <div>
             <strong className="text-text-primary font-medium">Senses</strong>{' '}
-            {Object.entries(monster.senses).map(([k, v]) => `${k} ${v} ft`).join(', ')}
-            {monster.passive_perception && `; Passive Perception ${monster.passive_perception}`}
+            {Object.entries(monster.senses).map(([k, v]) => {
+              const note = monster.senses_notes?.[k] ? ` ${monster.senses_notes[k]}` : '';
+              return `${k.replace(/_/g, ' ')} ${v} ft${note}`;
+            }).join(', ')}
+            {monster.passive_perception !== null && `${Object.keys(monster.senses).length > 0 ? '; ' : ''}Passive Perception ${monster.passive_perception}`}
           </div>
         )}
         {monster.languages.length > 0 && (

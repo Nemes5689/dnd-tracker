@@ -53,6 +53,7 @@ export interface Monster {
   saves: Record<string, number>;
   skills: Record<string, number>;
   senses: Record<string, number>;
+  senses_notes?: Record<string, string>;
   passive_perception: number | null;
   languages: string[];
   cr: string | null;
