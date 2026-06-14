@@ -263,21 +263,51 @@ def parse_alignment(alignment: Any) -> str:
     return str(alignment)
 
 
-def parse_senses(senses: Any) -> dict[str, int]:
+def parse_senses_with_notes(senses: Any) -> tuple[dict[str, int], dict[str, str]]:
+    """Return numeric senses and parenthetical notes, if present.
+
+    Example from 5e.tools:
+      blindsight 60 ft. (can't see beyond this radius)
+    """
     out: dict[str, int] = {}
+    notes: dict[str, str] = {}
     if not senses:
-        return out
-    if isinstance(senses, str):
-        senses_list = [senses]
-    else:
-        senses_list = senses
+        return out, notes
+    senses_list = [senses] if isinstance(senses, str) else senses
     for sense in senses_list:
-        text = clean_5etools_text(sense).lower()
+        raw = clean_5etools_text(sense)
+        text = raw.lower()
         for key in ["blindsight", "darkvision", "tremorsense", "truesight"]:
-            match = re.search(rf"{key}\s+(\d+)\s*ft", text)
+            match = re.search(rf"{key}\s+(\d+)\s*ft\.?(?:\s*(\([^)]*\)))?", text)
             if match:
                 out[key] = int(match.group(1))
-    return out
+                if match.group(2):
+                    notes[key] = match.group(2)
+    return out, notes
+
+
+def parse_condition_immunities(value: Any) -> list[str]:
+    """Flatten 5e.tools condition immunities."""
+    out: list[str] = []
+    if not value:
+        return out
+    items = value if isinstance(value, list) else [value]
+    for item in items:
+        if isinstance(item, str):
+            out.append(clean_5etools_text(item).title())
+        elif isinstance(item, dict):
+            inner = item.get("conditionImmune") or item.get("immune") or item.get("conditions") or []
+            note = item.get("note") or item.get("preNote") or item.get("cond")
+            for x in parse_condition_immunities(inner):
+                out.append(f"{x} ({clean_5etools_text(note)})" if note else x)
+    seen = set()
+    deduped = []
+    for item in out:
+        key = item.lower()
+        if key not in seen:
+            seen.add(key)
+            deduped.append(item)
+    return deduped
 
 
 def flatten_damage_list(value: Any) -> list[str]:
@@ -367,6 +397,7 @@ def convert_5etools_monster(src: dict[str, Any]) -> dict[str, Any]:
     source_code = str(src.get("source", "5eTools"))
     monster_slug = slugify(str(src.get("name", "monster")))
     source_slug = slugify(source_code)
+    senses, senses_notes = parse_senses_with_notes(src.get("senses"))
 
     return {
         "id": monster_slug,
@@ -383,7 +414,8 @@ def convert_5etools_monster(src: dict[str, Any]) -> dict[str, Any]:
         "abilities": abilities,
         "saves": {k: parse_bonus(v) for k, v in (src.get("save") or {}).items()},
         "skills": {k: parse_bonus(v) for k, v in (src.get("skill") or {}).items()},
-        "senses": parse_senses(src.get("senses")),
+        "senses": senses,
+        "senses_notes": senses_notes,
         "passive_perception": src.get("passive"),
         "languages": [clean_5etools_text(x) for x in src.get("languages", [])],
         "cr": cr,
@@ -391,7 +423,7 @@ def convert_5etools_monster(src: dict[str, Any]) -> dict[str, Any]:
         "damage_resistances": flatten_damage_list(src.get("resist")),
         "damage_immunities": flatten_damage_list(src.get("immune")),
         "damage_vulnerabilities": flatten_damage_list(src.get("vulnerable")),
-        "condition_immunities": [str(x).title() for x in src.get("conditionImmune", [])],
+        "condition_immunities": parse_condition_immunities(src.get("conditionImmune")),
         "gear": [],
         "traits": traits,
         "actions": actions,
