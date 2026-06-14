@@ -46361,6 +46361,597 @@
       "legendary_actions": [],
       "source": "Monster Manual 2024",
       "url": "https://www.aidedd.org/monster/zombie"
+    },
+    {
+      "id": "animated-coffin",
+      "name": "Animated Coffin",
+      "size": "Large",
+      "type": "Construct",
+      "subtype": null,
+      "alignment": "Unaligned",
+      "ac": 16,
+      "hp": 60,
+      "hp_formula": "8d10 + 16",
+      "speed": {
+        "walk": 30,
+        "climb": 30
+      },
+      "initiative": {
+        "modifier": 1,
+        "score": 11
+      },
+      "abilities": {
+        "str": {
+          "score": 16,
+          "modifier": 3
+        },
+        "dex": {
+          "score": 12,
+          "modifier": 1
+        },
+        "con": {
+          "score": 15,
+          "modifier": 2
+        },
+        "int": {
+          "score": 3,
+          "modifier": -4
+        },
+        "wis": {
+          "score": 11,
+          "modifier": 0
+        },
+        "cha": {
+          "score": 3,
+          "modifier": -4
+        }
+      },
+      "saves": {},
+      "skills": {},
+      "senses": {
+        "blindsight": 60
+      },
+      "passive_perception": 10,
+      "languages": [
+        "understands the languages of its creator but can't speak"
+      ],
+      "cr": "3",
+      "xp": 700,
+      "damage_resistances": [],
+      "damage_immunities": [
+        "Poison",
+        "Psychic"
+      ],
+      "damage_vulnerabilities": [],
+      "condition_immunities": [
+        "Blinded",
+        "Charmed",
+        "Deafened",
+        "Exhaustion",
+        "Frightened",
+        "Paralyzed",
+        "Petrified",
+        "Poisoned"
+      ],
+      "gear": [],
+      "traits": [
+        {
+          "name": "False Appearance",
+          "description": "If the animated coffin is motionless at the start of combat, it has advantage on its initiative roll. Moreover, if a creature hasn't observed the coffin move or act, that creature must succeed on a DC 18 Intelligence (Investigation) check to discern that the coffin is animate."
+        },
+        {
+          "name": "Spider Climb",
+          "description": "The animated coffin can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check."
+        }
+      ],
+      "actions": [
+        {
+          "name": "Multiattack",
+          "description": "The animated coffin makes two Slam attacks."
+        },
+        {
+          "name": "Slam",
+          "description": "Attack Roll: +5 to hit, reach 5 ft., one target. Hit: 12 (2d8 + 3) bludgeoning damage."
+        },
+        {
+          "name": "Entrap",
+          "description": "Attack Roll: +5 to hit, reach 5 ft., one Large or smaller creature. Hit: The target has the grappled condition (escape DC 13). Until this grapple ends, if the target is not an Undead, the target has the restrained condition and takes 14 (4d6) piercing damage at the start of each of its turns. The animated coffin can grapple only one creature at a time."
+        }
+      ],
+      "bonus_actions": [],
+      "reactions": [],
+      "legendary_actions": [],
+      "source": "5e.tools / AATM",
+      "url": "https://5e.tools/bestiary/animated-coffin-aatm.html"
+    },
+    {
+      "id": "factol-skall",
+      "name": "Factol Skall",
+      "size": "Medium",
+      "type": "Undead",
+      "subtype": "Wizard",
+      "alignment": "Neutral Evil",
+      "ac": 17,
+      "hp": 210,
+      "hp_formula": "28d8 + 84",
+      "speed": {
+        "walk": 30,
+        "fly": 30
+      },
+      "initiative": {
+        "modifier": 3,
+        "score": 13
+      },
+      "abilities": {
+        "str": {
+          "score": 11,
+          "modifier": 0
+        },
+        "dex": {
+          "score": 16,
+          "modifier": 3
+        },
+        "con": {
+          "score": 16,
+          "modifier": 3
+        },
+        "int": {
+          "score": 20,
+          "modifier": 5
+        },
+        "wis": {
+          "score": 14,
+          "modifier": 2
+        },
+        "cha": {
+          "score": 16,
+          "modifier": 3
+        }
+      },
+      "saves": {
+        "con": 9,
+        "int": 11,
+        "wis": 8
+      },
+      "skills": {
+        "arcana": 17,
+        "history": 11,
+        "medicine": 8,
+        "perception": 8
+      },
+      "senses": {
+        "truesight": 120
+      },
+      "passive_perception": 18,
+      "languages": [
+        "all"
+      ],
+      "cr": "17",
+      "xp": 18000,
+      "damage_resistances": [
+        "Cold",
+        "Bludgeoning (from nonmagical attacks)",
+        "Piercing (from nonmagical attacks)",
+        "Slashing (from nonmagical attacks)"
+      ],
+      "damage_immunities": [
+        "Necrotic",
+        "Poison"
+      ],
+      "damage_vulnerabilities": [],
+      "condition_immunities": [
+        "Charmed",
+        "Exhaustion",
+        "Frightened",
+        "Paralyzed",
+        "Poisoned",
+        "Stunned"
+      ],
+      "gear": [],
+      "traits": [
+        {
+          "name": "Aura of Death",
+          "description": "Creatures within 30 feet of Skall have disadvantage on death saving throws."
+        },
+        {
+          "name": "Cosmic Annihilation",
+          "description": "A creature killed by Skall can be restored to life only by means of a true resurrection or wish spell."
+        },
+        {
+          "name": "Legendary Resistance (4/Day)",
+          "description": "If Skall fails a saving throw, he can choose to succeed instead."
+        },
+        {
+          "name": "Rejuvenation",
+          "description": "If Skall dies, he turns to dust. If his orrery of souls hasn't been destroyed, Skall re-forms within the Mortuary in 1d10 days. He appears within 5 feet of the orrery."
+        },
+        {
+          "name": "Turn Resistance",
+          "description": "Skall has advantage on saving throws against any effect that turns Undead."
+        }
+      ],
+      "actions": [
+        {
+          "name": "Spellcasting",
+          "description": "Skall casts one of the following spells, requiring no material components and using Intelligence as the spellcasting ability (spell save DC 19):\nAt will: detect magic, mage hand, prestidigitation\n2//dayay each: animate dead (as an action), dispel magic, speak with dead\n1//dayay each: finger of death, plane shift (self only), project image"
+        },
+        {
+          "name": "Multiattack",
+          "description": "Skall makes one Withering Touch attack or uses Spellcasting. He also uses Death Knell twice."
+        },
+        {
+          "name": "Withering Touch",
+          "description": "Attack Roll: +11 to hit, reach 5 ft., one target. Hit: 32 (6d8 + 5) cold damage plus 31 (7d8) necrotic damage, and if the target is a creature, it can't regain hit points until the start of Skall's next turn."
+        },
+        {
+          "name": "Death Knell",
+          "description": "Skall points his finger at a creature he can see within 120 feet of himself, filling the target's mind with visions of death and the plangent toll of an iron bell. The target must succeed on a DC 19 Wisdom saving throw or take 14 (4d6) psychic damage and have the frightened condition until the start of Skall's next turn."
+        },
+        {
+          "name": "Fog of Death (1/Day)",
+          "description": "Skall exudes a killing fog in a 30-foot-radius sphere centered on himself. The sphere spreads around corners, and its area is Vision and Light. The fog lasts until the start of Skall's next turn, and it can't be dispersed by wind. It does not move with him.\nEach creature that enters the fog for the first time on a turn or starts its turn there must make a DC 19 Constitution saving throw, taking 28 (8d6) necrotic damage and 28 (8d6) poison damage on a failed save, or half as much damage on a successful one. A Medium or smaller Humanoid killed by this damage becomes a zombie under Skall's control. The zombie acts on Skall's initiative but immediately after his turn. Absent any other command, the zombie tries to kill any non-Undead creature it encounters."
+        }
+      ],
+      "bonus_actions": [],
+      "reactions": [
+        {
+          "name": "Baleful Counterspell",
+          "description": "Skall chatters his teeth to interrupt a creature he can see within 60 feet of himself that is casting a spell. If the spell is 4th level or lower, it fails and has no effect. If the spell is 5th level or higher, Skall makes an Intelligence check (DC 10 + the spell's level). On a successful check, the spell fails and has no effect. Whatever the spell's level, the caster takes 10 (3d6) necrotic damage if the spell fails."
+        },
+        {
+          "name": "Near-Death Experience",
+          "description": "In response to being hit by an attack, Skall teleports, along with any equipment he is wearing or carrying, up to 30 feet to an unoccupied space he can see."
+        }
+      ],
+      "legendary_actions": [],
+      "source": "5e.tools / AATM",
+      "url": "https://5e.tools/bestiary/factol-skall-aatm.html"
+    },
+    {
+      "id": "heralds-of-dust-exorcist",
+      "name": "Heralds of Dust Exorcist",
+      "size": "Small or Medium",
+      "type": "Humanoid",
+      "subtype": null,
+      "alignment": "Any Alignment",
+      "ac": 13,
+      "hp": 112,
+      "hp_formula": "15d8 + 45",
+      "speed": {
+        "walk": 30
+      },
+      "initiative": {
+        "modifier": 3,
+        "score": 13
+      },
+      "abilities": {
+        "str": {
+          "score": 8,
+          "modifier": -1
+        },
+        "dex": {
+          "score": 16,
+          "modifier": 3
+        },
+        "con": {
+          "score": 16,
+          "modifier": 3
+        },
+        "int": {
+          "score": 17,
+          "modifier": 3
+        },
+        "wis": {
+          "score": 14,
+          "modifier": 2
+        },
+        "cha": {
+          "score": 11,
+          "modifier": 0
+        }
+      },
+      "saves": {
+        "int": 6,
+        "wis": 5,
+        "cha": 3
+      },
+      "skills": {
+        "arcana": 6,
+        "perception": 5,
+        "religion": 6
+      },
+      "senses": {
+        "truesight": 60
+      },
+      "passive_perception": 15,
+      "languages": [
+        "Common plus three more languages"
+      ],
+      "cr": "6",
+      "xp": 2300,
+      "damage_resistances": [
+        "Necrotic"
+      ],
+      "damage_immunities": [],
+      "damage_vulnerabilities": [],
+      "condition_immunities": [
+        "Charmed",
+        "Frightened"
+      ],
+      "gear": [],
+      "traits": [
+        {
+          "name": "Incorruptible Vessel",
+          "description": "The exorcist can't be possessed by Celestials, Fiends, or Undead."
+        }
+      ],
+      "actions": [
+        {
+          "name": "Spellcasting",
+          "description": "The exorcist casts one of the following spells, requiring no material components and using Intelligence as the spellcasting ability (spell save DC 14, +6 to hit with spell attacks):\nAt will: detect evil and good, mage armor (self only), mage hand\n2//dayay each: protection from evil and good, remove curse, speak with dead\n1//dayay each: banishment, dispel evil and good"
+        },
+        {
+          "name": "Multiattack",
+          "description": "The exorcist makes two Grave Burst attacks."
+        },
+        {
+          "name": "Grave Burst",
+          "description": "Attack Roll: +6 to hit, reach 5 ft. or range 120 ft., one target. Hit: 19 (3d10 + 3) necrotic or radiant damage (exorcist's choice)."
+        },
+        {
+          "name": "Admit Entity (Recharge 5)",
+          "description": "The exorcist thins the veil of death for a creature it can see within 60 feet of itself, exposing the target to malevolent entities. The target must make a DC 14 Charisma saving throw. On a failed save, the target takes 36 (8d8) psychic damage and has the incapacitated condition for 1 minute, during which time it retches and babbles incoherently in a voice that is not its own. On a successful save, the target takes half as much damage only. An incapacitated target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+        }
+      ],
+      "bonus_actions": [],
+      "reactions": [],
+      "legendary_actions": [],
+      "source": "5e.tools / AATM",
+      "url": "https://5e.tools/bestiary/heralds-of-dust-exorcist-aatm.html"
+    },
+    {
+      "id": "harvester-devil",
+      "name": "Harvester Devil",
+      "size": "Medium",
+      "type": "Fiend",
+      "subtype": "Devil",
+      "alignment": "Lawful Evil",
+      "ac": 14,
+      "hp": 65,
+      "hp_formula": "10d8 + 20",
+      "speed": {
+        "walk": 30
+      },
+      "initiative": {
+        "modifier": 3,
+        "score": 13
+      },
+      "abilities": {
+        "str": {
+          "score": 12,
+          "modifier": 1
+        },
+        "dex": {
+          "score": 17,
+          "modifier": 3
+        },
+        "con": {
+          "score": 14,
+          "modifier": 2
+        },
+        "int": {
+          "score": 14,
+          "modifier": 2
+        },
+        "wis": {
+          "score": 13,
+          "modifier": 1
+        },
+        "cha": {
+          "score": 19,
+          "modifier": 4
+        }
+      },
+      "saves": {
+        "con": 4,
+        "wis": 3
+      },
+      "skills": {
+        "perception": 3,
+        "persuasion": 8,
+        "stealth": 5
+      },
+      "senses": {
+        "darkvision": 120
+      },
+      "passive_perception": 13,
+      "languages": [
+        "Common",
+        "Infernal; telepathy 120 ft."
+      ],
+      "cr": "3",
+      "xp": 700,
+      "damage_resistances": [
+        "Cold"
+      ],
+      "damage_immunities": [
+        "Fire",
+        "Poison"
+      ],
+      "damage_vulnerabilities": [],
+      "condition_immunities": [
+        "Charmed",
+        "Poisoned"
+      ],
+      "gear": [],
+      "traits": [
+        {
+          "name": "Diabolic Ward",
+          "description": "Attack rolls against the devil have Disadvantage. If the devil makes an attack roll, this trait is suppressed until the start of its next turn."
+        },
+        {
+          "name": "Diabolical Restoration",
+          "description": "If the devil dies outside the Nine Hells, its body disappears in sulfurous smoke, and it gains a new body instantly, reviving with all its Hit Points somewhere in the Nine Hells."
+        },
+        {
+          "name": "Magic Resistance",
+          "description": "The devil has Advantage on saving throws against spells and other magical effects."
+        }
+      ],
+      "actions": [
+        {
+          "name": "Multiattack",
+          "description": "The devil makes two attacks, using Infernal Blade or Confounding Ray in any combination."
+        },
+        {
+          "name": "Infernal Blade",
+          "description": "m +5, reach 5 ft. Hit: 6 (1d6 + 3) Slashing damage and 7 (2d6) Fire damage."
+        },
+        {
+          "name": "Confounding Ray",
+          "description": "r +5, range 120 ft. Hit: 13 (2d12) Psychic damage. If the target is a creature, it can't make Opportunity Attacks until the start of the devil's next turn."
+        },
+        {
+          "name": "Compelling Contract (1/Day)",
+          "description": "cha DC 14, one creature within 30 feet of the devil. {@actSaveFail} The target has the Charmed condition. While it is Charmed, it has the Stunned condition, except the target can speak. If the target agrees to the devil's contract, the effect ends. Otherwise, the target repeats the save whenever it takes damage and at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically."
+        }
+      ],
+      "bonus_actions": [],
+      "reactions": [],
+      "legendary_actions": [],
+      "source": "5e.tools / ABH",
+      "url": "https://5e.tools/bestiary/harvester-devil-abh.html"
+    },
+    {
+      "id": "vampire-infernalist",
+      "name": "Vampire Infernalist",
+      "size": "Small or Medium",
+      "type": "Undead",
+      "subtype": "Wizard",
+      "alignment": "Lawful Evil",
+      "ac": 16,
+      "hp": 172,
+      "hp_formula": "23d8 + 69",
+      "speed": {
+        "walk": 40,
+        "fly": 40
+      },
+      "initiative": {
+        "modifier": 3,
+        "score": 13
+      },
+      "abilities": {
+        "str": {
+          "score": 19,
+          "modifier": 4
+        },
+        "dex": {
+          "score": 16,
+          "modifier": 3
+        },
+        "con": {
+          "score": 17,
+          "modifier": 3
+        },
+        "int": {
+          "score": 20,
+          "modifier": 5
+        },
+        "wis": {
+          "score": 16,
+          "modifier": 3
+        },
+        "cha": {
+          "score": 18,
+          "modifier": 4
+        }
+      },
+      "saves": {
+        "con": 8,
+        "int": 10
+      },
+      "skills": {
+        "arcana": 10,
+        "perception": 8,
+        "religion": 10,
+        "stealth": 8
+      },
+      "senses": {
+        "darkvision": 120
+      },
+      "passive_perception": 18,
+      "languages": [
+        "Common",
+        "Infernal"
+      ],
+      "cr": "14",
+      "xp": 11500,
+      "damage_resistances": [
+        "Fire",
+        "Necrotic",
+        "Poison"
+      ],
+      "damage_immunities": [],
+      "damage_vulnerabilities": [],
+      "condition_immunities": [
+        "Poisoned"
+      ],
+      "gear": [],
+      "traits": [
+        {
+          "name": "Legendary Resistance (3/Day, or 4/Day in Lair)",
+          "description": "If the vampire fails a saving throw, it can choose to succeed instead."
+        },
+        {
+          "name": "Misty Escape",
+          "description": "If the vampire drops to 0 Hit Points outside its resting place, the vampire uses Shape-Shift to become mist (no action required). If it can't use Shape-Shift, it is destroyed.\nWhile it has 0 Hit Points in mist form, it can't return to its vampire form, and it must reach its resting place within 2 hours or be destroyed. Once in its resting place, it returns to its vampire form and has the Paralyzed condition until it regains any Hit Points, and it regains 1 Hit Points after spending 1 hour there."
+        },
+        {
+          "name": "Vampire Weakness",
+          "description": "The vampire has these weaknesses:\nForbiddance. The vampire can't enter a residence without an invitation from an occupant.\nRunning Water. The vampire takes 20 Acid damage if it ends its turn in running water.\nStake to the Heart. If a weapon that deals Piercing damage is driven into the vampire's heart while the vampire has the Incapacitated condition in its resting place, the vampire has the Paralyzed condition until the weapon is removed.\nSunlight. The vampire takes 20 Radiant damage if it starts its turn in sunlight. While in sunlight, it has Disadvantage on attack rolls and ability checks."
+        }
+      ],
+      "actions": [
+        {
+          "name": "Spellcasting",
+          "description": "The vampire casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 18):\nAt will: Detect Magic, Detect Thoughts, Dispel Magic, Fireball (level 4 version), Mage Hand, Prestidigitation\n2: Scrying\n1: Wall of Fire"
+        },
+        {
+          "name": "Multiattack (Vampire Form Only)",
+          "description": "The vampire makes two Hellfire Claw attacks and uses Bite."
+        },
+        {
+          "name": "Hellfire Claw (Vampire Form Only)",
+          "description": "m +9, reach 5 ft. Hit: 13 (2d8 + 4) Slashing damage plus 10 (3d6) Fire damage. If the target is a Medium or smaller creature, it has the Grappled condition (escape DC 17) from one of two claws."
+        },
+        {
+          "name": "Bite (Imp or Vampire Form Only)",
+          "description": "con DC 18, one creature within 5 feet that is willing or that has the Grappled, Incapacitated, or Restrained condition. 6 (1d4 + 4) Piercing damage plus 16 (3d10) Necrotic damage and the creature loses its highest-level available spell slot (if any). The target's {@variantrule Hit Points maximum decreases by an amount equal to the Necrotic damage taken, and the vampire regains Hit Points equal to that amount. A Humanoid reduced to 0 Hit Points by this damage and then buried rises the following sunset as a Vampire Spawn under the vampire's control."
+        }
+      ],
+      "bonus_actions": [
+        {
+          "name": "Shape-Shift",
+          "description": "If the vampire isn't in sunlight or running water, it shape-shifts into a Tiny imp (Speed 20 ft., Fly Speed 40 ft.), or a Medium cloud of mist (Speed 5 ft., Fly Speed 20 ft. [hover]), or it returns to its vampire form. Anything it is wearing transforms with it.\nWhile in imp form, the vampire's game statistics, other than its size and Speed, are unchanged.\nWhile in mist form, the vampire can't take any actions, speak, or manipulate objects. It is weightless and can enter an enemy's space and stop there. If air can pass through a space, the mist can do so, but it can't pass through liquid. It has Resistance to all damage, except the damage it takes from sunlight."
+        }
+      ],
+      "reactions": [],
+      "legendary_actions": [
+        {
+          "name": "Hellfire Strike",
+          "description": "The vampire moves up to half its Speed, and it makes one Hellfire Claw attack."
+        },
+        {
+          "name": "Infernal Majesty",
+          "description": "cha DC 17, each creature in a 20-foot Emanation [Area of Effect] originating from the vampire. 9 (2d8) Psychic damage, and the target has the Frightened condition until the start of its next turn. Half damage only. {@actSaveSuccessOrFail The vampire can't take this action again until the start of its next turn."
+        },
+        {
+          "name": "Teleport",
+          "description": "The vampire teleports up to 30 feet to an unoccupied space it can see."
+        }
+      ],
+      "source": "5e.tools / ABH",
+      "url": "https://5e.tools/bestiary/vampire-infernalist-abh.html"
     }
   ]
 }
