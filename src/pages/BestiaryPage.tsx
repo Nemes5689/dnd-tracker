@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
 import { CustomMonsterForm } from '@/components/bestiary/CustomMonsterForm';
+import { StatBlockImporter } from '@/components/bestiary/StatBlockImporter';
 import { Lightbox } from '@/components/common/Lightbox';
 import { ClassFeaturesPanel } from '@/components/characters/ClassFeaturesPanel';
 import { OriginFeaturesPanel, formatOriginSummary } from '@/components/characters/OriginEditor';
@@ -250,6 +251,7 @@ export function BestiaryPage() {
   const [source_filter, set_source_filter] = useState<'all' | 'srd' | 'custom'>('all');
   const [selected, setSelected] = useState<Monster | null>(null);
   const [show_form, set_show_form] = useState(false);
+  const [show_importer, set_show_importer] = useState(false);
   const [duplicate_source, set_duplicate_source] = useState<Monster | null>(null);
   const [edit_id, set_edit_id] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -402,12 +404,12 @@ export function BestiaryPage() {
     setSelected(null);
   };
 
-  if (loading) return <div className="p-8 text-text-secondary">Loading SRD data…</div>;
+  if (loading) return <div className="p-8 text-text-secondary" role="status">Loading SRD data…</div>;
   if (!loaded) return <div className="p-8 text-text-secondary">Initializing…</div>;
 
   return (
     <>
-      <div className="grid h-full" style={{ gridTemplateColumns: '340px 1fr' }}>
+      <div className="master-detail master-detail-flush">
         <div className="border-r border-border-tertiary bg-bg-primary p-4 flex flex-col overflow-hidden">
           <div className="flex justify-between items-center mb-3">
             <h2>Bestiary</h2>
@@ -422,6 +424,7 @@ export function BestiaryPage() {
             </button>
           </div>
 
+          <button className="w-full mb-2" style={{ minHeight: 44 }} onClick={() => set_show_importer(true)}>Paste stat block</button>
           <input
             type="text"
             placeholder="Search monsters..."
@@ -587,6 +590,9 @@ export function BestiaryPage() {
         </div>
       </div>
 
+      {show_importer && <StatBlockImporter destination="monster" onClose={() => set_show_importer(false)}
+        onSaved={id => { setSearch(''); set_source_filter('custom'); resetAdvancedFilters(); setSelected(useCustomMonsterStore.getState().monsters.find(m => m.id === id) ?? null); }}
+        renderPreview={monster => <MonsterDetail monster={monster} readOnly onDuplicate={() => {}} />} />}
       {show_form && (
         <CustomMonsterForm
           initial={duplicate_source ?? undefined}
@@ -610,11 +616,13 @@ export function BestiaryPage() {
 
 function MonsterDetail({
   monster,
+  readOnly = false,
   onDuplicate,
   onEdit,
   onDelete,
 }: {
   monster: Monster;
+  readOnly?: boolean;
   onDuplicate: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -651,7 +659,7 @@ function MonsterDetail({
             )}
           </h2>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" hidden={readOnly} style={readOnly ? { display: 'none' } : undefined}>
           {onEdit && (
             <button onClick={onEdit} className="bg-accent-50 border-accent-300 text-accent-900" style={{ fontSize: '12px', padding: '6px 12px' }}>
               Edit

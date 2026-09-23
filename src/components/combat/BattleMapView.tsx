@@ -254,7 +254,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
           </div>
         )}
 
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        <div className="fullscreen-map-stage" style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <BattleMap
             map={active_map}
             combatants={encounter.combatants}
@@ -282,6 +282,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
           />
 
           <div
+            className="fullscreen-map-toolbar"
             style={{
               position: 'absolute',
               top: 12,
@@ -350,15 +351,15 @@ export function BattleMapView({ encounter, onExit }: Props) {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="battle-map-view h-full flex flex-col">
       <div
-        className="flex justify-between items-center bg-bg-primary"
+        className="map-header flex flex-wrap gap-3 justify-between items-center bg-bg-primary"
         style={{
           padding: '12px 24px',
           borderBottom: '0.5px solid var(--color-border-tertiary)',
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <button onClick={onExit} style={{ padding: '4px 10px', fontSize: '12px' }}>
             ← Back to combat
           </button>
@@ -369,7 +370,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
             </div>
           </div>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="map-actions flex flex-wrap gap-2 items-center">
           {/* Rotation toolbar (only when map exists) */}
           {active_map && (
             <RotationToolbar
@@ -437,8 +438,8 @@ export function BattleMapView({ encounter, onExit }: Props) {
       </div>
 
       <div
-        className="flex-1 grid overflow-hidden"
-        style={{ gridTemplateColumns: '260px 1fr' }}
+        className="map-columns flex-1 grid overflow-hidden"
+        style={{ gridTemplateColumns: '260px minmax(0, 1fr)' }}
       >
         {/* Sidebar */}
         <div
@@ -658,7 +659,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
         </div>
 
         {/* Map area with turn order above */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="map-stage flex-1 min-w-0 overflow-hidden flex flex-col">
           {/* Turn order - dedicated row, not overlay */}
           {encounter.combatants.length > 0 && (
             <div
@@ -683,6 +684,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
           <div className="flex-1 overflow-hidden relative">
             {active_map && active_combatant && (
               <div
+                className="map-movement-mode"
                 style={{
                   position: 'absolute',
                   top: 10,
@@ -700,6 +702,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
               >
                 <span className="text-[11px] text-text-tertiary">Move mode</span>
                 <select
+                  aria-label="Movement mode"
                   value={movement_mode}
                   onChange={(e) => set_movement_mode(e.target.value as MovementMode)}
                   className="text-[12px]"
@@ -799,6 +802,7 @@ function DrawingToolbar({
   const is_dark = variant === "dark";
   return (
     <div
+      className="drawing-toolbar"
       style={{
         display: "flex",
         gap: 6,

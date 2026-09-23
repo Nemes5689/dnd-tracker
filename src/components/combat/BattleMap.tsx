@@ -370,7 +370,11 @@ export function BattleMap({
       onPointerDown={handleBackgroundPointerDown}
       onPointerMove={handleContainerPointerMove}
       onPointerUp={handleContainerPointerUp}
-      onPointerCancel={handleContainerPointerUp}
+      onPointerCancel={() => {
+        // An interrupted touch gesture must not move a token or spend movement.
+        set_drag_state(null);
+        set_hover_cell(null);
+      }}
     >
       <div
         ref={inner_ref}
@@ -573,6 +577,7 @@ export function BattleMap({
 
       {show_movement_summary && active_combatant && active_token && (
         <div
+          className={projector_mode ? undefined : 'map-movement-summary'}
           style={{
             position: 'absolute',
             top: 12,
@@ -651,8 +656,8 @@ export function BattleMap({
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 36px)',
-            gridTemplateRows: 'repeat(3, 36px)',
+            gridTemplateColumns: 'repeat(3, 44px)',
+            gridTemplateRows: 'repeat(3, 44px)',
             gap: 2,
           }}
         >
@@ -755,9 +760,10 @@ function ControlButton({
     <button
       onClick={onClick}
       title={title}
+      aria-label={title}
       style={{
-        width: 36,
-        height: 36,
+        width: 44,
+        height: 44,
         fontSize: small ? 11 : big_text ? 18 : 16,
         background: projector_mode ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.95)',
         color: projector_mode ? '#fff' : 'var(--color-text-primary)',

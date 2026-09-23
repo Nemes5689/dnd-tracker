@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { useEncounterStore } from '@/store/encounterStore';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
@@ -25,6 +26,7 @@ interface Props {
  * switcher. Monsters: red enemy. Allies: green friendly. Characters: blue PC.
  */
 export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }: Props) {
+  const dialogRef = useDialogFocus(onClose);
   const { addCombatant, log } = useEncounterStore();
   const { monsters: srd_monsters } = useSRDStore();
   const { monsters: custom_monsters } = useCustomMonsterStore();
@@ -136,7 +138,12 @@ export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }:
       }}
     >
       <div
-        className="bg-bg-primary"
+        className="combat-dialog bg-bg-primary"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add to combat"
+        tabIndex={-1}
         style={{
           width: '90%',
           maxWidth: '560px',
@@ -151,6 +158,7 @@ export function AddMonsterModal({ encounter, onClose, initial_tab = 'monster' }:
           <h2>Add to combat</h2>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             style={{
               border: 'none',
               background: 'transparent',

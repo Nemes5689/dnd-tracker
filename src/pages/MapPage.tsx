@@ -126,7 +126,7 @@ export function MapPage() {
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-medium) 1fr' }}>
+      <div className="master-detail">
         <aside
           className="bg-bg-primary"
           style={{

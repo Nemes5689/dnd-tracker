@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { useSRDStore } from '@/store/srdStore';
 import type { AppliedCondition } from '@/types/app';
 
@@ -11,6 +12,7 @@ interface Props {
 type DurationType = 'manual' | 'fixed' | 'save_ends';
 
 export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
+  const dialogRef = useDialogFocus(onClose);
   const { conditions } = useSRDStore();
 
   const [selected_id, set_selected_id] = useState<string | null>(null);
@@ -67,7 +69,12 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-bg-primary"
+        className="combat-dialog bg-bg-primary"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Apply condition"
+        tabIndex={-1}
         style={{
           width: '90%',
           maxWidth: '620px',
@@ -82,6 +89,7 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
           <h2>Apply condition to {combatant_name}</h2>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             style={{
               border: 'none',
               background: 'transparent',
@@ -107,6 +115,7 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
             return (
               <button
                 key={c.id}
+                aria-pressed={is_sel}
                 onClick={() => set_selected_id(c.id)}
                 style={{
                   padding: '8px 10px',
@@ -124,7 +133,7 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
                   cursor: 'pointer',
                 }}
               >
-                {c.name}
+                {is_sel && <span aria-hidden="true">✓ </span>}{c.name}
               </button>
             );
           })}
@@ -184,6 +193,8 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
                 return (
                   <button
                     key={lvl}
+                    aria-label={`Exhaustion level ${lvl}`}
+                    aria-pressed={sel}
                     onClick={() => set_exhaustion_level(String(lvl))}
                     style={{
                       flex: 1,
@@ -193,12 +204,12 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
                       background: sel
                         ? is_death
                           ? '#FCEBEB'
-                          : '#534AB7'
+                          : '#635022'
                         : 'var(--color-background-primary)',
                       borderColor: sel
                         ? is_death
                           ? '#F09595'
-                          : '#534AB7'
+                          : '#635022'
                         : 'var(--color-border-tertiary)',
                       color: sel
                         ? is_death
@@ -256,6 +267,8 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
                 <span className="text-[12px] text-text-secondary">Rounds:</span>
                 <input
                   type="number"
+                  aria-label="Duration in rounds"
+                  min={1}
                   value={duration_rounds}
                   onChange={(e) => set_duration_rounds(e.target.value)}
                   style={{ width: 60, height: 28, fontSize: 12 }}
@@ -270,6 +283,7 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
               <div className="flex gap-2 items-center mb-3">
                 <span className="text-[12px] text-text-secondary">Save:</span>
                 <select
+                  aria-label="Saving throw ability"
                   value={save_ability}
                   onChange={(e) => set_save_ability(e.target.value)}
                   style={{ height: 28, fontSize: 12 }}
@@ -283,6 +297,7 @@ export function AddConditionModal({ combatant_name, onApply, onClose }: Props) {
                 <span className="text-[12px] text-text-secondary">DC:</span>
                 <input
                   type="number"
+                  aria-label="Saving throw difficulty"
                   value={save_dc}
                   onChange={(e) => set_save_dc(e.target.value)}
                   style={{ width: 60, height: 28, fontSize: 12 }}
@@ -336,6 +351,7 @@ function DurationButton({
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       style={{
         padding: '6px 14px',
         fontSize: '12px',

@@ -133,7 +133,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
     encounter.combatants.some((c) => !c.is_player);
 
   return (
-    <div className="p-8 max-w-[1100px]">
+    <div className="encounter-setup page-padding max-w-[1100px]">
       <div className="flex items-center gap-3 mb-2">
         <button onClick={onExit} style={{ padding: '4px 10px', fontSize: '12px' }}>
           ← Back
@@ -141,10 +141,11 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
         <span className="text-[11px] text-text-tertiary">{campaign.name}</span>
       </div>
       <h2 className="mb-6">{encounter.name} — Setup</h2>
+      <p className="setup-summary">{encounter.combatants.length} combatants ready · Add your party and opposition, then review initiative before starting.</p>
 
       <div
         className="grid gap-6"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}
+        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}
       >
         {/* LEFT: Add party */}
         <div>
@@ -197,6 +198,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
           <input
             type="text"
             placeholder="Search SRD + custom monsters..."
+            aria-label="Search SRD and custom monsters"
             value={monster_search}
             onChange={(e) => set_monster_search(e.target.value)}
             className="w-full mb-2"
@@ -261,6 +263,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
               <input
                 type="text"
                 placeholder="Search allies..."
+                aria-label="Search allies"
                 value={ally_search}
                 onChange={(e) => set_ally_search(e.target.value)}
                 className="w-full mb-2"
@@ -369,6 +372,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
                     </span>
                     <button
                       onClick={() => removeCombatant(encounter.id, c.id)}
+                      aria-label={`Remove ${c.name}`}
                       className="text-text-tertiary"
                       style={{
                         border: 'none',
@@ -387,7 +391,7 @@ export function EncounterSetup({ encounter, campaign, onStart, onExit }: Props) 
           <button
             onClick={onStart}
             disabled={!can_start}
-            className="mt-6 w-full bg-accent-50 border-accent-300 text-accent-900 font-medium"
+            className="mt-6 w-full command-primary"
             style={{ padding: '12px', fontSize: '14px' }}
           >
             {can_start

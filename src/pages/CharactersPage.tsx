@@ -391,7 +391,8 @@ function CharacterForm({
       return;
     }
     const hp_max_n = parseInt(hp_max, 10);
-    const hp_current_n = parseInt(hp_current, 10) || hp_max_n;
+    const parsed_hp_current = parseInt(hp_current, 10);
+    const hp_current_n = Number.isNaN(parsed_hp_current) ? hp_max_n : parsed_hp_current;
     if (origin_selection.background_id) {
       const total_background_bonus = Object.values(origin_selection.background_ability_bonuses ?? {}).reduce((sum, value) => sum + (Number(value) || 0), 0);
       if (total_background_bonus !== 3) {
@@ -457,7 +458,7 @@ function CharacterForm({
 
   return (
     <div
-      className="bg-bg-primary mb-4"
+      className="character-form bg-bg-primary mb-4"
       style={{
         padding: '20px 22px',
         border: '0.5px solid var(--color-border-tertiary)',
@@ -476,7 +477,8 @@ function CharacterForm({
             width: 64,
             height: 64,
             borderRadius: '50%',
-            background: avatar ? `url(${avatar})` : '#3B82F6',
+            backgroundImage: avatar ? `url(${avatar})` : 'none',
+            backgroundColor: '#3B82F6',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             border: '2px solid #1E40AF',
@@ -683,6 +685,7 @@ function CharacterForm({
                   {ABILITY_ROLL_LABELS[ability]}
                 </div>
                 <input
+                  aria-label={`${ABILITY_ROLL_LABELS[ability]} ability score`}
                   value={value}
                   onChange={(e) => ability_setters[ability](e.target.value)}
                   className="w-full text-center"
@@ -844,10 +847,12 @@ function SpellPicker({
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search spells..."
+          aria-label="Search character spells"
           style={{ width: '100%', boxSizing: 'border-box' }}
         />
         <select
           value={levelFilter}
+          aria-label="Filter spells by level"
           onChange={(e) => onLevelFilterChange(e.target.value)}
           style={{ width: '100%', boxSizing: 'border-box' }}
         >
@@ -938,7 +943,7 @@ function MovementModeInput({
   onValueChange: (value: string) => void;
 }) {
   return (
-    <label
+    <div
       className="flex items-center gap-2 text-[11px] text-text-secondary"
       style={{
         padding: '8px',
@@ -946,6 +951,7 @@ function MovementModeInput({
         borderRadius: 'var(--border-radius-sm)',
       }}
     >
+      <label className="flex items-center gap-2">
       <input
         type="checkbox"
         checked={enabled}
@@ -955,16 +961,18 @@ function MovementModeInput({
         }}
       />
       <span className="shrink-0">{label}</span>
+      </label>
       <input
         type="number"
         min={0}
         disabled={!enabled}
+        aria-label={`${label} in feet`}
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={fallback || '30'}
         style={{ width: 76, marginLeft: 'auto' }}
       />
-    </label>
+    </div>
   );
 }
 
@@ -983,8 +991,8 @@ function FormField({
   // Strip any trailing " *" from the label so we don't double up the asterisk
   const clean_label = label.replace(/\s*\*\s*$/, '');
   return (
-    <div style={{ minWidth: 0 }}>
-      <label
+    <label style={{ display: 'block', minWidth: 0 }}>
+      <span
         style={{
           display: 'block',
           fontSize: '11px',
@@ -995,9 +1003,9 @@ function FormField({
       >
         {clean_label}
         {required && <span style={{ color: 'var(--color-text-danger)' }}> *</span>}
-      </label>
+      </span>
       {children}
-    </div>
+    </label>
   );
 }
 

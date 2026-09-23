@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useWindowWidth } from '@/hooks/useWindowWidth';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 
 interface Props {
   /** Source image (data URL or http URL) */
@@ -32,8 +34,11 @@ export function AvatarCropper({
   onSave,
   onCancel,
 }: Props) {
-  // Display canvas size (the visible cropping area). Fixed for clarity.
-  const DISPLAY_SIZE = 360; // diameter of the visible crop circle
+  // Keep crop coordinates in display pixels while fitting narrow viewports.
+  const DISPLAY_SIZE = Math.max(160, Math.min(360, useWindowWidth() - 72));
+  const dialogRef = useDialogFocus(onCancel);
+  const cropRef = useRef<HTMLDivElement>(null);
+  const previousSize = useRef(DISPLAY_SIZE);
   // Margin around the canvas in the modal
   const PADDING = 24;
 
@@ -46,6 +51,15 @@ export function AvatarCropper({
   // relative to the crop circle center (in image pixels, scaled by zoom).
   const [zoom, set_zoom] = useState(1);
   const [offset, set_offset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const ratio = DISPLAY_SIZE / previousSize.current;
+    if (ratio !== 1) {
+      set_zoom((value) => value * ratio);
+      set_offset((value) => ({ x: value.x * ratio, y: value.y * ratio }));
+      previousSize.current = DISPLAY_SIZE;
+    }
+  }, [DISPLAY_SIZE]);
 
   // Drag state
   const [dragging, set_dragging] = useState(false);
@@ -68,7 +82,7 @@ export function AvatarCropper({
       DISPLAY_SIZE / img.naturalHeight
     );
     set_zoom(fit_zoom);
-  }, []);
+  }, [DISPLAY_SIZE]);
 
   // Limit zoom range
   const MIN_ZOOM = natural
@@ -79,15 +93,23 @@ export function AvatarCropper({
     : 0.1;
   const MAX_ZOOM = 5;
 
-  // ---- Mouse handlers ----
-  const handle_wheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-    set_zoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * factor)));
-  };
+  // Wheel zoom and pointer dragging (mouse, touch, or pen).
+  useEffect(() => {
+    const crop = cropRef.current;
+    if (!crop) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+      set_zoom((value) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value * factor)));
+    };
+    crop.addEventListener('wheel', wheel, { passive: false });
+    return () => crop.removeEventListener('wheel', wheel);
+  }, [MIN_ZOOM]);
 
-  const handle_mouse_down = (e: React.MouseEvent) => {
+  const handle_pointer_down = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // left click only
+    if (!e.isPrimary) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
     set_dragging(true);
     drag_start.current = {
       x: e.clientX,
@@ -97,11 +119,12 @@ export function AvatarCropper({
     };
   };
 
-  // Use window-level mouse handlers so dragging works even when cursor leaves
+  // Use window-level pointer handlers so dragging works even when the pointer leaves
   // the canvas
   useEffect(() => {
     if (!dragging) return;
-    const move = (e: MouseEvent) => {
+    const move = (e: PointerEvent) => {
+      if (!e.isPrimary) return;
       const start = drag_start.current;
       if (!start) return;
       const dx = e.clientX - start.x;
@@ -115,11 +138,13 @@ export function AvatarCropper({
       set_dragging(false);
       drag_start.current = null;
     };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
     return () => {
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('mouseup', up);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
     };
   }, [dragging]);
 
@@ -214,16 +239,23 @@ export function AvatarCropper({
       }}
     >
       <div
+        ref={dialogRef}
+        className="avatar-crop-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
         style={{
           background: 'var(--color-background-primary)',
           borderRadius: 'var(--border-radius-md)',
           padding: PADDING,
           maxWidth: '95vw',
           maxHeight: '95vh',
+          overflowY: 'auto',
         }}
       >
         <div
-          className="flex justify-between items-center mb-3"
+          className="flex flex-wrap gap-2 justify-between items-center mb-3"
           style={{ minWidth: DISPLAY_SIZE }}
         >
           <div className="text-[14px] font-medium">{title}</div>
@@ -234,8 +266,19 @@ export function AvatarCropper({
 
         {/* The display canvas */}
         <div
-          onWheel={handle_wheel}
-          onMouseDown={handle_mouse_down}
+          ref={cropRef}
+          onPointerDown={handle_pointer_down}
+          tabIndex={0}
+          role="region"
+          aria-label="Crop position. Drag or use arrow keys to move the image."
+          onKeyDown={(event) => {
+            const moves: Record<string, [number, number]> = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] };
+            const delta = moves[event.key];
+            if (delta) {
+              event.preventDefault();
+              set_offset((value) => ({ x: value.x + delta[0], y: value.y + delta[1] }));
+            }
+          }}
           style={{
             position: 'relative',
             width: DISPLAY_SIZE,
@@ -245,6 +288,7 @@ export function AvatarCropper({
             overflow: 'hidden',
             cursor: dragging ? 'grabbing' : 'grab',
             userSelect: 'none',
+            touchAction: 'none',
           }}
         >
           {/* The image, positioned with translate */}
@@ -340,6 +384,7 @@ export function AvatarCropper({
               <span>Zoom</span>
               <input
                 type="range"
+                aria-label="Avatar zoom"
                 min={MIN_ZOOM}
                 max={MAX_ZOOM}
                 step={0.01}

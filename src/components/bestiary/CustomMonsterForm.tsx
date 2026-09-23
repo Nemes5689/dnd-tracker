@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
 import { useAlliesStore } from '@/store/alliesStore';
 import { useSRDStore } from '@/store/srdStore';
@@ -101,6 +102,7 @@ interface Props {
 }
 
 export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSaved }: Props) {
+  const dialogRef = useDialogFocus(onClose);
   const { addMonster, updateMonster } = useCustomMonsterStore();
   const { addAlly, updateAlly } = useAlliesStore();
 
@@ -490,7 +492,12 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
       // Only the X button or Cancel closes it.
     >
       <div
-        className="bg-bg-primary"
+        className="combat-dialog bg-bg-primary"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title_text}
+        tabIndex={-1}
         style={{
           width: '90%',
           maxWidth: '760px',
@@ -505,6 +512,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
           <h2>{title_text}</h2>
           <button
             onClick={onClose}
+            aria-label="Close custom creature form"
             style={{
               border: 'none',
               background: 'transparent',
@@ -530,11 +538,8 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
                     width: 64,
                     height: 64,
                     borderRadius: '50%',
-                    background: avatar
-                      ? `url(${avatar})`
-                      : ally_mode
-                      ? '#22C55E'
-                      : '#DC2626',
+                    backgroundImage: avatar ? `url(${avatar})` : 'none',
+                    backgroundColor: ally_mode ? '#22C55E' : '#DC2626',
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     border: ally_mode
@@ -898,6 +903,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
                     {ABILITY_ROLL_LABELS[ability]}
                   </div>
                   <input
+                    aria-label={`${ABILITY_ROLL_LABELS[ability]} ability score`}
                     value={val}
                     onChange={(e) => setter(e.target.value)}
                     className="w-full text-center"
@@ -947,6 +953,7 @@ export function CustomMonsterForm({ initial, edit_id, ally_mode, onClose, onSave
                       {ability.toUpperCase()} save
                     </div>
                     <input
+                      aria-label={`${ability.toUpperCase()} saving throw override`}
                       value={save_overrides[ability] ?? ''}
                       onChange={(e) =>
                         set_save_overrides((prev) => ({ ...prev, [ability]: e.target.value }))
@@ -1434,7 +1441,7 @@ function MovementModeInput({
   onValueChange: (value: string) => void;
 }) {
   return (
-    <label
+    <div
       className="flex items-center gap-2 text-[11px] text-text-secondary"
       style={{
         padding: '8px',
@@ -1442,6 +1449,7 @@ function MovementModeInput({
         borderRadius: 'var(--border-radius-sm)',
       }}
     >
+      <label className="flex items-center gap-2">
       <input
         type="checkbox"
         checked={enabled}
@@ -1451,16 +1459,18 @@ function MovementModeInput({
         }}
       />
       <span className="shrink-0">{label}</span>
+      </label>
       <input
         type="number"
         min={0}
         disabled={!enabled}
+        aria-label={`${label} in feet`}
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={fallback || '30'}
         style={{ width: 76, marginLeft: 'auto' }}
       />
-    </label>
+    </div>
   );
 }
 
@@ -1472,14 +1482,14 @@ function FieldLabel({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-      <div className="text-[11px] text-text-tertiary mb-1">{label}</div>
+    <label className="block min-w-0">
+      <span className="block text-[11px] text-text-tertiary mb-1">{label}</span>
       {children}
-    </div>
+    </label>
   );
 }
 
-function FeatureSection({
+export function FeatureSection({
   title,
   subtitle,
   features,
@@ -1555,10 +1565,12 @@ function FeatureSection({
                     handleUpdate(idx, { name: e.target.value })
                   }
                   placeholder={placeholder_name ?? 'Feature name'}
+                  aria-label={`${title} ${idx + 1} name`}
                   style={{ flex: 1, fontSize: '12px', height: '28px' }}
                 />
                 <button
                   onClick={() => handleRemove(idx)}
+                  aria-label={`Remove ${title} ${idx + 1}`}
                   title="Remove"
                   style={{
                     fontSize: '13px',
@@ -1579,6 +1591,7 @@ function FeatureSection({
                   handleUpdate(idx, { description: e.target.value })
                 }
                 placeholder={placeholder_desc ?? 'Description...'}
+                aria-label={`${title} ${idx + 1} description`}
                 style={{
                   width: '100%',
                   fontSize: '12px',

@@ -26,13 +26,13 @@ export default {
           info: 'var(--color-border-info)',
           danger: 'var(--color-border-danger)',
         },
-        // Accent (purple from mockups)
+        // Restrained brass for secondary actions and selected reference items.
         accent: {
-          50: '#EEEDFE',
-          200: '#CECBF6',
-          300: '#AFA9EC',
-          500: '#534AB7',
-          900: '#26215C',
+          50: '#eee4cc',
+          200: '#d5c39b',
+          300: '#a08a58',
+          500: '#7f6634',
+          900: '#5a461e',
         },
       },
       fontFamily: {

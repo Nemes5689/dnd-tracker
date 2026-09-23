@@ -73,7 +73,7 @@ export function OriginsPage() {
 
       {showForm && <OriginForm tab={tab} initial={editing as any} onSubmit={saveItem} onCancel={() => { setShowForm(false); setEditing(null); }} />}
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-wide) minmax(0, 1fr)' }}>
+      <div className="master-detail">
         <aside className="flex flex-col gap-2" style={{ border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)', background: 'var(--color-background-secondary)', padding: 12, alignSelf: 'start', position: 'sticky', top: 16, maxHeight: 'calc(100vh - 40px)' }}>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${tab}...`} />
           <select value={source} onChange={(e) => setSource(e.target.value as SourceFilter)}>

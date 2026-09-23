@@ -42,6 +42,10 @@ export function TurnOrderBar({
 
   return (
     <div
+      className={is_proj ? undefined : 'turn-order-strip'}
+      tabIndex={is_proj ? undefined : 0}
+      role="region"
+      aria-label="Turn order"
       style={{
         display: 'flex',
         alignItems: 'center',

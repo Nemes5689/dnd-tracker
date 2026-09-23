@@ -22,6 +22,7 @@ export function Sidebar() {
   const activeCampaign = campaigns.find((c) => c.id === active_campaign_id);
 
   const [open, setOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,10 +36,25 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className="bg-bg-secondary border-r border-border-tertiary p-3 flex flex-col gap-1 min-w-[200px] w-[200px]">
+    <aside className="app-sidebar" onKeyDown={(event) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        setNavigationOpen(false);
+      }
+    }}>
+      <div className="sidebar-brand">
+        <Link to="/" className="brand-link" onClick={() => setNavigationOpen(false)}>
+          <span className="brand-mark" aria-hidden="true">✦</span>
+          <span>Campaign journal<small>D&D Combat Tracker</small></span>
+        </Link>
+        <button className="navigation-toggle" aria-expanded={navigationOpen} aria-controls="primary-navigation" onClick={() => setNavigationOpen(!navigationOpen)}>
+          {navigationOpen ? 'Close' : 'Menu'}
+        </button>
+      </div>
       {/* Campaign switcher */}
       <div className="relative" ref={ref}>
         <button
+          aria-expanded={open}
           onClick={() => setOpen(!open)}
           className="w-full text-left bg-bg-primary mb-4"
           style={{
@@ -116,13 +132,15 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
+      <nav id="primary-navigation" aria-label="Main navigation" className={`sidebar-navigation ${navigationOpen ? 'is-open' : ''}`}>
       {navItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
           end={item.to === '/'}
+          onClick={() => setNavigationOpen(false)}
           className={({ isActive }) =>
-            `block text-[13px] no-underline ${
+            `navigation-link block text-[13px] no-underline ${
               isActive ? 'font-medium' : 'text-text-secondary'
             }`
           }
@@ -142,6 +160,7 @@ export function Sidebar() {
       <div className="mt-auto pt-4 border-t border-border-tertiary">
         <Link
           to="/settings"
+          onClick={() => setNavigationOpen(false)}
           className="block text-[13px] text-text-secondary no-underline"
           style={{
             padding: '8px 10px',
@@ -151,6 +170,7 @@ export function Sidebar() {
           Settings
         </Link>
       </div>
+      </nav>
     </aside>
   );
 }

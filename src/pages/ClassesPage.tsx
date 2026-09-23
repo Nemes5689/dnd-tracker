@@ -119,7 +119,7 @@ export function ClassesPage() {
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: '260px minmax(0, 1fr)' }}>
+      <div className="master-detail master-detail-compact">
         <aside
           className="flex flex-col gap-2"
           style={{
@@ -434,7 +434,7 @@ export function ClassesPage() {
               Először válaszd ki, melyik classhoz tartozik. A képességek szintjei automatikusan a kiválasztott class normál subclass szintjeire vannak korlátozva. Egy szinthez több képességet is felvehetsz a <strong>+ Add another feature at this level</strong> gombbal.
             </p>
 
-            <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: 'minmax(180px, 1fr) minmax(220px, 2fr)' }}>
+            <div className="grid gap-3 mb-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))' }}>
               <div>
                 <div className="text-[10px] text-text-tertiary mb-1">Parent class</div>
                 <select value={new_class_id} onChange={(event) => changeNewClass(event.target.value)} style={{ width: '100%' }}>

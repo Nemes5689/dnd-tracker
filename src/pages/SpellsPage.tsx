@@ -103,7 +103,7 @@ export function SpellsPage() {
         />
       )}
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: 'var(--master-wide) minmax(0, 1fr)' }}>
+      <div className="master-detail">
         <aside
           className="flex flex-col gap-2"
           style={{

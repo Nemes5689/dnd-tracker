@@ -44,13 +44,17 @@ export function DashboardPage() {
       {/* Header: campaign name + description */}
       <CampaignHeader campaign={active} onUpdate={update} />
 
+      <ActiveEncounterSpotlight campaign={active} />
+
       {/* Global search: find any named entity and see all its connections */}
-      <GlobalSearchModule campaign={active} />
+      <details className="campaign-tools">
+        <summary>Search campaign & explore connections</summary>
+        <GlobalSearchModule campaign={active} />
+      </details>
 
       {/* Top row: party + calendar */}
       <div
-        className="grid gap-4 mb-4"
-        style={{ gridTemplateColumns: '1fr 1fr' }}
+        className="dashboard-grid"
       >
         <PartyModule campaign={active} />
         <CalendarModule campaign={active} onUpdate={update} />
@@ -70,8 +74,7 @@ export function DashboardPage() {
 
       {/* Two-column: plot threads + quests */}
       <div
-        className="grid gap-4 mb-4"
-        style={{ gridTemplateColumns: '1fr 1fr' }}
+        className="dashboard-grid"
       >
         <PlotThreadsModule campaign={active} onUpdate={update} />
         <QuestsModule campaign={active} onUpdate={update} />
@@ -79,13 +82,30 @@ export function DashboardPage() {
 
       {/* Two-column: NPCs + locations */}
       <div
-        className="grid gap-4 mb-4"
-        style={{ gridTemplateColumns: '1fr 1fr' }}
+        className="dashboard-grid"
       >
         <NPCsModule campaign={active} onUpdate={update} />
         <LocationsModule campaign={active} onUpdate={update} />
       </div>
     </div>
+  );
+}
+
+function ActiveEncounterSpotlight({ campaign }: { campaign: Campaign }) {
+  const encounters = useEncounterStore((state) => state.encounters);
+  const navigate = useNavigate();
+  const encounter = encounters.find((item) => item.campaign_id === campaign.id && item.status === 'active');
+  if (!encounter) return null;
+  const current = [...encounter.combatants].sort((a, b) => b.initiative - a.initiative)[encounter.turn_index];
+  return (
+    <section className="encounter-spotlight" aria-label="Active encounter">
+      <div>
+        <div className="command-eyebrow">At the table · Active encounter</div>
+        <h2>{encounter.name}</h2>
+        <p>Round {encounter.round} · {encounter.combatants.length} combatants{current ? ` · Current turn: ${current.name}` : ''}</p>
+      </div>
+      <button className="command-primary" onClick={() => navigate(`/combat?encounter=${encodeURIComponent(encounter.id)}`)}>Continue combat →</button>
+    </section>
   );
 }
 
@@ -210,7 +230,7 @@ function PartyModule({ campaign }: { campaign: Campaign }) {
             return (
               <div
                 key={c.id}
-                className="flex items-center gap-3"
+                className="dashboard-party-row flex items-center gap-3"
                 style={{
                   padding: '8px 10px',
                   background: 'var(--color-background-secondary)',
@@ -655,7 +675,7 @@ function NextSessionModule({
           </div>
         }
       >
-        <div className="grid gap-2 mb-3" style={{ gridTemplateColumns: '160px 1fr' }}>
+        <div className="responsive-form-grid mb-3">
           <FieldLabel label="Planned date">
             <input
               type="date"
@@ -1438,8 +1458,7 @@ function SessionForm({
         {initial ? `Edit session #${initial.session_number}` : 'New session'}
       </div>
       <div
-        className="grid gap-2 mb-2"
-        style={{ gridTemplateColumns: '80px 1fr 1fr' }}
+        className="responsive-form-grid mb-2"
       >
         <FieldLabel label="Session #">
           <input
@@ -3394,7 +3413,7 @@ function Module({
 }) {
   return (
     <div
-      className="bg-bg-primary mb-4"
+      className="dashboard-module bg-bg-primary mb-4"
       style={{
         padding: '14px 16px',
         border: '0.5px solid var(--color-border-tertiary)',
@@ -3451,8 +3470,8 @@ function FieldLabel({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ minWidth: 0 }}>
-      <label
+    <label style={{ display: 'block', minWidth: 0 }}>
+      <span
         style={{
           display: 'block',
           fontSize: '11px',
@@ -3462,9 +3481,9 @@ function FieldLabel({
         }}
       >
         {label}
-      </label>
+      </span>
       {children}
-    </div>
+    </label>
   );
 }
 
@@ -3664,8 +3683,7 @@ function GlobalSearchModule({ campaign }: { campaign: Campaign }) {
       </div>
 
       <div
-        className="grid gap-3"
-        style={{ gridTemplateColumns: 'minmax(220px, 280px) minmax(0, 1fr)' }}
+        className="master-detail master-detail-compact"
       >
         {/* Left: filtered results list */}
         <div

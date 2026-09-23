@@ -3,6 +3,7 @@ import { normalizeAlly, useAlliesStore } from '@/store/alliesStore';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
 import { CustomMonsterForm } from '@/components/bestiary/CustomMonsterForm';
+import { StatBlockImporter } from '@/components/bestiary/StatBlockImporter';
 import { Lightbox } from '@/components/common/Lightbox';
 import { ClassFeaturesPanel } from '@/components/characters/ClassFeaturesPanel';
 import { OriginFeaturesPanel, formatOriginSummary } from '@/components/characters/OriginEditor';
@@ -26,6 +27,7 @@ export function AlliesPage() {
   const [search, set_search] = useState('');
   const [selected, set_selected] = useState<Monster | null>(null);
   const [show_form, set_show_form] = useState(false);
+  const [show_importer, set_show_importer] = useState(false);
   const [edit_id, set_edit_id] = useState<string | null>(null);
   const [duplicate_source, set_duplicate_source] = useState<Monster | null>(null);
 
@@ -94,11 +96,11 @@ export function AlliesPage() {
 
   return (
     <>
-      <div className="flex h-full" style={{ minHeight: 'calc(100vh - 0px)' }}>
+      <div className="master-detail master-detail-flush">
         {/* Left: list */}
         <div
           style={{
-            width: 320,
+            minWidth: 0,
             borderRight: '0.5px solid var(--color-border-tertiary)',
             display: 'flex',
             flexDirection: 'column',
@@ -125,6 +127,7 @@ export function AlliesPage() {
                 ↩ From bestiary
               </button>
             </div>
+            <button className="w-full mb-2" style={{ minHeight: 44 }} onClick={() => set_show_importer(true)}>Paste stat block</button>
             <input
               placeholder="Search..."
               value={search}
@@ -227,6 +230,9 @@ export function AlliesPage() {
         </div>
       </div>
 
+      {show_importer && <StatBlockImporter destination="ally" onClose={() => set_show_importer(false)}
+        onSaved={id => { set_search(''); set_selected(useAlliesStore.getState().allies.find(a => a.id === id) ?? null); }}
+        renderPreview={ally => <AllyDetail ally={ally} readOnly onEdit={() => {}} onDuplicate={() => {}} onDelete={() => {}} />} />}
       {show_form && (
         <CustomMonsterForm
           initial={duplicate_source ?? undefined}
@@ -349,11 +355,13 @@ export function AlliesPage() {
 
 function AllyDetail({
   ally,
+  readOnly = false,
   onEdit,
   onDuplicate,
   onDelete,
 }: {
   ally: Monster;
+  readOnly?: boolean;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -402,7 +410,7 @@ function AllyDetail({
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" hidden={readOnly} style={readOnly ? { display: 'none' } : undefined}>
           <button
             onClick={onEdit}
             className="bg-accent-50 border-accent-300 text-accent-900"

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useId } from 'react';
 import { useEncounterStore } from '@/store/encounterStore';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
@@ -43,6 +43,7 @@ export function CombatView({ encounter, onExit }: Props) {
   // Layout breakpoint: md (>=1280px) shows the 3-column desktop layout;
   // sm (1024-1279px) collapses the right tabs panel into a top tab bar.
   const is_desktop = useIsAtLeast('md');
+  const detail_ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loaded) load();
@@ -120,6 +121,16 @@ export function CombatView({ encounter, onExit }: Props) {
   // their stats in the active panel instead of the actual active combatant.
   // null = no preview, show real active. Reset to null on turn change.
   const [preview_id, set_preview_id] = useState<string | null>(null);
+  const previous_preview = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (previous_preview.current === preview_id) return;
+    previous_preview.current = preview_id;
+    if (window.innerWidth < 1024) {
+      detail_ref.current?.focus({ preventScroll: true });
+      detail_ref.current?.scrollIntoView({ block: 'start' });
+    }
+  }, [preview_id]);
 
   // Reset preview when the active combatant changes (e.g. End turn happens)
   useEffect(() => {
@@ -156,16 +167,16 @@ export function CombatView({ encounter, onExit }: Props) {
       : null;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="combat-view h-full flex flex-col">
       {/* Header */}
       <div
-        className="flex justify-between items-center bg-bg-primary flex-wrap gap-y-2"
+        className="combat-header flex justify-between items-center bg-bg-primary flex-wrap gap-3"
         style={{
           padding: '12px 16px',
           borderBottom: '0.5px solid var(--color-border-tertiary)',
         }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onExit}
             style={{ padding: '4px 10px', fontSize: '12px' }}
@@ -173,13 +184,18 @@ export function CombatView({ encounter, onExit }: Props) {
             ← Exit
           </button>
           <div>
-            <div className="text-[14px] font-medium">{encounter.name}</div>
-            <div className="text-[11px] text-text-tertiary">
+            <div className="command-eyebrow">Encounter in progress</div>
+            <div className="encounter-title">{encounter.name}</div>
+            <div className="text-[11px] text-text-tertiary" role="status" aria-live="polite" aria-atomic="true">
               Round {encounter.round} · {encounter.combatants.length} combatants
+              {active && <span className="sr-only"> · Current turn: {active.name}</span>}
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="combat-actions flex flex-wrap gap-2">
+          <details className="encounter-tools">
+            <summary>Combatants & map</summary>
+            <div className="flex flex-wrap gap-2">
           <button
             onClick={() => set_show_add_combatant('monster')}
             style={{ padding: '8px 14px', fontSize: '13px' }}
@@ -245,9 +261,11 @@ export function CombatView({ encounter, onExit }: Props) {
               </span>
             )}
           </button>
+            </div>
+          </details>
           <button
             onClick={() => endTurn(encounter.id)}
-            className="bg-accent-50 border-accent-300 text-accent-900 font-medium"
+            className="command-primary"
             style={{ padding: '8px 16px', fontSize: '13px' }}
           >
             End turn →
@@ -276,11 +294,156 @@ export function CombatView({ encounter, onExit }: Props) {
         </div>
       </div>
 
-      {/* Right-panel tabs: shown above the 2-column main area on sm screens,
-          and as a 3rd column on md+ screens. Defined once, rendered twice. */}
+
+      <div
+        className="combat-columns flex-1 grid overflow-hidden"
+        style={{
+          gridTemplateColumns: is_desktop ? '240px minmax(0, 1fr) 280px' : '220px minmax(0, 1fr)',
+        }}
+      >
+        {/* COL 2: Combatant detail (active OR previewed) */}
+        <div ref={detail_ref} tabIndex={-1} aria-label="Combatant details" className="combat-detail bg-bg-primary overflow-y-auto" style={{ padding: '20px' }}>
+          {viewed ? (
+            <>
+              {is_previewing && (
+                <div
+                  className="flex justify-between items-center mb-3"
+                  style={{
+                    padding: '8px 12px',
+                    background: 'var(--color-background-info)',
+                    border: '0.5px solid var(--color-border-info)',
+                    borderRadius: 'var(--border-radius-md)',
+                    color: 'var(--color-text-info)',
+                  }}
+                >
+                  <span className="text-[12px]">
+                    🔍 <strong>Preview:</strong> {viewed.name}
+                    <span className="opacity-70 ml-2">(not their turn)</span>
+                  </span>
+                  <button
+                    onClick={() => set_preview_id(null)}
+                    style={{
+                      fontSize: '11px',
+                      padding: '4px 10px',
+                      background: 'var(--color-background-primary)',
+                    }}
+                  >
+                    ← Back to active turn
+                  </button>
+                </div>
+              )}
+              <ActiveCombatantPanel
+                key={viewed.id}
+                is_active={!is_previewing}
+                encounter_id={encounter.id}
+                combatant={viewed}
+                monster={source_monster}
+                character={source_character}
+                spells={spells}
+                onDamage={(amount) =>
+                  damageCombatant(encounter.id, viewed.id, amount)
+                }
+                onHeal={(amount) => healCombatant(encounter.id, viewed.id, amount)}
+                onRemove={() => {
+                  if (confirm(`Remove ${viewed.name} from combat?`)) {
+                    removeCombatant(encounter.id, viewed.id);
+                    if (preview_id === viewed.id) set_preview_id(null);
+                  }
+                }}
+                onAddCondition={() => set_show_add_condition(true)}
+                onRemoveCondition={(condition_id) =>
+                  removeConditionFromCombatant(encounter.id, viewed.id, condition_id)
+                }
+                onSetInitiative={(new_value) =>
+                  setInitiative(encounter.id, viewed.id, new_value)
+                }
+                onUpdateMovementOverride={(override) =>
+                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: override })
+                }
+                onClearMovementOverride={() =>
+                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: undefined })
+                }
+              />
+            </>
+          ) : (
+            <div className="text-text-tertiary">No active combatant.</div>
+          )}
+        </div>
+
+        <div className="combat-initiative bg-bg-primary overflow-y-auto" style={{ padding: '16px 12px' }}>
+          <div className="flex justify-between items-center mb-3">
+            <h3>Initiative order</h3>
+            <div className="text-[11px] text-text-tertiary">R{encounter.round}</div>
+          </div>
+          <div className="text-[11px] text-text-tertiary mb-2 px-1">Select a name to inspect · ± for damage / heal</div>
+          {sorted.map((c, i) => (
+            <CombatantInitRow
+              key={c.id}
+              combatant={c}
+              is_active={i === encounter.turn_index}
+              is_previewed={preview_id === c.id}
+              onClick={() => set_popup_combatant_id(popup_combatant_id === c.id ? null : c.id)}
+              onPreview={() => {
+                set_preview_id(preview_id === c.id || (i === encounter.turn_index && !preview_id) ? null : c.id);
+              }}
+              expanded={popup_combatant_id === c.id}
+              onApplyDamage={(amount) => {
+                damageCombatant(encounter.id, c.id, amount);
+                set_popup_combatant_id(null);
+              }}
+              onApplyHeal={(amount) => {
+                healCombatant(encounter.id, c.id, amount);
+                set_popup_combatant_id(null);
+              }}
+              onSetInitiative={(value) => setInitiative(encounter.id, c.id, value)}
+            />
+          ))}
+        </div>
+
+        {/* COL 3: Secondary tools follow the combatant and initiative in keyboard order. */}
+        {is_desktop && (
+          <div
+            className="bg-bg-secondary overflow-hidden flex flex-col"
+            style={{ padding: '16px 14px' }}
+          >
+          <div
+            className="flex gap-1 mb-3"
+            style={{ borderBottom: '0.5px solid var(--color-border-tertiary)' }}
+          >
+            <TabButton active={active_tab === 'ai'} onClick={() => set_active_tab('ai')}>
+              🤖 AI
+            </TabButton>
+            <TabButton active={active_tab === 'log'} onClick={() => set_active_tab('log')}>
+              Log
+            </TabButton>
+            <TabButton active={active_tab === 'notes'} onClick={() => set_active_tab('notes')}>
+              Notes
+            </TabButton>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {active_tab === 'ai' && active ? (
+              <AITacticsTab
+                monster={source_monster}
+                combatant={active}
+                encounter={encounter}
+              />
+            ) : active_tab === 'log' ? (
+              <LogTab encounter={encounter} />
+            ) : (
+              <div className="text-[12px] text-text-tertiary italic">
+                Combat notes coming soon.
+              </div>
+            )}
+          </div>
+          </div>
+        )}
+      </div>
+
+      {/* Secondary tools follow the combat panels in both visual and keyboard order. */}
       {!is_desktop && (
         <div
-          className="bg-bg-secondary overflow-hidden flex flex-col shrink-0"
+          className="combat-secondary bg-bg-secondary overflow-hidden flex flex-col shrink-0"
           style={{
             padding: '10px 14px 0 14px',
             maxHeight: '30vh',
@@ -324,172 +487,6 @@ export function CombatView({ encounter, onExit }: Props) {
           </div>
         </div>
       )}
-
-      <div
-        className="flex-1 grid overflow-hidden"
-        style={{
-          gridTemplateColumns: is_desktop ? '260px 1fr 320px' : '240px 1fr',
-        }}
-      >
-        {/* COL 1: Initiative list with click-to-damage */}
-        <div
-          className="bg-bg-primary overflow-y-auto"
-          style={{
-            padding: '16px 12px',
-            borderRight: '0.5px solid var(--color-border-tertiary)',
-          }}
-        >
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-[13px] font-medium">Initiative</div>
-            <div className="text-[11px] text-text-tertiary">R{encounter.round}</div>
-          </div>
-
-          <div className="text-[11px] text-text-tertiary mb-2 px-1">
-            Click any combatant for damage / heal
-          </div>
-
-          {sorted.map((c, i) => (
-            <CombatantInitRow
-              key={c.id}
-              combatant={c}
-              is_active={i === encounter.turn_index}
-              is_previewed={preview_id === c.id}
-              onClick={() =>
-                set_popup_combatant_id(
-                  popup_combatant_id === c.id ? null : c.id
-                )
-              }
-              onPreview={() => {
-                // Toggle: if already previewing this one (or it's the active),
-                // clear; otherwise set preview
-                if (preview_id === c.id || (i === encounter.turn_index && !preview_id)) {
-                  set_preview_id(null);
-                } else {
-                  set_preview_id(c.id);
-                }
-              }}
-              expanded={popup_combatant_id === c.id}
-              onApplyDamage={(amount) => {
-                damageCombatant(encounter.id, c.id, amount);
-                set_popup_combatant_id(null);
-              }}
-              onApplyHeal={(amount) => {
-                healCombatant(encounter.id, c.id, amount);
-                set_popup_combatant_id(null);
-              }}
-              onSetInitiative={(new_value) =>
-                setInitiative(encounter.id, c.id, new_value)
-              }
-            />
-          ))}
-        </div>
-
-        {/* COL 2: Combatant detail (active OR previewed) */}
-        <div className="bg-bg-primary overflow-y-auto" style={{ padding: '20px' }}>
-          {viewed ? (
-            <>
-              {is_previewing && (
-                <div
-                  className="flex justify-between items-center mb-3"
-                  style={{
-                    padding: '8px 12px',
-                    background: 'var(--color-background-info)',
-                    border: '0.5px solid var(--color-border-info)',
-                    borderRadius: 'var(--border-radius-md)',
-                    color: 'var(--color-text-info)',
-                  }}
-                >
-                  <span className="text-[12px]">
-                    🔍 <strong>Preview:</strong> {viewed.name}
-                    <span className="opacity-70 ml-2">(not their turn)</span>
-                  </span>
-                  <button
-                    onClick={() => set_preview_id(null)}
-                    style={{
-                      fontSize: '11px',
-                      padding: '4px 10px',
-                      background: 'var(--color-background-primary)',
-                    }}
-                  >
-                    ← Back to active turn
-                  </button>
-                </div>
-              )}
-              <ActiveCombatantPanel
-                encounter_id={encounter.id}
-                combatant={viewed}
-                monster={source_monster}
-                character={source_character}
-                spells={spells}
-                onDamage={(amount) =>
-                  damageCombatant(encounter.id, viewed.id, amount)
-                }
-                onHeal={(amount) => healCombatant(encounter.id, viewed.id, amount)}
-                onRemove={() => {
-                  if (confirm(`Remove ${viewed.name} from combat?`)) {
-                    removeCombatant(encounter.id, viewed.id);
-                    if (preview_id === viewed.id) set_preview_id(null);
-                  }
-                }}
-                onAddCondition={() => set_show_add_condition(true)}
-                onRemoveCondition={(condition_id) =>
-                  removeConditionFromCombatant(encounter.id, viewed.id, condition_id)
-                }
-                onSetInitiative={(new_value) =>
-                  setInitiative(encounter.id, viewed.id, new_value)
-                }
-                onUpdateMovementOverride={(override) =>
-                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: override })
-                }
-                onClearMovementOverride={() =>
-                  updateCombatant(encounter.id, viewed.id, { movement_speed_override: undefined })
-                }
-              />
-            </>
-          ) : (
-            <div className="text-text-tertiary">No active combatant.</div>
-          )}
-        </div>
-
-        {/* COL 3: Tabs (desktop only — on smaller screens these tabs are at the top) */}
-        {is_desktop && (
-          <div
-            className="bg-bg-secondary overflow-hidden flex flex-col"
-            style={{ padding: '16px 14px' }}
-          >
-          <div
-            className="flex gap-1 mb-3"
-            style={{ borderBottom: '0.5px solid var(--color-border-tertiary)' }}
-          >
-            <TabButton active={active_tab === 'ai'} onClick={() => set_active_tab('ai')}>
-              🤖 AI
-            </TabButton>
-            <TabButton active={active_tab === 'log'} onClick={() => set_active_tab('log')}>
-              Log
-            </TabButton>
-            <TabButton active={active_tab === 'notes'} onClick={() => set_active_tab('notes')}>
-              Notes
-            </TabButton>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {active_tab === 'ai' && active ? (
-              <AITacticsTab
-                monster={source_monster}
-                combatant={active}
-                encounter={encounter}
-              />
-            ) : active_tab === 'log' ? (
-              <LogTab encounter={encounter} />
-            ) : (
-              <div className="text-[12px] text-text-tertiary italic">
-                Combat notes coming soon.
-              </div>
-            )}
-          </div>
-          </div>
-        )}
-      </div>
 
       {show_add_combatant && (
         <AddMonsterModal
@@ -543,7 +540,7 @@ function CombatantInitRow({
   const [init_input, set_init_input] = useState(String(combatant.initiative));
 
   const is_pc = combatant.is_player;
-  const hp_pct = (combatant.hp_current / combatant.hp_max) * 100;
+  const hp_pct = Math.min(100, Math.max(0, (combatant.hp_current / Math.max(1, combatant.hp_max)) * 100));
   const hp_color =
     combatant.hp_current === 0
       ? '#888'
@@ -554,32 +551,36 @@ function CombatantInitRow({
       : '#A03333';
 
   return (
-    <div className="mb-1">
+    <div data-side={is_pc ? 'player' : combatant.is_ally || combatant.source_type === 'ally' ? 'ally' : 'enemy'} className={`initiative-entry mb-1 ${is_active ? 'is-active' : ''} ${is_previewed && !is_active ? 'is-previewed' : ''}`}>
       <div
-        onClick={onPreview}
         className="w-full text-left"
         style={{
           padding: '10px',
           borderRadius: 'var(--border-radius-md)',
-          background: is_active
-            ? '#EEEDFE'
-            : is_previewed
-            ? 'rgba(83, 74, 183, 0.08)'
-            : 'transparent',
+          background: is_active ? 'var(--color-background-danger)' : is_previewed ? 'var(--color-background-info)' : 'transparent',
           borderLeft: is_active
-            ? '3px solid #534AB7'
+            ? '3px solid #853b3e'
             : is_previewed
-            ? '3px solid rgba(83, 74, 183, 0.5)'
+            ? '3px solid #776032'
             : '3px solid transparent',
-          cursor: 'pointer',
         }}
       >
-        <div className="flex justify-between items-center mb-1">
-          <span
-            className="text-[12px]"
+        <div className="combatant-markers">
+          <span>{is_pc ? 'Player character' : combatant.is_ally || combatant.source_type === 'ally' ? 'Ally' : 'Enemy'}</span>
+          {is_active && <strong>Current turn</strong>}
+          {is_previewed && !is_active && <strong>Selected</strong>}
+          {!is_pc && <span>{combatant.hp_current <= 0 ? (combatant.is_ally || combatant.source_type === 'ally' ? 'Down · 0 HP' : 'Defeated · 0 HP') : combatant.hp_current < combatant.hp_max ? 'Damaged' : 'Full health'}</span>}
+        </div>
+        <div className="initiative-name-row flex justify-between items-center mb-1">
+          <button
+            onClick={onPreview}
+            aria-label={`View ${combatant.name}`}
+            aria-pressed={is_active || is_previewed}
+            className="text-[12px] text-left min-w-0"
             style={{
+              background: 'transparent', border: 0, padding: 0,
               fontWeight: is_active ? 500 : 400,
-              color: is_active ? '#26215C' : undefined,
+              color: is_active ? 'var(--color-text-danger)' : undefined,
             }}
           >
             {is_pc && '🛡 '}
@@ -587,9 +588,19 @@ function CombatantInitRow({
             {is_previewed && !is_active && (
               <span className="text-text-tertiary ml-1 text-[10px]">🔍</span>
             )}
-          </span>
+          </button>
           <div className="flex items-center gap-1">
             <span
+              role={editing_init ? undefined : 'button'}
+              tabIndex={editing_init ? undefined : 0}
+              aria-label={`Change initiative for ${combatant.name}`}
+              onKeyDown={(event) => {
+                if (!editing_init && (event.key === 'Enter' || event.key === ' ')) {
+                  event.preventDefault();
+                  set_init_input(String(combatant.initiative));
+                  set_editing_init(true);
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 set_init_input(String(combatant.initiative));
@@ -598,7 +609,7 @@ function CombatantInitRow({
               title="Click to change initiative"
               className="text-[11px]"
               style={{
-                color: is_active ? '#534AB7' : 'var(--color-text-tertiary)',
+                color: is_active ? 'var(--color-text-danger)' : 'var(--color-text-secondary)',
                 cursor: 'pointer',
                 padding: '2px 6px',
                 borderRadius: 4,
@@ -612,6 +623,7 @@ function CombatantInitRow({
               {editing_init ? (
                 <input
                 type="number"
+                aria-label={`Initiative for ${combatant.name}`}
                 autoFocus
                 value={init_input}
                 onChange={(e) => set_init_input(e.target.value)}
@@ -642,7 +654,7 @@ function CombatantInitRow({
                   fontSize: 11,
                   textAlign: 'center',
                   padding: '0 4px',
-                  border: '1px solid #534AB7',
+                  border: '1px solid var(--color-border-info)',
                   borderRadius: 3,
                 }}
               />
@@ -656,6 +668,8 @@ function CombatantInitRow({
                 onClick();
               }}
               title={expanded ? 'Close damage/heal' : 'Apply damage or heal'}
+              aria-label={`${expanded ? 'Close' : 'Open'} damage and healing for ${combatant.name}`}
+              aria-expanded={expanded}
               style={{
                 fontSize: '11px',
                 padding: '2px 6px',
@@ -700,7 +714,7 @@ function CombatantInitRow({
               />
             </div>
             <span className="text-[10px] text-text-tertiary">
-              {combatant.hp_current}/{combatant.hp_max}
+              HP {combatant.hp_current}/{combatant.hp_max} · AC {combatant.ac}
             </span>
           </div>
         )}
@@ -747,6 +761,7 @@ function CombatantInitRow({
             <input
               type="number"
               placeholder="Damage"
+              aria-label={`Damage amount for ${combatant.name}`}
               value={dmg_input}
               onChange={(e) => set_dmg_input(e.target.value)}
               onKeyDown={(e) => {
@@ -792,6 +807,7 @@ function CombatantInitRow({
             <input
               type="number"
               placeholder="Heal"
+              aria-label={`Healing amount for ${combatant.name}`}
               value={heal_input}
               onChange={(e) => set_heal_input(e.target.value)}
               onKeyDown={(e) => {
@@ -987,6 +1003,7 @@ function MovementSpeedPanel({
  * For PCs: only abilities/weapons shown, HP/AC hidden.
  */
 function ActiveCombatantPanel({
+  is_active,
   encounter_id,
   combatant,
   monster,
@@ -1001,6 +1018,7 @@ function ActiveCombatantPanel({
   onUpdateMovementOverride,
   onClearMovementOverride,
 }: {
+  is_active: boolean;
   encounter_id: string;
   combatant: Combatant;
   monster: Monster | null;
@@ -1019,6 +1037,7 @@ function ActiveCombatantPanel({
   const [heal_input, set_heal_input] = useState('');
 
   const is_pc = combatant.is_player;
+  const show_reference = useIsAtLeast('sm');
 
   const handleDamage = () => {
     const n = parseInt(damage_input, 10);
@@ -1037,10 +1056,10 @@ function ActiveCombatantPanel({
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-start mb-4">
+    <div className="combatant-sheet">
+      <div className="combatant-heading flex justify-between items-start mb-4">
         <div>
-          <div className="text-[11px] text-text-tertiary mb-1">Active turn</div>
+          <div className="command-eyebrow">{is_active ? 'Active turn' : 'Combatant preview'} · {is_pc ? 'Player character' : combatant.is_ally || combatant.source_type === 'ally' ? 'Ally' : 'Enemy'}</div>
           <h2>
             {is_pc && '🛡 '}
             {combatant.name}
@@ -1075,7 +1094,7 @@ function ActiveCombatantPanel({
       {/* Stat row — only for monsters */}
       {!is_pc && (
         <div
-          className="grid gap-2 mb-4"
+          className="combat-vitals grid gap-2 mb-4"
           style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
         >
           <div
@@ -1150,11 +1169,12 @@ function ActiveCombatantPanel({
             ? 'Player damage/heal (tracked silently — bar position only)'
             : 'Apply to this monster'}
         </div>
-        <div className="flex gap-2">
+        <div className="combat-health-controls">
           <div className="flex gap-1 flex-1">
             <input
               type="number"
               placeholder="Damage"
+              aria-label="Damage amount"
               value={damage_input}
               onChange={(e) => set_damage_input(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleDamage()}
@@ -1177,6 +1197,7 @@ function ActiveCombatantPanel({
             <input
               type="number"
               placeholder="Heal"
+              aria-label="Healing amount"
               value={heal_input}
               onChange={(e) => set_heal_input(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleHeal()}
@@ -1226,6 +1247,8 @@ function ActiveCombatantPanel({
         )}
       </div>
 
+      <details className="combat-reference" open={show_reference}>
+        <summary>Actions, abilities & reference</summary>
       {/* Monster reference */}
       {monster && (
         <div className="mt-6">
@@ -1287,6 +1310,7 @@ function ActiveCombatantPanel({
           )}
         </>
       )}
+      </details>
     </div>
   );
 }
@@ -1428,7 +1452,9 @@ function EditableInit({
 
   if (!editing) {
     return (
-      <div
+      <button
+        type="button"
+        aria-label="Change initiative"
         onClick={() => {
           set_draft(String(value));
           set_editing(true);
@@ -1443,12 +1469,12 @@ function EditableInit({
           display: 'inline-block',
         }}
         onMouseEnter={(e) =>
-          (e.currentTarget.style.background = 'rgba(83, 74, 183, 0.1)')
+          (e.currentTarget.style.background = 'var(--color-background-info)')
         }
         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
       >
         {value}
-      </div>
+      </button>
     );
   }
 
@@ -1464,6 +1490,7 @@ function EditableInit({
     <input
       type="number"
       autoFocus
+      aria-label="Initiative"
       value={draft}
       onChange={(e) => set_draft(e.target.value)}
       onBlur={submit}
@@ -1477,7 +1504,7 @@ function EditableInit({
         fontSize: 16,
         textAlign: 'center',
         padding: '0 4px',
-        border: '1.5px solid #534AB7',
+        border: '1.5px solid var(--color-border-info)',
         borderRadius: 4,
         fontWeight: 500,
       }}
@@ -1495,6 +1522,8 @@ function ConditionChip({
   const { conditions } = useSRDStore();
   const cond = conditions.find((c) => c.id === applied.condition_id);
   const [show_tooltip, set_show_tooltip] = useState(false);
+  const [description_pinned, set_description_pinned] = useState(false);
+  const tooltip_id = useId();
 
   // Build duration text
   let duration_label = '';
@@ -1514,7 +1543,8 @@ function ConditionChip({
     : display_name;
 
   return (
-    <span
+    <div
+      className="condition-chip"
       style={{
         position: 'relative',
         display: 'inline-flex',
@@ -1522,6 +1552,12 @@ function ConditionChip({
       }}
       onMouseEnter={() => set_show_tooltip(true)}
       onMouseLeave={() => set_show_tooltip(false)}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          set_show_tooltip(false);
+          set_description_pinned(false);
+        }
+      }}
     >
       <span
         style={{
@@ -1535,7 +1571,7 @@ function ConditionChip({
           fontSize: '11px',
         }}
       >
-        <span>{display_with_level}</span>
+        <button type="button" className="condition-description" aria-expanded={show_tooltip || description_pinned} aria-controls={tooltip_id} onClick={() => set_description_pinned((value) => !value)}>{display_with_level}</button>
         {duration_label && (
           <span
             style={{
@@ -1550,6 +1586,7 @@ function ConditionChip({
         <button
           onClick={onRemove}
           title="Remove"
+          aria-label={`Remove ${display_name}`}
           style={{
             background: 'transparent',
             border: 'none',
@@ -1558,20 +1595,23 @@ function ConditionChip({
             lineHeight: 1,
             cursor: 'pointer',
             color: 'inherit',
-            opacity: 0.6,
+            opacity: 1,
           }}
         >
           ×
         </button>
       </span>
 
-      {show_tooltip && cond && (
+      {(show_tooltip || description_pinned) && cond && (
+        <div id={tooltip_id}>
+        <button type="button" onClick={() => { set_show_tooltip(false); set_description_pinned(false); }}>Close description</button>
         <ConditionTooltip
           condition={cond}
           applied={applied}
         />
+        </div>
       )}
-    </span>
+    </div>
   );
 }
 

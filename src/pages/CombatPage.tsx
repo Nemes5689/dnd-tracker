@@ -96,7 +96,7 @@ export function CombatPage() {
   };
 
   return (
-    <div className="p-8 max-w-[900px]">
+    <div className="page-padding max-w-[1000px]">
       <div className="flex justify-between items-center mb-6">
         <div>
           <div className="text-[11px] text-text-tertiary mb-1">
@@ -122,7 +122,8 @@ export function CombatPage() {
           {campaign_encounters.map((e) => (
             <div
               key={e.id}
-              className="bg-bg-primary flex justify-between items-center"
+              className="encounter-card bg-bg-primary flex justify-between items-center"
+              data-status={e.status}
               style={{
                 padding: '12px 14px',
                 border:

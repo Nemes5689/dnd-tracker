@@ -3,9 +3,13 @@ import { Sidebar } from './Sidebar';
 
 export function Layout() {
   return (
-    <div className="flex h-screen bg-bg-tertiary">
+    <div className="app-shell">
+      <a href="#main-content" className="skip-link" onClick={(event) => {
+        event.preventDefault();
+        document.getElementById('main-content')?.focus();
+      }}>Skip to content</a>
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main id="main-content" tabIndex={-1} className="app-content">
         <Outlet />
       </main>
     </div>

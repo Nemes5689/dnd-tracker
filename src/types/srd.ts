@@ -83,6 +83,7 @@ export interface Monster {
   skill_expertise?: string[];
   // Class-defined resources (Rage, Ki, etc) for character-mode allies
   resources?: import('./app').ResourceState[];
+  activated_features?: import('./app').ActivatedFeatureState[];
 }
 
 export interface MonsterWeaponAttack {
