@@ -1,0 +1,71 @@
+{
+  "road": "#C3C7CC",
+  "roofLight": [
+    "#FFFFFF"
+  ],
+  "plank": "#999391",
+  "shadowColor": "#8EA5CC",
+  "treeShape": "Conifer",
+  "waterDeep": "#ADC5D8",
+  "sand": "#C1C5CB",
+  "pressure": "1.0",
+  "roofVariance": "0.1",
+  "detailRoof": "0.0",
+  "ink": "#475666",
+  "shadowLength": "1.2",
+  "smallRoad": "2.0",
+  "ground": [
+    "#F4F6F8",
+    "#C5D3E5",
+    "#FFFFFF"
+  ],
+  "detailField": "0.4",
+  "shallowBands": "2",
+  "fieldVariance": "0.25",
+  "thicket": "#F9FDFF",
+  "waterTide": "#D0DFE2",
+  "roofType": "Gable",
+  "detailTree": "0.7",
+  "treeVariance": "0.1",
+  "strokeThin": "0.6",
+  "relief": "Contours",
+  "outlineRoads": "0.0",
+  "shadowAngle": "60",
+  "textOutline": "#F4F6F8",
+  "textColor": "#475666",
+  "roofSlope": "0.3",
+  "fontNumber": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 24,
+    "embedded": "def_font"
+  },
+  "mergeRoads": "true",
+  "largeRoad": "5.0",
+  "outlineFields": "0.2",
+  "fontPopulation": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 24,
+    "embedded": "def_font"
+  },
+  "fieldLight": [
+    "#CCCCCC"
+  ],
+  "fontHeader": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 48,
+    "embedded": "def_font"
+  },
+  "waterShallow": "#D0DFE2",
+  "lights": "#000000",
+  "tree": [
+    "#EAF7FF",
+    "#DBEAF9"
+  ],
+  "strokeNormal": "1.2"
+}

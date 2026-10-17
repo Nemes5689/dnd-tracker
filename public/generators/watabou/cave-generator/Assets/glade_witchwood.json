@@ -1,0 +1,30 @@
+{
+  "road": "#D9D8B9",
+  "treeBands": "4",
+  "strokeThin": "0.6",
+  "roadOutline": "0.2",
+  "shadowAngle": "330",
+  "shadowColor": "#C3CAD8",
+  "treeShape": "Shroom",
+  "sand": "#5A8C97",
+  "shallow": "#8ECCA3",
+  "pressure": "0.6",
+  "roadWidth": "0.4",
+  "shadowLength": "1.7",
+  "marks": "#3C483A",
+  "ink": "#000000",
+  "water": "#5A8C97",
+  "ground": "#CBC57B",
+  "roadWiggle": "0.8",
+  "grassLength": "8",
+  "thicket": "#DAE3E2",
+  "strokeGrid": "0.3",
+  "tree": [
+    "#DDDAC3",
+    "#EADEB4",
+    "#CC8B84"
+  ],
+  "strokeNormal": "1.4",
+  "treeDetail": "0.8",
+  "treeVariance": "0.3"
+}

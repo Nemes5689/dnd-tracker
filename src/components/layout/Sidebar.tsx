@@ -11,6 +11,7 @@ const navItems = [
   { to: '/spells', label: 'Spell Library' },
   { to: '/origins', label: 'Backgrounds / Species / Feats' },
   { to: '/map', label: 'Map' },
+  { to: '/generator', label: 'Generator' },
   { to: '/allies', label: 'Allies & Summons' },
   { to: '/encounters', label: 'Encounters' },
   { to: '/rules', label: 'Rules lookup' },

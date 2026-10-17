@@ -1,0 +1,28 @@
+{
+  "road": "#FFFFFF",
+  "treeBands": "2",
+  "strokeThin": "0.4",
+  "roadOutline": "0.4",
+  "shadowAngle": "90",
+  "shadowColor": "#FFFFFF",
+  "treeShape": "Cotton",
+  "sand": "#888888",
+  "shallow": "#DDDDDD",
+  "pressure": "1.0",
+  "roadWidth": "0.5",
+  "shadowLength": "0.0",
+  "marks": "#000000",
+  "ink": "#000000",
+  "water": "#EEEEEE",
+  "ground": "#FFFFFF",
+  "roadWiggle": "0.5",
+  "grassLength": "4",
+  "thicket": "#FFFFFF",
+  "strokeGrid": "0.2",
+  "tree": [
+    "#FFFFFF"
+  ],
+  "strokeNormal": "1.0",
+  "treeDetail": "1.0",
+  "treeVariance": "0.0"
+}

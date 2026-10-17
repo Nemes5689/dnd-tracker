@@ -1,0 +1,83 @@
+{
+  "colorLightWood": [
+    "#FFFFFF"
+  ],
+  "fontTown": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 40,
+    "embedded": "def_font"
+  },
+  "colorClouds": "#FFFFFF",
+  "outlineColor": "#FFFFFF",
+  "floatAlpha": "0.5",
+  "colorBanners": "#FFFFFF",
+  "colorFlags": "#000000",
+  "ruggedMountains": "true",
+  "ultraThin": "0.5",
+  "colorDanger": "#FFFFFF",
+  "colorWalls": "#FFFFFF",
+  "colorDarkWood": [
+    "#FFFFFF"
+  ],
+  "colorForeground": "#000000",
+  "normal": "2.0",
+  "dangerScale": "1.0",
+  "treesRegularity": "0.4",
+  "bandsNumber": "3",
+  "fontTitle": {
+    "italic": false,
+    "size": 60,
+    "face": null,
+    "bold": false,
+    "embedded": "def_font"
+  },
+  "enumShading": "Hatching",
+  "alphaLandShadow": "0.0",
+  "colorRivers": "#000000",
+  "river": "4.0",
+  "colorRoutes": "#888888",
+  "fontSticker": {
+    "italic": false,
+    "size": 20,
+    "face": null,
+    "bold": false,
+    "embedded": "def_font"
+  },
+  "colorMatte": "#FFFFFF",
+  "colorLandShadow": "#000000",
+  "colorCompass": "#FFFFFF",
+  "colorMountain": "#FFFFFF",
+  "colorBackground": [
+    "#FFFFFF"
+  ],
+  "widthLandShadow": "0.0",
+  "colorShallow": "#FFFFFF",
+  "shallowEdge": "0.666",
+  "clutterScale": "1.0",
+  "fontDanger": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 32,
+    "embedded": "def_font"
+  },
+  "treesDensity": "0.55",
+  "floatStroke": "1.0",
+  "colorWater": "#FFFFFF",
+  "shallowSize": "0.6",
+  "textColor": "#000000",
+  "townScale": "1.0",
+  "thin": "1.0",
+  "fontArea": {
+    "italic": false,
+    "bold": false,
+    "face": null,
+    "size": 40,
+    "embedded": "def_font"
+  },
+  "colorContours": "#000000",
+  "colorRoofs": "#FFFFFF",
+  "thick": "4.0"
+}

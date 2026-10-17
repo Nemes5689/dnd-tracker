@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+.generator-page { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.generator-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.generator-header h1 { margin: 0 0 6px; font-size: 24px; }
+.generator-header p { margin: 0; }
+.generator-external-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); }
+.generator-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.generator-toolbar select { min-height: 44px; max-width: 100%; }
+.generator-toolbar button { margin-left: auto; }
+.generator-frame { display: block; width: 100%; height: 72dvh; min-height: 480px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: #fff; }
+@media (max-width: 767px) {
+  .generator-toolbar button { margin-left: 0; }
+  .generator-frame { min-height: 400px; }
+}
+
 :root {
   /* Backgrounds */
   --color-background-primary: #fcf8ee;

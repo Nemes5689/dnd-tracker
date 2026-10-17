@@ -10,6 +10,7 @@ import { ClassesPage } from '@/pages/ClassesPage';
 import { SpellsPage } from '@/pages/SpellsPage';
 import { OriginsPage } from '@/pages/OriginsPage';
 import { MapPage } from '@/pages/MapPage';
+import { GeneratorPage } from '@/pages/GeneratorPage';
 import { ProjectorView } from '@/pages/ProjectorView';
 import {
   RulesLookupPage,
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/spells" element={<SpellsPage />} />
           <Route path="/origins" element={<OriginsPage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/generator" element={<GeneratorPage />} />
           <Route path="/allies" element={<AlliesPage />} />
           <Route path="/encounters" element={<EncountersPage />} />
           <Route path="/rules" element={<RulesLookupPage />} />

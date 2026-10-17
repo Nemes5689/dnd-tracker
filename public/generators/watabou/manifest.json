@@ -1,0 +1,589 @@
+{
+  "downloadedAt": "2026-10-17T13:50:28.295Z",
+  "author": "Oleg Dolya / Watabou",
+  "source": "https://watabou.github.io/",
+  "files": [
+    {
+      "file": "perilous-shores/index.html",
+      "source": "https://watabou.github.io/perilous-shores/index.html",
+      "bytes": 1725,
+      "sha256": "883ec12a84acc2b7cf78e9c8ea37d2ae445b12080469b69daa72971bb7f14dac"
+    },
+    {
+      "file": "perilous-shores/favicon.png",
+      "source": "https://watabou.github.io/perilous-shores/favicon.png",
+      "bytes": 8301,
+      "sha256": "4afb1266d8ef8d2a2225e205c9ad3cd27384b88e13272edf5a4db74e72d560e9"
+    },
+    {
+      "file": "perilous-shores/Perilous.js",
+      "source": "https://watabou.github.io/perilous-shores/Perilous.js",
+      "bytes": 1477041,
+      "sha256": "60a95d0df7cc001228ee96f2ea51f667206587f587c06a4bd95426eba849aa75"
+    },
+    {
+      "file": "perilous-shores/Assets/ShareTech-Regular.ttf",
+      "source": "https://watabou.github.io/perilous-shores/Assets/ShareTech-Regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "perilous-shores/Assets/ShareTechMono-Regular.ttf",
+      "source": "https://watabou.github.io/perilous-shores/Assets/ShareTechMono-Regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "perilous-shores/Assets/default.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/default.json",
+      "bytes": 1765,
+      "sha256": "4b543aa329437318c5553f062c039a26d5cc3d2682f38292449f9797503b3bbd"
+    },
+    {
+      "file": "perilous-shores/Assets/bw.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/bw.json",
+      "bytes": 1706,
+      "sha256": "d0af65f5c798d36277d6dfe48d88263d33ca70f3ee7db0a123486cbf6628ca0a"
+    },
+    {
+      "file": "perilous-shores/Assets/antique.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/antique.json",
+      "bytes": 1706,
+      "sha256": "16c852d5464e968159efa3c0fae720da90354347d56388abf99a7f1c13ee9122"
+    },
+    {
+      "file": "perilous-shores/Assets/soft.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/soft.json",
+      "bytes": 1736,
+      "sha256": "23971235386c3f40b654ca5f1438978b70f62e89c3c5a6a162e29f79139f00bd"
+    },
+    {
+      "file": "perilous-shores/Assets/cartoon.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/cartoon.json",
+      "bytes": 1730,
+      "sha256": "01a33f75d03984aa80e149b603b89cd1a957ba556c4b8d550abe48eb25634eae"
+    },
+    {
+      "file": "perilous-shores/Assets/october.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/october.json",
+      "bytes": 1781,
+      "sha256": "baf431a3188e0a6f385ca8f193cf120328e716b8bbd700f8574ef96b488f7736"
+    },
+    {
+      "file": "perilous-shores/Assets/full_colour.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/full_colour.json",
+      "bytes": 1795,
+      "sha256": "76030ea2f2386db1a61d1c26a5876daf588ce9701e45131bb5c5f88fe6f8dcde"
+    },
+    {
+      "file": "perilous-shores/Assets/grammar.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/grammar.json",
+      "bytes": 7238,
+      "sha256": "392d0c196982ee6698606b97f34803a96272d0c35624e8574ad260ec439407c1"
+    },
+    {
+      "file": "perilous-shores/Assets/centrepiece.json",
+      "source": "https://watabou.github.io/perilous-shores/Assets/centrepiece.json",
+      "bytes": 1012,
+      "sha256": "69307058a3d7c26e5e79104358bcc651ed542dfb4cd596d0d6b985549dd6e3e0"
+    },
+    {
+      "file": "perilous-shores/Assets/english.txt",
+      "source": "https://watabou.github.io/perilous-shores/Assets/english.txt",
+      "bytes": 6103,
+      "sha256": "ae7ce125910a2cc4a1f73ad88e45df701f8b41bb3ee3fa006d213c6b16d08acd"
+    },
+    {
+      "file": "perilous-shores/Assets/elven.txt",
+      "source": "https://watabou.github.io/perilous-shores/Assets/elven.txt",
+      "bytes": 332,
+      "sha256": "23451d6d68fd8b6c44573e98314375e44ce7c9fdff579d799d2b64b086b8586b"
+    },
+    {
+      "file": "perilous-shores/Assets/demonic.txt",
+      "source": "https://watabou.github.io/perilous-shores/Assets/demonic.txt",
+      "bytes": 677,
+      "sha256": "d18c233c0bd3d6639b30b0cc484fb7ed13bef9280c15e703b1a2fa049f70dc84"
+    },
+    {
+      "file": "perilous-shores/Assets/given_male.txt",
+      "source": "https://watabou.github.io/perilous-shores/Assets/given_male.txt",
+      "bytes": 808,
+      "sha256": "6681d0a35e53c6dac34d069432e6c0dd34135c83cb4d70b0da2acd1d08670f2a"
+    },
+    {
+      "file": "perilous-shores/Assets/given_female.txt",
+      "source": "https://watabou.github.io/perilous-shores/Assets/given_female.txt",
+      "bytes": 665,
+      "sha256": "09fe64cee0ce5f4d01d095d29c681402175f0e1bc609499a1eba0e68b1a2cdb4"
+    },
+    {
+      "file": "city-generator/index.html",
+      "source": "https://watabou.github.io/city-generator/index.html",
+      "bytes": 1911,
+      "sha256": "862fc394534f99a3b4e94f66024d006e92e884d0cdc56fe780a35e576c3618ef"
+    },
+    {
+      "file": "city-generator/favicon.png",
+      "source": "https://watabou.github.io/city-generator/favicon.png",
+      "bytes": 6768,
+      "sha256": "66d0daa9bb658426846223e276a74bd7f3d5fb29ef862aa21358ce84c7a33cb9"
+    },
+    {
+      "file": "city-generator/mfcg.js",
+      "source": "https://watabou.github.io/city-generator/mfcg.js",
+      "bytes": 1311153,
+      "sha256": "536ed99cd0d5dda3caf9a5f85e0faa27d2f526059d9c5aeb678ab840687f904d"
+    },
+    {
+      "file": "city-generator/Assets/IMFellGreatPrimer-Regular.ttf",
+      "source": "https://watabou.github.io/city-generator/Assets/IMFellGreatPrimer-Regular.ttf",
+      "bytes": 212148,
+      "sha256": "a410e2ab7b527ccf4e107fc85a588aa9624552d2a867164f94305e7b7f2ba185"
+    },
+    {
+      "file": "city-generator/Assets/ShareTech-Regular.ttf",
+      "source": "https://watabou.github.io/city-generator/Assets/ShareTech-Regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "city-generator/Assets/ShareTechMono-Regular.ttf",
+      "source": "https://watabou.github.io/city-generator/Assets/ShareTechMono-Regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "city-generator/Assets/default.json",
+      "source": "https://watabou.github.io/city-generator/Assets/default.json",
+      "bytes": 343,
+      "sha256": "4aee65047d157a0e82247b8f3b2e2cf6a7486add3c7389091e9f00cd03bb31b4"
+    },
+    {
+      "file": "city-generator/Assets/ink.json",
+      "source": "https://watabou.github.io/city-generator/Assets/ink.json",
+      "bytes": 343,
+      "sha256": "8c4cf9f270d81ba5f8a31acb96cbd118a0430434a64d8793554586c93d087a2f"
+    },
+    {
+      "file": "city-generator/Assets/bw.json",
+      "source": "https://watabou.github.io/city-generator/Assets/bw.json",
+      "bytes": 341,
+      "sha256": "caa795f93ec39fb6db3f48c667e8b1d5828584ed2e58b9fea336b1dbea5513e4"
+    },
+    {
+      "file": "city-generator/Assets/vivid.json",
+      "source": "https://watabou.github.io/city-generator/Assets/vivid.json",
+      "bytes": 341,
+      "sha256": "d74e860d8483528e1370a18d352cc8746a8dad5f266b8caf96d04c47b28bdfd3"
+    },
+    {
+      "file": "city-generator/Assets/natural.json",
+      "source": "https://watabou.github.io/city-generator/Assets/natural.json",
+      "bytes": 341,
+      "sha256": "239e7e350ae20cdf534e291ae44bfe8a77ab6086d2009009a6ba5acd3090cc9f"
+    },
+    {
+      "file": "city-generator/Assets/modern.json",
+      "source": "https://watabou.github.io/city-generator/Assets/modern.json",
+      "bytes": 340,
+      "sha256": "587dd7a55508279d767beb6772202880b71e8ca490a0c467007c8c25b7eae516"
+    },
+    {
+      "file": "city-generator/Assets/grammar.json",
+      "source": "https://watabou.github.io/city-generator/Assets/grammar.json",
+      "bytes": 4401,
+      "sha256": "be5750b0ff62c5ec19010fb5190fd08bc1d2a52a3e87db77d1422703973cb27f"
+    },
+    {
+      "file": "city-generator/Assets/english.txt",
+      "source": "https://watabou.github.io/city-generator/Assets/english.txt",
+      "bytes": 6166,
+      "sha256": "023f2a1b4f714d271cb383ec79750f0bf39f39c52b1c0af25567c51cb10b77c8"
+    },
+    {
+      "file": "city-generator/Assets/elven.txt",
+      "source": "https://watabou.github.io/city-generator/Assets/elven.txt",
+      "bytes": 332,
+      "sha256": "23451d6d68fd8b6c44573e98314375e44ce7c9fdff579d799d2b64b086b8586b"
+    },
+    {
+      "file": "city-generator/Assets/given_male.txt",
+      "source": "https://watabou.github.io/city-generator/Assets/given_male.txt",
+      "bytes": 808,
+      "sha256": "6681d0a35e53c6dac34d069432e6c0dd34135c83cb4d70b0da2acd1d08670f2a"
+    },
+    {
+      "file": "city-generator/Assets/given_female.txt",
+      "source": "https://watabou.github.io/city-generator/Assets/given_female.txt",
+      "bytes": 665,
+      "sha256": "09fe64cee0ce5f4d01d095d29c681402175f0e1bc609499a1eba0e68b1a2cdb4"
+    },
+    {
+      "file": "village-generator/index.html",
+      "source": "https://watabou.github.io/village-generator/index.html",
+      "bytes": 1875,
+      "sha256": "fbce19a0b954773070f8b2507bb08b8d29ea7637d8c9bac76e89f68a56c2377c"
+    },
+    {
+      "file": "village-generator/favicon.png",
+      "source": "https://watabou.github.io/village-generator/favicon.png",
+      "bytes": 8896,
+      "sha256": "62894b92ed5a0e3cea4dff3aa937bdf63be1d6b80fffbb3648be518afe743089"
+    },
+    {
+      "file": "village-generator/Village.js",
+      "source": "https://watabou.github.io/village-generator/Village.js",
+      "bytes": 1353620,
+      "sha256": "84b58cef545a02eb22a8aa641b343444ce37467ae2540a5952908f59d1418f76"
+    },
+    {
+      "file": "village-generator/Assets/Cinzel-Bold.ttf",
+      "source": "https://watabou.github.io/village-generator/Assets/Cinzel-Bold.ttf",
+      "bytes": 56088,
+      "sha256": "6d119da16a0e781010f10e92ad329e50acf795a384965a78d69e9c682b41f0fb"
+    },
+    {
+      "file": "village-generator/Assets/ShareTech-Regular.ttf",
+      "source": "https://watabou.github.io/village-generator/Assets/ShareTech-Regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "village-generator/Assets/ShareTechMono-Regular.ttf",
+      "source": "https://watabou.github.io/village-generator/Assets/ShareTechMono-Regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "village-generator/Assets/grammar.json",
+      "source": "https://watabou.github.io/village-generator/Assets/grammar.json",
+      "bytes": 8220,
+      "sha256": "059ea1353c04b76977650aad79533afd40d9a40e928c51290165e4dbfc42e656"
+    },
+    {
+      "file": "village-generator/Assets/given_male.txt",
+      "source": "https://watabou.github.io/village-generator/Assets/given_male.txt",
+      "bytes": 808,
+      "sha256": "6681d0a35e53c6dac34d069432e6c0dd34135c83cb4d70b0da2acd1d08670f2a"
+    },
+    {
+      "file": "village-generator/Assets/given_female.txt",
+      "source": "https://watabou.github.io/village-generator/Assets/given_female.txt",
+      "bytes": 665,
+      "sha256": "09fe64cee0ce5f4d01d095d29c681402175f0e1bc609499a1eba0e68b1a2cdb4"
+    },
+    {
+      "file": "village-generator/Assets/village_default.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_default.json",
+      "bytes": 1395,
+      "sha256": "5f10ee827c340b962a42c2ca8064d80e5184fa8e34537432225a2fa87005aec0"
+    },
+    {
+      "file": "village-generator/Assets/village_sand.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_sand.json",
+      "bytes": 1396,
+      "sha256": "85c9f4df91a0ef4ba1b0051e09f6acce35584c93398c7a0635b6df5c0d947c38"
+    },
+    {
+      "file": "village-generator/Assets/village_cold.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_cold.json",
+      "bytes": 1355,
+      "sha256": "8caebdc088f63d41feb2cb0a5e8df995d070914f8da1cbf6c53fb5a5c94b4b37"
+    },
+    {
+      "file": "village-generator/Assets/village_night.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_night.json",
+      "bytes": 1336,
+      "sha256": "0c6a727e7c38caaed81a05af73f64c319df7be033e17125441a1a378de1e1877"
+    },
+    {
+      "file": "village-generator/Assets/village_bw.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_bw.json",
+      "bytes": 1321,
+      "sha256": "392eb0bfcb8fb7c09ee3ed6ea8220a9857d31e4bfaa2b545e17d05823875bb8b"
+    },
+    {
+      "file": "village-generator/Assets/village_minimal.json",
+      "source": "https://watabou.github.io/village-generator/Assets/village_minimal.json",
+      "bytes": 1334,
+      "sha256": "298026dddbe4fe63d7ee730d2e7485788c142aea75b92d1e72aa162b85f993be"
+    },
+    {
+      "file": "cave-generator/index.html",
+      "source": "https://watabou.github.io/cave-generator/index.html",
+      "bytes": 1839,
+      "sha256": "a9f46ae97b858d87c2f0a4f1736e0314dcbf5682d4c4a9c0007858b55a02e17f"
+    },
+    {
+      "file": "cave-generator/favicon.png",
+      "source": "https://watabou.github.io/cave-generator/favicon.png",
+      "bytes": 3795,
+      "sha256": "6f0355aa9513f70b74d4bb3658f02863e4c81c7dc4830f91e3fa139ca3e41870"
+    },
+    {
+      "file": "cave-generator/Cave.js",
+      "source": "https://watabou.github.io/cave-generator/Cave.js",
+      "bytes": 1244048,
+      "sha256": "7cf8395fa7f91ca9570797986027f4fa830520fec69e3ed06eafa8c5c7339ac4"
+    },
+    {
+      "file": "cave-generator/Assets/ShareTech-Regular.ttf",
+      "source": "https://watabou.github.io/cave-generator/Assets/ShareTech-Regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "cave-generator/Assets/ShareTechMono-Regular.ttf",
+      "source": "https://watabou.github.io/cave-generator/Assets/ShareTechMono-Regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "cave-generator/Assets/Marcellus-Regular.ttf",
+      "source": "https://watabou.github.io/cave-generator/Assets/Marcellus-Regular.ttf",
+      "bytes": 43988,
+      "sha256": "5746c575e2d6bf9c57d388f04a2c9782a93ac83abb09ecf3e898c0b4399d79f9"
+    },
+    {
+      "file": "cave-generator/Assets/given_male.txt",
+      "source": "https://watabou.github.io/cave-generator/Assets/given_male.txt",
+      "bytes": 808,
+      "sha256": "6681d0a35e53c6dac34d069432e6c0dd34135c83cb4d70b0da2acd1d08670f2a"
+    },
+    {
+      "file": "cave-generator/Assets/given_female.txt",
+      "source": "https://watabou.github.io/cave-generator/Assets/given_female.txt",
+      "bytes": 665,
+      "sha256": "09fe64cee0ce5f4d01d095d29c681402175f0e1bc609499a1eba0e68b1a2cdb4"
+    },
+    {
+      "file": "cave-generator/Assets/demonic.txt",
+      "source": "https://watabou.github.io/cave-generator/Assets/demonic.txt",
+      "bytes": 677,
+      "sha256": "d18c233c0bd3d6639b30b0cc484fb7ed13bef9280c15e703b1a2fa049f70dc84"
+    },
+    {
+      "file": "cave-generator/Assets/grammar.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/grammar.json",
+      "bytes": 2084,
+      "sha256": "2db21668ec21f1511e3fd71b97f03ba8be573df65ca4febbdb4e5008beb562fc"
+    },
+    {
+      "file": "cave-generator/Assets/forest_grammar.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/forest_grammar.json",
+      "bytes": 2219,
+      "sha256": "1068120dc829f108007316bd65a726c4840500fea0a74b6c3fc0c556da83a88f"
+    },
+    {
+      "file": "cave-generator/Assets/parchment.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/parchment.json",
+      "bytes": 381,
+      "sha256": "d1898cfc7543412b8ebbded2aa2058f5217fa6f558530530e02a8855376b8a9c"
+    },
+    {
+      "file": "cave-generator/Assets/moonlight.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/moonlight.json",
+      "bytes": 380,
+      "sha256": "1f307409ff19f154bac8f14ad6c26e8a70331ec3b83d1ec7358a674ab80e4454"
+    },
+    {
+      "file": "cave-generator/Assets/bw.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/bw.json",
+      "bytes": 379,
+      "sha256": "f03703d314642ff2d0f25f159aea0ea8b17962a300107e35bb60c3ebefc2f323"
+    },
+    {
+      "file": "cave-generator/Assets/glade_default.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_default.json",
+      "bytes": 563,
+      "sha256": "4d66be03f33db98b9c74daa2328be969b231ab8527df7ac27ab0cff9029f72fe"
+    },
+    {
+      "file": "cave-generator/Assets/glade_tropical.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_tropical.json",
+      "bytes": 590,
+      "sha256": "73127b7353fa3d71480152df31b0e05515be27bd3e63a01d0ffbbf63ead113fd"
+    },
+    {
+      "file": "cave-generator/Assets/glade_autumn.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_autumn.json",
+      "bytes": 592,
+      "sha256": "c8921e64dc45ea878df018b7291b9c39b8575700fd3badf28bdd3d25ad0824de"
+    },
+    {
+      "file": "cave-generator/Assets/glade_outline.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_outline.json",
+      "bytes": 562,
+      "sha256": "0e8300c6a5173f21135fac4d94c06207dbc4874d08ce66b76659174b2faa251d"
+    },
+    {
+      "file": "cave-generator/Assets/glade_reef.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_reef.json",
+      "bytes": 575,
+      "sha256": "93ce72983dc3ec754bf15324eaaf7feadb6a6bef29f1398cc5fa2cde68cf651f"
+    },
+    {
+      "file": "cave-generator/Assets/glade_witchwood.json",
+      "source": "https://watabou.github.io/cave-generator/Assets/glade_witchwood.json",
+      "bytes": 593,
+      "sha256": "cdac91d566bb558b46d25f44e82b354de6816e8ae2d3c36325dce8c7d54cd4d6"
+    },
+    {
+      "file": "one-page-dungeon/index.html",
+      "source": "https://watabou.github.io/one-page-dungeon/index.html",
+      "bytes": 1741,
+      "sha256": "81f5efbd3d25ec1323f24feb4995d2906b8a684c90c894686efb4814588cf035"
+    },
+    {
+      "file": "one-page-dungeon/favicon.png",
+      "source": "https://watabou.github.io/one-page-dungeon/favicon.png",
+      "bytes": 19852,
+      "sha256": "8959243cf228f3635e6d6ad98f9c332c6cde45895b502daa2c3b1198b65dd757"
+    },
+    {
+      "file": "one-page-dungeon/Dungeon.js",
+      "source": "https://watabou.github.io/one-page-dungeon/Dungeon.js",
+      "bytes": 1243079,
+      "sha256": "c2dc0f17cfd184fe87ffae395ceb9127a15749ba16a010122c044fe589619161"
+    },
+    {
+      "file": "one-page-dungeon/assets/ShareTech-Regular.ttf",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/ShareTech-Regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "one-page-dungeon/assets/ShareTechMono-Regular.ttf",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/ShareTechMono-Regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "one-page-dungeon/assets/tags.txt",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/tags.txt",
+      "bytes": 1234,
+      "sha256": "386792794d80e0c6a1c2aa37961c00a72626c0fff28966498f76c3407002b8c2"
+    },
+    {
+      "file": "one-page-dungeon/assets/grammar.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/grammar.json",
+      "bytes": 21664,
+      "sha256": "9f385899ff35ef9a6713ecfb321a4825a66117e21bd5aa4b62645212c56d8be9"
+    },
+    {
+      "file": "one-page-dungeon/assets/demons.txt",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/demons.txt",
+      "bytes": 677,
+      "sha256": "d18c233c0bd3d6639b30b0cc484fb7ed13bef9280c15e703b1a2fa049f70dc84"
+    },
+    {
+      "file": "one-page-dungeon/assets/default.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/default.json",
+      "bytes": 1028,
+      "sha256": "2eaad4092b1dc0260ba96693e44d18e86d52acea8fba65945a6789f85e4b4a69"
+    },
+    {
+      "file": "one-page-dungeon/assets/ancient.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/ancient.json",
+      "bytes": 1028,
+      "sha256": "58586df0adbb2cae0e2f064c74e28fa098c0e352a63fecb1a3ca8a486f669d30"
+    },
+    {
+      "file": "one-page-dungeon/assets/modern.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/modern.json",
+      "bytes": 1030,
+      "sha256": "37e2f314fa72c8c79f9149f520d42f3d067a91959ef3dc51a47bfa02b17d4f3f"
+    },
+    {
+      "file": "one-page-dungeon/assets/light.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/light.json",
+      "bytes": 1039,
+      "sha256": "94ec6fd0ac5ed74f1665f034e6222dec32259361becf975674e39da7e3e58e55"
+    },
+    {
+      "file": "one-page-dungeon/assets/link.json",
+      "source": "https://watabou.github.io/one-page-dungeon/assets/link.json",
+      "bytes": 1027,
+      "sha256": "b370f0612c9984f05e662ce72a90ac1d14955cf7f59660cab96fb36da891927f"
+    },
+    {
+      "file": "dwellings/index.html",
+      "source": "https://watabou.github.io/dwellings/index.html",
+      "bytes": 1686,
+      "sha256": "f91b7563412eddaebc918eebfdd1eafb8e6ee3576528848dddffa4ed79ff7743"
+    },
+    {
+      "file": "dwellings/favicon.png",
+      "source": "https://watabou.github.io/dwellings/favicon.png",
+      "bytes": 15947,
+      "sha256": "3e2523203d703cdafc83167b15c7af1634b242aa59ecbcb14b59e35f0306b243"
+    },
+    {
+      "file": "dwellings/Dwellings.js",
+      "source": "https://watabou.github.io/dwellings/Dwellings.js",
+      "bytes": 1367808,
+      "sha256": "d3510b74b9757d054902594e9e8aa4870275bbfefec6246b9bdb06fb32f01e68"
+    },
+    {
+      "file": "dwellings/Assets/ShareTech-regular.ttf",
+      "source": "https://watabou.github.io/dwellings/Assets/ShareTech-regular.ttf",
+      "bytes": 46596,
+      "sha256": "b1a33e896b3d9a3dedbd7d595438ab279fe406362b143e51f3d8ba2d4c548a2d"
+    },
+    {
+      "file": "dwellings/Assets/ShareTechMono-regular.ttf",
+      "source": "https://watabou.github.io/dwellings/Assets/ShareTechMono-regular.ttf",
+      "bytes": 42756,
+      "sha256": "8ff3c48f6a3f521dec9df0d3abe59620b58342c300603c9cf402593046093350"
+    },
+    {
+      "file": "dwellings/Assets/gothic.json5",
+      "source": "https://watabou.github.io/dwellings/Assets/gothic.json5",
+      "bytes": 3221,
+      "sha256": "1beafe5a546422ee4c0fb4fee766f589bca7fc47a27fc91875b28b6e38c4edb7"
+    },
+    {
+      "file": "dwellings/Assets/tavern.json5",
+      "source": "https://watabou.github.io/dwellings/Assets/tavern.json5",
+      "bytes": 1084,
+      "sha256": "5cc16ea7b58c9e30a35e5bcc641b13f4368bcd32a347bf6a6299f15ef95e6862"
+    },
+    {
+      "file": "dwellings/Assets/grammar.json",
+      "source": "https://watabou.github.io/dwellings/Assets/grammar.json",
+      "bytes": 899,
+      "sha256": "cc74b3a62cf48f0c47a2a01063a15021769129d481b4417dacd2030eb357e265"
+    },
+    {
+      "file": "dwellings/Assets/natural.json",
+      "source": "https://watabou.github.io/dwellings/Assets/natural.json",
+      "bytes": 502,
+      "sha256": "9672b5f8b60bf1e2ca82136f0d618f0688f251a3fb1894b10251cabffd3ad232"
+    },
+    {
+      "file": "dwellings/Assets/wooden.json",
+      "source": "https://watabou.github.io/dwellings/Assets/wooden.json",
+      "bytes": 502,
+      "sha256": "a89c29817f8be4230042af4ec38a25537b3d130f2684fe427652a883e57c5e62"
+    },
+    {
+      "file": "dwellings/Assets/plain.json",
+      "source": "https://watabou.github.io/dwellings/Assets/plain.json",
+      "bytes": 504,
+      "sha256": "2b9fa57c217d5b264998670a29d42cd3aaec894c09c08d9879611883dfb80436"
+    },
+    {
+      "file": "dwellings/Assets/blueprint.json",
+      "source": "https://watabou.github.io/dwellings/Assets/blueprint.json",
+      "bytes": 502,
+      "sha256": "c76782f20d84ec48107a31fb778ae0633ec17423e4b3188b506a1704699a1e12"
+    },
+    {
+      "file": "dwellings/Assets/bw.json",
+      "source": "https://watabou.github.io/dwellings/Assets/bw.json",
+      "bytes": 501,
+      "sha256": "0510497c21052efc1482a8c51da5f6fd583c83d208dc2f81f5434774249f0697"
+    }
+  ]
+}
