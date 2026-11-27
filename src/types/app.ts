@@ -289,6 +289,7 @@ export interface Combatant {
   conditions: AppliedCondition[];
   is_player: boolean;
   is_ally?: boolean; // friendly NPC / summon (not a player, but on the players' side)
+  hidden_from_players?: boolean; // excluded from the projector view; absent means visible
   size?: string; // Tiny/Small/Medium/Large/Huge/Gargantuan (for token grid size)
   // Action economy (resets per turn)
   action_used: boolean;
@@ -391,7 +392,20 @@ export interface MapDrawing {
   // Optional effect type. When set, the shape is filled with the effect's
   // visual style (animated CSS / SVG).
   effect?: EffectType;
+  area_template?: AreaTemplateGeometry;
   created_at: number;
+}
+
+export type DrawingTool = 'freehand' | 'circle' | 'cone' | 'square' | 'line';
+export type AreaTemplateKind = Exclude<DrawingTool, 'freehand'>;
+export interface AreaTemplateGeometry {
+  kind: AreaTemplateKind;
+  origin: { x: number; y: number };
+  direction_deg?: number;
+  radius_ft?: number;
+  length_ft?: number;
+  side_ft?: number;
+  width_ft?: number;
 }
 
 export interface BattleMap {

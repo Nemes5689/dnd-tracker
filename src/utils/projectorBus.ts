@@ -4,6 +4,7 @@
 // them to the store.
 
 import type { Encounter } from '@/types/app';
+import { resolveTokenStyles } from './tokenAppearance';
 
 const CHANNEL_NAME = 'dnd-tracker-projector';
 const STORAGE_KEY = 'dnd-tracker-projector-bus';
@@ -28,6 +29,84 @@ export type ProjectorMessage =
       timestamp: number;
     };
 
+/** Build the minimum encounter shape needed by the public projector UI.
+ * Never send DM notes, source data, precise enemy HP, or inactive map images
+ * across the window boundary. The view still receives coarse enemy health so
+ * its existing status indicator can work without exposing exact totals.
+ */
+export function createProjectorSnapshot(encounter: Encounter): Encounter {
+  const initiativeOrder = [...encounter.combatants].sort((a, b) => b.initiative - a.initiative);
+  const visibleOrder = initiativeOrder.filter((combatant) => !combatant.hidden_from_players);
+  const currentCombatant = initiativeOrder[encounter.turn_index];
+  let projectedActiveId = currentCombatant && !currentCombatant.hidden_from_players
+    ? currentCombatant.id
+    : undefined;
+  if (!projectedActiveId && initiativeOrder.length) {
+    for (let offset = 1; offset <= initiativeOrder.length; offset += 1) {
+      const candidate = initiativeOrder[(encounter.turn_index + offset) % initiativeOrder.length];
+      if (!candidate.hidden_from_players) {
+        projectedActiveId = candidate.id;
+        break;
+      }
+    }
+  }
+  const projectedTurnIndex = projectedActiveId
+    ? visibleOrder.findIndex(({ id }) => id === projectedActiveId)
+    : 0;
+  const visibleIds = new Set(visibleOrder.map(({ id }) => id));
+  const combatants = visibleOrder.map((combatant) => {
+    const hpRatio = combatant.hp_max > 0 ? combatant.hp_current / combatant.hp_max : 0;
+    const coarseHp = combatant.hp_current <= 0 ? 0 : hpRatio >= 0.75 ? 100 : hpRatio >= 0.5 ? 70 : hpRatio >= 0.25 ? 40 : 10;
+    return {
+      id: combatant.id,
+      name: combatant.name,
+      source_type: combatant.source_type,
+      source_id: '',
+      hp_max: 100,
+      hp_current: combatant.is_player || combatant.is_ally ? 100 : coarseHp,
+      hp_temp: 0,
+      ac: 0,
+      initiative: combatant.initiative,
+      conditions: [],
+      is_player: combatant.is_player,
+      is_ally: combatant.is_ally,
+      size: combatant.size,
+      action_used: false,
+      bonus_action_used: false,
+      reaction_used: false,
+      movement_used: 0,
+      movement_speeds: {},
+      has_flanking: false,
+      cover: 'none' as const,
+    };
+  });
+  const activeMap = encounter.maps?.find((map) => map.id === encounter.active_map_id);
+  const maps = activeMap ? [{
+    ...activeMap,
+    tokens: activeMap.tokens.filter((token) => visibleIds.has(token.combatant_id)),
+    // Map drawings are intentional player-facing tactical overlays.
+    drawings: activeMap.drawings ?? [],
+  }] : [];
+
+  return {
+    id: encounter.id,
+    campaign_id: '',
+    name: encounter.name,
+    status: encounter.status,
+    combatants,
+    round: encounter.round,
+    turn_index: Math.max(0, projectedTurnIndex),
+    log: [],
+    maps,
+    active_map_id: activeMap?.id ?? null,
+    token_styles: resolveTokenStyles(encounter).filter(({ combatant_id }) => visibleIds.has(combatant_id)).map(({ combatant_id, color, avatar, initial }) => ({
+      combatant_id, color, avatar, initial,
+    })),
+    created_at: encounter.created_at,
+    updated_at: encounter.updated_at,
+  };
+}
+
 class ProjectorBus {
   private channel: BroadcastChannel | null = null;
   private listeners = new Set<(msg: ProjectorMessage) => void>();
@@ -50,13 +129,16 @@ class ProjectorBus {
   }
 
   send(msg: ProjectorMessage) {
+    const outgoing = msg.type === 'encounter_update'
+      ? { ...msg, encounter: createProjectorSnapshot(msg.encounter) }
+      : msg;
     if (this.channel) {
-      this.channel.postMessage(msg);
+      this.channel.postMessage(outgoing);
     } else {
       try {
         // Append timestamp suffix to ensure storage event triggers
         // (storage event only fires when value actually changes)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(msg));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(outgoing));
       } catch {
         // ignore
       }

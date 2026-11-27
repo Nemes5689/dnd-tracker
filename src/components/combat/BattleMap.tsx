@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import type { BattleMap, Combatant, CombatantTokenStyle, MapDrawing, MovementMode } from '@/types/app';
+import type { BattleMap, Combatant, CombatantTokenStyle, DrawingTool, MapDrawing, MovementMode } from '@/types/app';
 import { stylizedHPLabel } from '@/utils/projectorBus';
 import { tokenCellSize } from '@/utils/tokenSize';
 import { DrawingLayer } from './DrawingLayer';
+import { TokenFace, tokenColors } from './TokenFace';
 import { getMovementSpeed, getRemainingMovementSpeed, MOVEMENT_LABELS } from '@/utils/movement';
 
 export interface BattleMapProps {
@@ -25,6 +26,8 @@ export interface BattleMapProps {
   allow_token_movement?: boolean;
   // Drawing layer props (optional)
   drawing_enabled?: boolean;
+  drawing_tool?: DrawingTool;
+  drawing_line_width_ft?: number;
   drawing_color?: string;
   drawing_stroke_width?: number;
   onAddDrawing?: (drawing: MapDrawing) => void;
@@ -62,6 +65,8 @@ export function BattleMap({
   show_movement_summary = true,
   allow_token_movement = true,
   drawing_enabled = false,
+  drawing_tool = 'freehand',
+  drawing_line_width_ft = 5,
   drawing_color = '#dc2626',
   drawing_stroke_width = 4,
   onAddDrawing,
@@ -483,8 +488,13 @@ export function BattleMap({
             height={map.image_height}
             drawings={map.drawings ?? []}
             drawing_enabled={drawing_enabled}
+            drawing_tool={drawing_tool}
             current_color={drawing_color}
             stroke_width={drawing_stroke_width}
+            line_width_ft={drawing_line_width_ft}
+            grid_size={map.grid_size}
+            grid_offset_x={map.grid_offset_x}
+            grid_offset_y={map.grid_offset_y}
             onAddDrawing={onAddDrawing ?? (() => {})}
             onUpdateDrawing={onUpdateDrawing ?? (() => {})}
             onDeleteDrawing={onDeleteDrawing ?? (() => {})}
@@ -816,11 +826,8 @@ function Token({
   onPointerDown: (e: React.PointerEvent) => void;
   onClick: (e: React.MouseEvent) => void;
 }) {
-  const initial = style?.initial ?? combatant.name.charAt(0).toUpperCase();
-  // Color by type: PC blue, ally green, monster red
-  const colors = combatantColors(combatant);
+  const colors = tokenColors(combatant);
   const bg_color = style?.color ?? colors.bg;
-  const has_avatar = !!style?.avatar;
 
   const hp_pct =
     combatant.hp_max > 0 ? combatant.hp_current / combatant.hp_max : 1;
@@ -863,10 +870,7 @@ function Token({
           height: '90%',
           margin: '5%',
           borderRadius: '50%',
-          background: has_avatar ? 'transparent' : bg_color,
-          backgroundImage: has_avatar ? `url(${style!.avatar})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: bg_color,
           border: is_active
             ? '3px solid #FBBF24'
             : `2px solid ${colors.border}`,
@@ -883,7 +887,7 @@ function Token({
           position: 'relative',
         }}
       >
-        {!has_avatar && initial}
+        <TokenFace combatant={combatant} style={style} />
 
         {!combatant.is_player && !hide_hp_numbers && (
           <svg
@@ -981,21 +985,20 @@ function UnplacedTokenButton({
   is_pending: boolean;
   onClick: () => void;
 }) {
-  const initial = style?.initial ?? combatant.name.charAt(0).toUpperCase();
-  const colors = combatantColors(combatant);
+  const colors = tokenColors(combatant);
   const bg_color = style?.color ?? colors.bg;
 
   return (
     <button
       onClick={onClick}
       title={combatant.name}
+      aria-label={combatant.name}
       style={{
         width: 28,
         height: 28,
         borderRadius: '50%',
-        background: style?.avatar ? `url(${style.avatar})` : bg_color,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        background: bg_color,
+        position: 'relative',
         color: '#fff',
         fontWeight: 700,
         fontSize: 12,
@@ -1010,25 +1013,9 @@ function UnplacedTokenButton({
         padding: 0,
       }}
     >
-      {!style?.avatar && initial}
+      <TokenFace combatant={combatant} style={style} />
     </button>
   );
-}
-
-/**
- * Compute the bg/border colors for a combatant token based on type:
- * - Player character: blue
- * - Ally / summon: green
- * - Monster: red
- */
-function combatantColors(combatant: Combatant): { bg: string; border: string } {
-  if (combatant.is_player) {
-    return { bg: '#3B82F6', border: '#1E40AF' };
-  }
-  if (combatant.is_ally) {
-    return { bg: '#22C55E', border: '#15803D' };
-  }
-  return { bg: '#DC2626', border: '#7F1D1D' };
 }
 
 function HPPopup({

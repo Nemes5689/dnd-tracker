@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useEncounterStore } from '@/store/encounterStore';
 import { processImageFile, formatBytes } from '@/utils/imageUtils';
 import { getProjectorBus } from '@/utils/projectorBus';
+import { resolveTokenStyles } from '@/utils/tokenAppearance';
 import { BattleMap } from './BattleMap';
+import { DrawingToolControls } from './DrawingToolControls';
 import { TurnOrderBar } from './TurnOrderBar';
-import type { Encounter, MovementMode } from '@/types/app';
+import type { DrawingTool, Encounter, MovementMode } from '@/types/app';
 import { getEffectiveMovementSpeeds, MOVEMENT_LABELS, MOVEMENT_MODES } from '@/utils/movement';
 
 interface Props {
@@ -40,10 +42,13 @@ export function BattleMapView({ encounter, onExit }: Props) {
 
   // Drawing state
   const [drawing_enabled, set_drawing_enabled] = useState(false);
+  const [drawing_tool, set_drawing_tool] = useState<DrawingTool>('freehand');
+  const [drawing_line_width_ft, set_drawing_line_width_ft] = useState(5);
   const [drawing_color, set_drawing_color] = useState('#dc2626');
   const [drawing_stroke_width, set_drawing_stroke_width] = useState(4);
 
   const maps = encounter.maps ?? [];
+  const token_styles = resolveTokenStyles(encounter);
   const active_map = maps.find((m) => m.id === encounter.active_map_id) ?? null;
 
   const sorted = [...encounter.combatants].sort(
@@ -249,7 +254,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
               active_index={encounter.turn_index}
               round={encounter.round}
               variant="dm"
-              token_styles={encounter.token_styles}
+              token_styles={token_styles}
             />
           </div>
         )}
@@ -259,7 +264,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
             map={active_map}
             combatants={encounter.combatants}
             active_combatant_id={active_combatant?.id}
-            token_styles={encounter.token_styles}
+            token_styles={token_styles}
             onMoveToken={handleMoveToken}
             onDamageMonster={handleDamageMonster}
             onHealMonster={handleHealMonster}
@@ -268,6 +273,8 @@ export function BattleMapView({ encounter, onExit }: Props) {
             fullscreen
             show_token_names
             drawing_enabled={drawing_enabled}
+            drawing_tool={drawing_tool}
+            drawing_line_width_ft={drawing_line_width_ft}
             drawing_color={drawing_color}
             drawing_stroke_width={drawing_stroke_width}
             onAddDrawing={(d) =>
@@ -305,6 +312,10 @@ export function BattleMapView({ encounter, onExit }: Props) {
             />
             <DrawingToolbar
               drawing_enabled={drawing_enabled}
+              tool={drawing_tool}
+              onToolChange={set_drawing_tool}
+              line_width_ft={drawing_line_width_ft}
+              onLineWidthChange={set_drawing_line_width_ft}
               onToggle={() => set_drawing_enabled(!drawing_enabled)}
               color={drawing_color}
               onColorChange={set_drawing_color}
@@ -384,6 +395,10 @@ export function BattleMapView({ encounter, onExit }: Props) {
           {active_map && (
             <DrawingToolbar
               drawing_enabled={drawing_enabled}
+              tool={drawing_tool}
+              onToolChange={set_drawing_tool}
+              line_width_ft={drawing_line_width_ft}
+              onLineWidthChange={set_drawing_line_width_ft}
               onToggle={() => set_drawing_enabled(!drawing_enabled)}
               color={drawing_color}
               onColorChange={set_drawing_color}
@@ -676,7 +691,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
                 active_index={encounter.turn_index}
                 round={encounter.round}
                 variant="dm"
-              token_styles={encounter.token_styles}
+              token_styles={token_styles}
               />
             </div>
           )}
@@ -724,7 +739,7 @@ export function BattleMapView({ encounter, onExit }: Props) {
                 map={active_map}
                 combatants={encounter.combatants}
                 active_combatant_id={active_combatant?.id}
-                token_styles={encounter.token_styles}
+                token_styles={token_styles}
                 onMoveToken={handleMoveToken}
                 onDamageMonster={handleDamageMonster}
                 onHealMonster={handleHealMonster}
@@ -732,6 +747,8 @@ export function BattleMapView({ encounter, onExit }: Props) {
                 movement_mode={movement_mode}
                 show_token_names
                 drawing_enabled={drawing_enabled}
+                drawing_tool={drawing_tool}
+                drawing_line_width_ft={drawing_line_width_ft}
                 drawing_color={drawing_color}
                 drawing_stroke_width={drawing_stroke_width}
                 onAddDrawing={(d) =>
@@ -780,6 +797,10 @@ const DRAWING_COLORS = [
 
 function DrawingToolbar({
   drawing_enabled,
+  tool,
+  onToolChange,
+  line_width_ft,
+  onLineWidthChange,
   onToggle,
   color,
   onColorChange,
@@ -790,6 +811,10 @@ function DrawingToolbar({
   variant = "light",
 }: {
   drawing_enabled: boolean;
+  tool: DrawingTool;
+  onToolChange: (tool: DrawingTool) => void;
+  line_width_ft: number;
+  onLineWidthChange: (widthFt: number) => void;
   onToggle: () => void;
   color: string;
   onColorChange: (c: string) => void;
@@ -843,27 +868,50 @@ function DrawingToolbar({
 
       {drawing_enabled && (
         <>
+          <DrawingToolControls
+            tool={tool}
+            onToolChange={onToolChange}
+            lineWidthFt={line_width_ft}
+            onLineWidthChange={onLineWidthChange}
+            dark={is_dark}
+          />
           {/* Color swatches */}
-          <div style={{ display: "flex", gap: 3 }}>
+          <div
+            role="group"
+            aria-label="Drawing color"
+            style={{ display: "flex", flexWrap: "wrap", gap: 2, maxWidth: "100%" }}
+          >
             {DRAWING_COLORS.map((c) => (
               <button
                 key={c}
                 onClick={() => onColorChange(c)}
                 title={c}
+                aria-label={`Drawing color ${c}`}
+                aria-pressed={color === c}
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  background: c,
-                  border:
-                    color === c
-                      ? "2px solid var(--color-text-info)"
-                      : "1px solid rgba(0,0,0,0.3)",
+                  width: 44,
+                  height: 44,
+                  border: 0,
                   cursor: "pointer",
                   padding: 0,
-                  boxShadow: color === c ? "0 0 0 1px white inset" : undefined,
+                  background: "transparent",
+                  display: "grid",
+                  placeItems: "center",
                 }}
-              />
+              >
+                <span
+                  style={{
+                    display: "block",
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: c,
+                    border: color === c ? "3px solid var(--color-text-info)" : "1px solid rgba(0,0,0,0.3)",
+                    boxShadow: color === c ? "0 0 0 1px white inset" : undefined,
+                    boxSizing: "border-box",
+                  }}
+                />
+              </button>
             ))}
           </div>
 

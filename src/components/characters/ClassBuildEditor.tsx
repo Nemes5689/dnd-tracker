@@ -142,8 +142,8 @@ export function ClassBuildEditor({
                   className="grid gap-2 items-end"
                   style={{ gridTemplateColumns: '1.4fr 90px 1.5fr 32px' }}
                 >
-                  <div>
-                    <div className="text-[10px] text-text-tertiary mb-1">Class</div>
+                  <label>
+                    <span className="block text-[10px] text-text-tertiary mb-1">Class</span>
                     <select
                       value={entry.class_id}
                       onChange={(event) => updateEntry(entry.id, { class_id: event.target.value })}
@@ -153,17 +153,17 @@ export function ClassBuildEditor({
                         <option key={cls.id} value={cls.id}>{cls.name}</option>
                       ))}
                     </select>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-text-tertiary mb-1">Level</div>
+                  </label>
+                  <label>
+                    <span className="block text-[10px] text-text-tertiary mb-1">Level</span>
                     <input
                       value={entry.level}
                       onChange={(event) => updateEntry(entry.id, { level: clampLevel(event.target.value) })}
                       style={{ width: '100%', boxSizing: 'border-box' }}
                     />
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-text-tertiary mb-1">Subclass</div>
+                  </label>
+                  <label>
+                    <span className="block text-[10px] text-text-tertiary mb-1">Subclass</span>
                     <select
                       value={entry.subclass_id ?? ''}
                       onChange={(event) => updateEntry(entry.id, { subclass_id: event.target.value || undefined })}
@@ -174,7 +174,7 @@ export function ClassBuildEditor({
                         <option key={sub.id} value={sub.id}>{sub.name}</option>
                       ))}
                     </select>
-                  </div>
+                  </label>
                   <button
                     type="button"
                     onClick={() => removeEntry(entry.id)}

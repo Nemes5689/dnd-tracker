@@ -194,6 +194,9 @@ export const useEncounterStore = create<EncounterStore>()(
           reaction_used: false,
           movement_used: 0,
         }));
+        const copied_ids = new Map(original.combatants.map((combatant, index) =>
+          [combatant.id, fresh_combatants[index].id] as const,
+        ));
         const copy: Encounter = {
           ...original,
           id: new_id,
@@ -203,7 +206,10 @@ export const useEncounterStore = create<EncounterStore>()(
           turn_index: 0,
           combatants: fresh_combatants,
           log: [],
-          token_styles: [], // tokens get fresh ids, so old styles are stale
+          token_styles: (original.token_styles ?? []).flatMap((style) => {
+            const combatant_id = copied_ids.get(style.combatant_id);
+            return combatant_id === undefined ? [] : [{ ...style, combatant_id }];
+          }),
           maps: [],
           active_map_id: null,
           created_at: Date.now(),
@@ -263,15 +269,15 @@ export const useEncounterStore = create<EncounterStore>()(
 
       addCombatant: (encounter_id, combatant) =>
         set((s) => ({
-          encounters: s.encounters.map((e) =>
-            e.id === encounter_id
-              ? {
-                  ...e,
-                  combatants: [...e.combatants, combatant],
-                  updated_at: Date.now(),
-                }
-              : e
-          ),
+          encounters: s.encounters.map((e) => {
+            if (e.id !== encounter_id) return e;
+            const combatants = [...e.combatants, combatant];
+            if (e.status !== 'active') return { ...e, combatants, updated_at: Date.now() };
+            const active_id = sortByInitiative(e.combatants)[e.turn_index]?.id;
+            const ordered = sortByInitiative(combatants);
+            const turn_index = Math.max(0, ordered.findIndex((actor) => actor.id === active_id));
+            return { ...e, combatants: ordered, turn_index, updated_at: Date.now() };
+          }),
         })),
 
       removeCombatant: (encounter_id, combatant_id) =>

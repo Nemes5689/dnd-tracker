@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test:statblock": "node --test tests/statBlockImport.test.ts",
+    "test:geometry": "node --test tests/areaTemplateGeometry.test.ts",
     "dev": "vite",
     "build": "vite build",
     "build:typecheck": "tsc -b && vite build",

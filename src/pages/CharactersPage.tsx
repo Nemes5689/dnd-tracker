@@ -1048,7 +1048,7 @@ function WeaponsEditor({
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
-        <div className="text-[12px] font-medium">Weapon attacks</div>
+        <h3 className="text-[12px] font-medium m-0">Quick Attacks</h3>
         <button
           onClick={add}
           type="button"

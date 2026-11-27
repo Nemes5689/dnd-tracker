@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import type { MapDrawing, EffectType } from '@/types/app';
+import type { DrawingTool, MapDrawing, EffectType } from '@/types/app';
 import { EFFECTS, EFFECT_LIST, EffectDefs } from './effectDefs';
+import { buildAreaTemplateGeometry, type BuiltAreaTemplate, type ImagePoint } from '@/utils/areaTemplateGeometry';
 
 interface DrawingLayerProps {
   // Map-space dimensions (pixels of the underlying map image)
@@ -10,10 +11,15 @@ interface DrawingLayerProps {
   drawings: MapDrawing[];
   // True if the user is in draw mode (pointer events captured)
   drawing_enabled: boolean;
+  drawing_tool?: DrawingTool;
   // Currently selected stroke color (hex string)
   current_color: string;
   // Stroke width in image pixels
   stroke_width: number;
+  line_width_ft?: number;
+  grid_size: number;
+  grid_offset_x: number;
+  grid_offset_y: number;
   // Distance (image px) within which last point closes the shape
   close_threshold?: number;
   // Called when a new stroke is finished (open or closed). The drawing has no
@@ -40,8 +46,13 @@ export function DrawingLayer({
   height,
   drawings,
   drawing_enabled,
+  drawing_tool = 'freehand',
   current_color,
   stroke_width,
+  line_width_ft = 5,
+  grid_size,
+  grid_offset_x,
+  grid_offset_y,
   close_threshold = 35,
   onAddDrawing,
   onUpdateDrawing,
@@ -50,8 +61,10 @@ export function DrawingLayer({
 }: DrawingLayerProps) {
   const svg_ref = useRef<SVGSVGElement>(null);
   const [active_stroke, set_active_stroke] = useState<
-    { x: number; y: number }[] | null
+    ImagePoint[] | null
   >(null);
+  const [active_area, set_active_area] = useState<BuiltAreaTemplate | null>(null);
+  const area_start = useRef<ImagePoint | null>(null);
   // ID of the drawing whose menu is open (for setting effect / deleting)
   const [menu_drawing_id, set_menu_drawing_id] = useState<string | null>(null);
   // ID of a freshly-completed CLOSED drawing waiting for effect choice
@@ -82,12 +95,31 @@ export function DrawingLayer({
     if (e.button !== 0) return; // only primary button
     const pt = pointer_to_image(e);
     if (!pt) return;
-    set_active_stroke([pt]);
-    (e.target as Element).setPointerCapture?.(e.pointerId);
+    if (drawing_tool === 'freehand') {
+      set_active_stroke([pt]);
+    } else {
+      area_start.current = pt;
+      set_active_area(null);
+    }
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     e.stopPropagation();
   };
 
   const handle_pointer_move = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (area_start.current && drawing_tool !== 'freehand') {
+      const point = pointer_to_image(e);
+      if (!point) return;
+      set_active_area(buildAreaTemplateGeometry({
+        kind: drawing_tool,
+        start: area_start.current,
+        end: point,
+        grid_size,
+        grid_offset_x,
+        grid_offset_y,
+        line_width_ft,
+      }));
+      return;
+    }
     if (!active_stroke) return;
     const pt = pointer_to_image(e);
     if (!pt) return;
@@ -100,6 +132,36 @@ export function DrawingLayer({
   };
 
   const handle_pointer_up = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (area_start.current && drawing_tool !== 'freehand') {
+      const start = area_start.current;
+      const end = pointer_to_image(e);
+      area_start.current = null;
+      set_active_area(null);
+      if (!end) return;
+      const geometry = buildAreaTemplateGeometry({
+        kind: drawing_tool,
+        start,
+        end,
+        grid_size,
+        grid_offset_x,
+        grid_offset_y,
+        line_width_ft,
+      });
+      if (!geometry) return;
+      const drawing: MapDrawing = {
+        id: crypto.randomUUID(),
+        points: geometry.points,
+        color: current_color,
+        stroke_width,
+        is_closed: true,
+        area_template: geometry.area_template,
+        created_at: Date.now(),
+      };
+      onAddDrawing(drawing);
+      set_pending_effect_drawing_id(drawing.id);
+      e.stopPropagation();
+      return;
+    }
     if (!active_stroke) return;
     if (active_stroke.length < 3) {
       // Too short to be a stroke — discard
@@ -175,7 +237,12 @@ export function DrawingLayer({
         onPointerDown={handle_pointer_down}
         onPointerMove={handle_pointer_move}
         onPointerUp={handle_pointer_up}
-        onPointerCancel={() => set_active_stroke(null)}
+    onPointerCancel={() => {
+      set_active_stroke(null);
+      set_active_area(null);
+      area_start.current = null;
+    }}
+    data-map-drawing-layer
       >
         <EffectDefs />
 
@@ -188,6 +255,8 @@ export function DrawingLayer({
           return (
             <g
               key={d.id}
+              data-drawing-id={d.id}
+              data-area-shape={d.area_template?.kind}
               style={{
                 cursor: read_only ? 'default' : 'pointer',
                 pointerEvents: read_only ? 'none' : 'auto',
@@ -216,6 +285,12 @@ export function DrawingLayer({
                 strokeLinejoin="round"
                 opacity={has_effect ? 0.9 : 1}
               />
+              {d.area_template && (
+                <>
+                  <title>{formatAreaTemplate(d.area_template)}</title>
+                  <AreaTemplateLabel shape={d.area_template} points={d.points} color={d.color} />
+                </>
+              )}
             </g>
           );
         })}
@@ -232,6 +307,19 @@ export function DrawingLayer({
             opacity={0.95}
             pointerEvents="none"
           />
+        )}
+        {active_area && (
+          <g pointerEvents="none" data-area-preview={active_area.area_template.kind}>
+            <path
+              d={`${points_to_path(active_area.points)} Z`}
+              fill="rgba(245, 217, 152, 0.2)"
+              stroke={current_color}
+              strokeWidth={stroke_width}
+              strokeDasharray="6 4"
+              strokeLinejoin="round"
+            />
+            <AreaTemplateLabel shape={active_area.area_template} points={active_area.points} color={current_color} />
+          </g>
         )}
       </svg>
 
@@ -278,6 +366,63 @@ export function DrawingLayer({
         />
       )}
     </>
+  );
+}
+
+function formatAreaTemplate(shape: NonNullable<MapDrawing['area_template']>): string {
+  switch (shape.kind) {
+    case 'circle': return `Sphere · radius ${shape.radius_ft} ft`;
+    case 'cone': return `Cone · ${shape.length_ft} ft`;
+    case 'square': return `Cube · ${shape.side_ft} ft`;
+    case 'line': return `Line · ${shape.length_ft} ft × ${shape.width_ft} ft`;
+  }
+}
+
+function AreaTemplateLabel({
+  shape,
+  points,
+  color,
+}: {
+  shape: NonNullable<MapDrawing['area_template']>;
+  points: ImagePoint[];
+  color: string;
+}) {
+  if (points.length === 0) return null;
+  const minX = Math.min(...points.map(({ x }) => x));
+  const minY = Math.min(...points.map(({ y }) => y));
+  let x = minX + 4;
+  let y = minY + 18;
+  let anchor: 'start' | 'middle' = 'start';
+  if (shape.kind === 'circle') {
+    x = shape.origin.x;
+    y = minY - 7;
+    anchor = 'middle';
+  } else if (shape.kind === 'cone' && points.length >= 3) {
+    x = (points[1].x + points[2].x) / 2;
+    y = (points[1].y + points[2].y) / 2 - 7;
+    anchor = 'middle';
+  } else if (shape.kind === 'line' && points.length >= 4) {
+    x = (points[0].x + points[2].x) / 2;
+    y = (points[0].y + points[2].y) / 2 - 7;
+    anchor = 'middle';
+  } else if (shape.kind === 'square') {
+    x = minX + 4;
+  }
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      fontSize={16}
+      fontWeight={700}
+      fill={color}
+      stroke="rgba(255,255,255,0.95)"
+      strokeWidth={4}
+      paintOrder="stroke"
+      pointerEvents="none"
+    >
+      {formatAreaTemplate(shape)}
+    </text>
   );
 }
 
