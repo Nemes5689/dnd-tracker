@@ -396,6 +396,7 @@ export function CombatView({ encounter, onExit }: Props) {
                 set_popup_combatant_id(null);
               }}
               onSetInitiative={(value) => setInitiative(encounter.id, c.id, value)}
+              onToggleProjectorVisibility={() => updateCombatant(encounter.id, c.id, { hidden_from_players: !c.hidden_from_players })}
             />
           ))}
         </div>
@@ -523,6 +524,7 @@ function CombatantInitRow({
   onApplyDamage,
   onApplyHeal,
   onSetInitiative,
+  onToggleProjectorVisibility,
 }: {
   combatant: Combatant;
   is_active: boolean;
@@ -533,6 +535,7 @@ function CombatantInitRow({
   onApplyDamage: (amount: number) => void;
   onApplyHeal: (amount: number) => void;
   onSetInitiative: (new_value: number) => void;
+  onToggleProjectorVisibility: () => void;
 }) {
   const [dmg_input, set_dmg_input] = useState('');
   const [heal_input, set_heal_input] = useState('');
@@ -570,6 +573,7 @@ function CombatantInitRow({
           {is_active && <strong>Current turn</strong>}
           {is_previewed && !is_active && <strong>Selected</strong>}
           {!is_pc && <span>{combatant.hp_current <= 0 ? (combatant.is_ally || combatant.source_type === 'ally' ? 'Down · 0 HP' : 'Defeated · 0 HP') : combatant.hp_current < combatant.hp_max ? 'Damaged' : 'Full health'}</span>}
+          {combatant.hidden_from_players && <strong>Hidden from projector</strong>}
         </div>
         <div className="initiative-name-row flex justify-between items-center mb-1">
           <button
@@ -590,6 +594,16 @@ function CombatantInitRow({
             )}
           </button>
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={(event) => { event.stopPropagation(); onToggleProjectorVisibility(); }}
+              aria-label={combatant.hidden_from_players ? `Show ${combatant.name} on projector` : `Hide ${combatant.name} from projector`}
+              aria-pressed={!combatant.hidden_from_players}
+              title={combatant.hidden_from_players ? 'Show on projector' : 'Hide from projector'}
+              style={{ fontSize: 11, padding: '2px 5px', minWidth: 24 }}
+            >
+              {combatant.hidden_from_players ? '◌' : '◉'}
+            </button>
             <span
               role={editing_init ? undefined : 'button'}
               tabIndex={editing_init ? undefined : 0}

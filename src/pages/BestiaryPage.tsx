@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSRDStore } from '@/store/srdStore';
 import { useCustomMonsterStore } from '@/store/customMonsterStore';
 import { CustomMonsterForm } from '@/components/bestiary/CustomMonsterForm';
 import { StatBlockImporter } from '@/components/bestiary/StatBlockImporter';
+import { AddToEncounterDialog } from '@/components/bestiary/AddToEncounterDialog';
 import { Lightbox } from '@/components/common/Lightbox';
 import { ClassFeaturesPanel } from '@/components/characters/ClassFeaturesPanel';
 import { OriginFeaturesPanel, formatOriginSummary } from '@/components/characters/OriginEditor';
@@ -244,6 +246,8 @@ function RangeInputs({
 }
 
 export function BestiaryPage() {
+  const [adding, setAdding] = useState<Monster | null>(null);
+  const [added, setAdded] = useState<{ id: string; name: string; count: number } | null>(null);
   const { loaded, loading, monsters: srd_monsters, load } = useSRDStore();
   const { monsters: custom_monsters, deleteMonster } = useCustomMonsterStore();
 
@@ -577,9 +581,18 @@ export function BestiaryPage() {
         </div>
 
         <div className="overflow-y-auto p-7">
+          <div role="status">
+            {added && (
+              <p className="mb-3 text-sm">
+                {added.count === 1 ? 'One creature added to ' : `${added.count} creatures added to `}
+                <Link to={`/combat?encounter=${encodeURIComponent(added.id)}`} className="underline">{added.name}</Link>.
+              </p>
+            )}
+          </div>
           {selected ? (
             <MonsterDetail
               monster={selected}
+              onAdd={() => setAdding(selected)}
               onDuplicate={handleDuplicate}
               onEdit={selected.source === 'Custom' ? handleEdit : undefined}
               onDelete={selected.source === 'Custom' ? handleDeleteSelected : undefined}
@@ -589,6 +602,17 @@ export function BestiaryPage() {
           )}
         </div>
       </div>
+
+      {adding && (
+        <AddToEncounterDialog
+          monster={adding}
+          onClose={() => setAdding(null)}
+          onAdded={result => {
+            setAdded(result);
+            setAdding(null);
+          }}
+        />
+      )}
 
       {show_importer && <StatBlockImporter destination="monster" onClose={() => set_show_importer(false)}
         onSaved={id => { setSearch(''); set_source_filter('custom'); resetAdvancedFilters(); setSelected(useCustomMonsterStore.getState().monsters.find(m => m.id === id) ?? null); }}
@@ -617,12 +641,14 @@ export function BestiaryPage() {
 function MonsterDetail({
   monster,
   readOnly = false,
+  onAdd,
   onDuplicate,
   onEdit,
   onDelete,
 }: {
   monster: Monster;
   readOnly?: boolean;
+  onAdd?: () => void;
   onDuplicate: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -634,7 +660,7 @@ function MonsterDetail({
 
   return (
     <div>
-      <div className="flex justify-between items-start mb-1">
+      <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
         <div className="flex items-center gap-3">
           {monster.avatar && (
             <div
@@ -659,7 +685,12 @@ function MonsterDetail({
             )}
           </h2>
         </div>
-        <div className="flex gap-2" hidden={readOnly} style={readOnly ? { display: 'none' } : undefined}>
+        <div className="flex flex-wrap gap-2" hidden={readOnly} style={readOnly ? { display: 'none' } : undefined}>
+          {onAdd && (
+            <button onClick={onAdd} className="bg-accent-50 border-accent-300 text-accent-900" style={{ fontSize: '12px', padding: '6px 12px' }}>
+              Add to encounter
+            </button>
+          )}
           {onEdit && (
             <button onClick={onEdit} className="bg-accent-50 border-accent-300 text-accent-900" style={{ fontSize: '12px', padding: '6px 12px' }}>
               Edit

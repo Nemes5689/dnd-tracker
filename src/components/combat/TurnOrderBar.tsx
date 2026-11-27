@@ -1,4 +1,5 @@
 import type { Combatant, CombatantTokenStyle } from '@/types/app';
+import { TokenFace, tokenColors } from './TokenFace';
 
 interface Props {
   combatants: Combatant[]; // already in initiative order (sorted)
@@ -103,14 +104,7 @@ function TurnEntry({
   is_proj: boolean;
   position: number;
 }) {
-  // Color by type: PC blue, ally green, monster red
-  const colors = combatant.is_player
-    ? { bg: '#3B82F6', border: '#1E40AF' }
-    : combatant.is_ally
-    ? { bg: '#22C55E', border: '#15803D' }
-    : { bg: '#DC2626', border: '#7F1D1D' };
-  const initial = style?.initial ?? combatant.name.charAt(0).toUpperCase();
-  const has_avatar = !!style?.avatar;
+  const colors = tokenColors(combatant);
 
   // Fade upcoming entries based on distance from active
   const opacity = is_active ? 1 : Math.max(0.4, 1 - position * 0.15);
@@ -133,9 +127,8 @@ function TurnEntry({
           width: dot_size,
           height: dot_size,
           borderRadius: '50%',
-          background: has_avatar
-            ? `url(${style!.avatar}) center/cover no-repeat`
-            : (style?.color ?? colors.bg),
+          background: style?.color ?? colors.bg,
+          position: 'relative',
           color: '#fff',
           fontWeight: 700,
           fontSize: is_active ? (is_proj ? 16 : 13) : is_proj ? 13 : 11,
@@ -147,7 +140,7 @@ function TurnEntry({
           flexShrink: 0,
         }}
       >
-        {!has_avatar && initial}
+        <TokenFace combatant={combatant} style={style} />
       </div>
       <div
         style={{
